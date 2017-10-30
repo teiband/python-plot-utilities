@@ -11,7 +11,7 @@ This is a Python module that contains some useful plotting utilities. Current fu
 
 ## Gallery
 
-#### 3D histograms
+### 1. 3D histograms
 
 ```{python}
 >>> import plot_utils as pu
@@ -24,7 +24,7 @@ For more details, see the `examples`  folder.
 
 ![histogram_3d](./examples/gallery/histogram_3d.png)
 
-#### Choropleth map (state level)
+### 2. Choropleth map (state level)
 
 ```python
 >>> import plot_utils as pu
@@ -37,7 +37,7 @@ For more details, see the `examples` folder.
 
 ![choropleth_map_state](./examples/gallery/choropleth_map_state.png)
 
-#### Choropleth map (county level)
+### 3. Choropleth map (county level)
 
 ```{python}
 >>> import plot_utils as pu
@@ -50,7 +50,7 @@ The example (`Choropleth_map_plotting.ipynb`) in the `examples` folder shows how
 
 ![choropleth_map_county](./examples/gallery/choropleth_map_county.png)
 
-#### Time series plotting
+### 4. Time series plotting
 
 ```Python
 >>> import plot_utils as pu
@@ -64,7 +64,7 @@ For more detailed usage, check out `examples` folder.
 
 ![time_series](./examples/gallery/time_series.png)
 
-#### Plot with error bounds
+### 5. Plot with error bounds
 
 ```{python}
 >>> import plot_utils as pu
