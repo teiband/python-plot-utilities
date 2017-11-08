@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 #%%############################################################################
-def histogram3d(X,bins=10,fig_obj=None,axes_obj=None,
+def histogram3d(X,bins=10,fig=None,ax=None,
                 elev=30,azim=5,alpha=0.6,data_labels=None,
                 plot_legend=True,plot_xlabel=False,
                 dx_factor=0.6,dy_factor=0.8,
@@ -45,7 +45,7 @@ def histogram3d(X,bins=10,fig_obj=None,axes_obj=None,
                (2) An array or list, which specifies bin edges.
                    [Note: If an integer is used, the widths of bars across data
                           sets may be different. Thus array/list is recommended.]
-        fig_obj, axes_obj:
+        fig, ax:
             Figure and axes objects.
             If provided, the histograms are plotted on the provided figure and
             axes. If not, a new figure and new axes are created.
@@ -69,7 +69,7 @@ def histogram3d(X,bins=10,fig_obj=None,axes_obj=None,
         ylabel, zlabel: Labels of y and z axes
 
     [Outputs]
-      - fig_obj: figure object for the user to manipulate after calling this function
+      - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
     '''
 
@@ -96,15 +96,15 @@ def histogram3d(X,bins=10,fig_obj=None,axes_obj=None,
         for j in range(N):
             data_labels[j] = 'Dataset #%d' % (j+1)  # use generic data set names
 
-    if fig_obj is None:  # if a figure handle is not provided, create new figure
-        fig_obj = pl.figure(figsize=(8,4),dpi=96,facecolor='w',edgecolor='k')
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=(8,4),dpi=96,facecolor='w',edgecolor='k')
     else:   # if provided, plot to the specified figure
-        pl.figure(fig_obj.number)
+        pl.figure(fig.number)
 
-    if axes_obj is None:  # if axes_obj is not provided
+    if ax is None:  # if ax is not provided
         ax = plt.axes(projection='3d')  # create new axes and plot lines on it
     else:
-        ax = axes_obj  # plot lines on the provided axes handle
+        ax = ax  # plot lines on the provided axes handle
 
     ax.view_init(elev,azim)  # set view elevation and angle
 
@@ -157,7 +157,7 @@ def histogram3d(X,bins=10,fig_obj=None,axes_obj=None,
 
     plt.tight_layout(pad=0.3)
 
-    return fig_obj, ax
+    return fig, ax
 
 #%%############################################################################
 def get_colors(N,color_scheme='tab10'):
@@ -273,7 +273,8 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
             sys.exit()
 
 #%%############################################################################
-def discrete_histogram(x,fig_obj=None,axes_obj=None,color=None,alpha=None,rot=0):
+def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
+                       rot=0,logy=False,title='',figsize=(5,3),dpi=100):
     '''
     Plot a discrete histogram based on "x", such as below:
 
@@ -296,7 +297,7 @@ def discrete_histogram(x,fig_obj=None,axes_obj=None,color=None,alpha=None,rot=0)
 
     [Inputs]
        x:  A list of numpy array that contain the data to be visualized.
-       fig_obj, axes_obj:
+       fig, ax:
             Figure and axes objects.
             If provided, the histograms are plotted on the provided figure and
             axes. If not, a new figure and new axes are created.
@@ -306,29 +307,34 @@ def discrete_histogram(x,fig_obj=None,axes_obj=None,color=None,alpha=None,rot=0)
        rot: Rotation angle (degrees) of x axis label. Default = 0 (upright label)
 
     [Outputs]
-      - fig_obj: figure object for the user to manipulate after calling this function
+      - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
     [Reference]
     http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.plot.html
     http://pandas.pydata.org/pandas-docs/version/0.18.1/visualization.html#bar-plots
     '''
 
-    if fig_obj is None:  # if a figure handle is not provided, create new figure
-        fig_obj = pl.figure()
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=figsize,dpi=dpi)
     else:   # if provided, plot to the specified figure
-        pl.figure(fig_obj.number)
+        pl.figure(fig.number)
 
-    if axes_obj is None:  # if axes_obj is not provided
+    if ax is None:  # if ax is not provided
         ax = plt.axes()  # create new axes and plot lines on it
     else:
-        ax = axes_obj  # plot lines on the provided axes handle
+        ax = ax  # plot lines on the provided axes handle
 
     X = pd.Series(x)  # convert x into series
     value_count = X.value_counts().sort_index()  # count distinct values and sort
-    ax = value_count.plot.bar(color=color,alpha=alpha,ax=ax,rot=rot)
+    ax = value_count.plot.bar(color=color,alpha=alpha,ax=ax,rot=rot)#,logy=logy,ylim=(1,10000))
     ax.set_ylabel('Number of occurrences')
+    if np.abs(rot) > 0:
+        ax.set_xticklabels(value_count.index,rotation=rot,ha='right')
+    if logy:   # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.yscale
+        ax.set_yscale('log', nonposy='clip')  # https://stackoverflow.com/a/17952890
+    ax.set_title(title)
 
-    return fig_obj, ax
+    return fig, ax
 
 #%%############################################################################
 from matplotlib.ticker import ScalarFormatter
@@ -400,7 +406,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
               [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
     [Outputs]
-      - fig_obj: figure object for the user to manipulate after calling this function
+      - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
 
     [References]
@@ -606,7 +612,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_
               [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
     [Outputs]
-      - fig_obj: figure object for the user to manipulate after calling this function
+      - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
 
     [References]
@@ -1003,7 +1009,7 @@ def check_all_states(dict1):
     return dict2
 
 #%%============================================================================
-def plot_timeseries(time_series,fig_obj=None,axes_obj=None,figsize=(10,3),
+def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
                    xlabel='Time',ylabel=None,label=None,color=None,lw=2,ls='-',
                    marker=None,fontsize=12,xgrid_on=True,ygrid_on=True,
                    title=None,dpi=96,month_grid_width=None):
@@ -1014,7 +1020,7 @@ def plot_timeseries(time_series,fig_obj=None,axes_obj=None,figsize=(10,3),
       - time_series: A pandas Series, with index being date;
                      or a pandas DataFrame, with index being date, and each
                      column being a different time series.
-      - fig_obj, axes_obj:
+      - fig, ax:
             Figure and axes objects.
             If provided, the histograms are plotted on the provided figure and
             axes. If not, a new figure and new axes are created.
@@ -1035,21 +1041,21 @@ def plot_timeseries(time_series,fig_obj=None,axes_obj=None,figsize=(10,3),
                           are doing.
 
     [Outputs]
-      - fig_obj: figure object for the user to manipulate after calling this function
+      - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
     '''
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
     ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
 
-    if fig_obj is None:  # if a figure handle is not provided, create new figure
-        fig_obj = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
     else:   # if provided, plot to the specified figure
-        pl.figure(fig_obj.number)
+        pl.figure(fig.number)
 
-    if axes_obj is None:  # if axes_obj is not provided
+    if ax is None:  # if ax is not provided
         ax = plt.axes()  # create new axes and plot lines on it
     else:
-        ax = axes_obj  # plot lines on the provided axes handle
+        ax = ax  # plot lines on the provided axes handle
 
     ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label)
     ax.set_label(label)  # set label for legends using argument 'label'
@@ -1070,10 +1076,10 @@ def plot_timeseries(time_series,fig_obj=None,axes_obj=None,figsize=(10,3),
     if title is not None:
         ax.set_title(title)
 
-    for o in fig_obj.findobj(mpl.text.Text):
+    for o in fig.findobj(mpl.text.Text):
         o.set_fontsize(fontsize)
 
-    return fig_obj, ax
+    return fig, ax
 
 #%%============================================================================
 def plot_multiple_timeseries(multiple_time_series,show_legend=True,
@@ -1101,7 +1107,7 @@ def plot_multiple_timeseries(multiple_time_series,show_legend=True,
 
         for j in range(nr_timeseries):
             plot_timeseries(multiple_time_series.iloc[:,j],
-                            fig_obj=fig, axes_obj=ax,
+                            fig=fig, ax=ax,
                             label=multiple_time_series.columns[j],
                             ls=linestyle_list[int(j/10) % len(linestyle_list)],
                             marker=marker_list[int(j/10) % len(marker_list)],
@@ -1118,7 +1124,7 @@ def plot_multiple_timeseries(multiple_time_series,show_legend=True,
 
 #%%============================================================================
 def fill_timeseries(time_series,upper_bound,lower_bound,
-                    fig_obj=None,axes_obj=None,figsize=(10,3),
+                    fig=None,ax=None,figsize=(10,3),
                     xlabel='Time',ylabel=None,label=None,
                     color=None,lw=3,ls='-',fontsize=12,title=None,dpi=96,
                     xgrid_on=True,ygrid_on=True):
@@ -1132,7 +1138,7 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
       - time_series: a pandas Series, with index being date
       - upper_bound, lower_bound: upper/lower bounds of the time series,
                                   must have the same length as time_series
-      - fig_obj, axes_obj:
+      - fig, ax:
             Figure and axes objects.
             If provided, the histograms are plotted on the provided figure and
             axes. If not, a new figure and new axes are created.
@@ -1156,7 +1162,7 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
                           are doing.
 
     [Outputs]
-      - fig_obj: figure object for the user to manipulate after calling this function
+      - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
     '''
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
@@ -1164,15 +1170,15 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
     lb = lower_bound.copy()
     ub = upper_bound.copy()
 
-    if fig_obj is None:  # if a figure handle is not provided, create new figure
-        fig_obj = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
     else:   # if provided, plot to the specified figure
-        pl.figure(fig_obj.number)
+        pl.figure(fig.number)
 
-    if axes_obj is None:  # if axes_obj is not provided
+    if ax is None:  # if ax is not provided
         ax = plt.axes()  # create new axes and plot lines on it
     else:
-        ax = axes_obj  # plot lines on the provided axes handle
+        ax = ax  # plot lines on the provided axes handle
 
     ax.fill_between(ts.index,lb,ub,color=color,facecolor=color,
                     linewidth=0.01,alpha=0.5,interpolate=True)
@@ -1194,10 +1200,10 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
     if title is not None:
         ax.set_title(title)
 
-    for o in fig_obj.findobj(mpl.text.Text):
+    for o in fig.findobj(mpl.text.Text):
         o.set_fontsize(fontsize)
 
-    return fig_obj, ax
+    return fig, ax
 
 #%%============================================================================
 def calc_month_interval(date_array):
@@ -1395,7 +1401,7 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
                            shade_color=[0.7]*3,shade_alpha=0.5,linewidth=2.0,
                            legend_loc='best',
                            line_label='Data',shade_label='$\mathregular{\pm}$STD',
-                           fig_obj=None,axes_obj=None,
+                           fig=None,ax=None,
                            x_scale='linear',y_scale='linear',grid_on=True):
     '''
     Plot a graph with one line and its upper and lower bounds, with areas between
@@ -1427,25 +1433,25 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
         legend_loc: location of the legend, to be passed directly to plt.legend()
         line_label: label of the line of y, to be used in the legend
         shade_label: label of the shades, to be used in the legend
-        fig_obj, axes_obj:
+        fig, ax:
             Figure and axes objects.
             If provided, the histograms are plotted on the provided figure and
             axes. If not, a new figure and new axes are created.        y_scale
         grid_on: whether or not to show the grids
 
     [Outputs]
-        fig_obj: figure object for the user to manipulate after calling this function
+        fig: figure object for the user to manipulate after calling this function
         ax: axes object for the user to manipulate after calling this function
     '''
-    if fig_obj is None:  # if a figure handle is not provided, create new figure
-        fig_obj = pl.figure()
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure()
     else:   # if provided, plot to the specified figure
-        pl.figure(fig_obj.number)
+        pl.figure(fig.number)
 
-    if axes_obj is None:  # if axes_obj is not provided
+    if ax is None:  # if ax is not provided
         ax = plt.axes()  # create new axes and plot lines on it
     else:
-        ax = axes_obj  # plot lines on the provided axes handle
+        ax = ax  # plot lines on the provided axes handle
 
     hl1 = ax.fill_between(x, lower_bound, upper_bound,
                            color=shade_color, facecolor=shade_color,
@@ -1461,5 +1467,5 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
 
     plt.legend(handles=[hl2,hl1],loc=legend_loc)
 
-    return (fig_obj, ax)
+    return (fig, ax)
 
