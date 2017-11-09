@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 """
+This is a Python module that contains some useful plotting utilities.
+
+For user guide, check: https://github.com/jsh9/python-plot-utilities
+
 Created on Fri Apr 28 15:37:26 2017
 
-@author: Jian
+Copyright (c) 2017, Jian Shi
+License: GPL v3
 """
 
 import os
@@ -31,46 +36,49 @@ def histogram3d(X,bins=10,fig=None,ax=None,
                      bars will occupy three different x values)
         y direction: within dataset
 
-    [Inputs]
-        X: Input data. X can be:
-               (1) a 2D numpy array, where each row is one data set;
-               (2) a 1D numpy array, containing only one set of data;
-               (3) a list of lists, e.g., [[1,2,3],[2,3,4,5],[2,4]], where each
-                   element corresponds to a data set (can have different lengths);
-               (4) a list of 1D numpy arrays.
-                   [Note: Robustness is not guaranteed for X being a list of
-                          2D numpy arrays.]
-        bins: Bin specifications. Can be:
-               (1) An integer, which indicates number of bins;
-               (2) An array or list, which specifies bin edges.
-                   [Note: If an integer is used, the widths of bars across data
-                          sets may be different. Thus array/list is recommended.]
-        fig, ax:
-            Figure and axes objects.
-            If provided, the histograms are plotted on the provided figure and
-            axes. If not, a new figure and new axes are created.
-        elev, azim:
-            Elevation and azimuth (3D projection view points)
-        alpha:
-            Opacity of bars
-        data_labels:
-            Names of different datasets, e.g., ['Simulation', 'Measurement'].
-            If not provided, generic names ['Dataset #1', 'Dataset #2', ...]
-            are used. The data_labels are only shown when either plot_legend or
-            plot_xlabel is True.
-        plot_legend:
-            Whether to show legends or not
-        plot_xlabel:
-            Whether to show data_labels of each data set on their respective x
-            axis position or not
-        dx_factor, dy_factor:
-            Width factor 3D bars in x and y directions. For example, if dy_factor
-            is 0.9, there will be a small gap between bars in y direction.
-        ylabel, zlabel: Labels of y and z axes
+    [Parameters]
+    X:
+        Input data. X can be:
+           (1) a 2D numpy array, where each row is one data set;
+           (2) a 1D numpy array, containing only one set of data;
+           (3) a list of lists, e.g., [[1,2,3],[2,3,4,5],[2,4]], where each
+               element corresponds to a data set (can have different lengths);
+           (4) a list of 1D numpy arrays.
+               [Note: Robustness is not guaranteed for X being a list of
+                      2D numpy arrays.]
+    bins:
+        Bin specifications. Can be:
+           (1) An integer, which indicates number of bins;
+           (2) An array or list, which specifies bin edges.
+               [Note: If an integer is used, the widths of bars across data
+                      sets may be different. Thus array/list is recommended.]
+    fig, ax:
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    elev, azim:
+        Elevation and azimuth (3D projection view points)
+    alpha:
+        Opacity of bars
+    data_labels:
+        Names of different datasets, e.g., ['Simulation', 'Measurement'].
+        If not provided, generic names ['Dataset #1', 'Dataset #2', ...]
+        are used. The data_labels are only shown when either plot_legend or
+        plot_xlabel is True.
+    plot_legend:
+        Whether to show legends or not
+    plot_xlabel:
+        Whether to show data_labels of each data set on their respective x
+        axis position or not
+    dx_factor, dy_factor:
+        Width factor 3D bars in x and y directions. For example, if dy_factor
+        is 0.9, there will be a small gap between bars in y direction.
+    ylabel, zlabel:
+        Labels of y and z axes
 
     [Returns]
-      - fig: figure object for the user to manipulate after calling this function
-      - ax: axes object for the user to manipulate after calling this function
+    fix, ax:
+        Figure and axes objects
     '''
 
     from mpl_toolkits.mplot3d import Axes3D
@@ -216,7 +224,7 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
     like the upper x_limit to be a multiple of 50, then this function returns
     950.
 
-    [Inputs]
+    [Parameters]
         data_limit: The upper and/or lower limit(s) of data.
                     (1) If a tuple (or list) of two elements is provided, then
                         the upper and lower axis limits are automatically
@@ -295,20 +303,25 @@ def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
     In the figure, N is the number of values where x = x1, x2, x3, or x4.
     And x1, x2, x3, x4, etc. are the discrete values within x.
 
-    [Inputs]
-       x:  A list of numpy array that contain the data to be visualized.
-       fig, ax:
-            Figure and axes objects.
-            If provided, the histograms are plotted on the provided figure and
-            axes. If not, a new figure and new axes are created.
-       color: Color of bar. If not specified, the default color (muted blue)
-               is used.
-       alpha: Opacity of bar. If not specified, the default value (1.0) is used.
-       rot: Rotation angle (degrees) of x axis label. Default = 0 (upright label)
+    [Parameters]
+    x:
+        A list of numpy array that contain the data to be visualized.
+    fig, ax:
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    color:
+        Color of bar. If not specified, the default color (muted blue)
+        is used.
+    alpha:
+        Opacity of bar. If not specified, the default value (1.0) is used.
+    rot:
+        Rotation angle (degrees) of x axis label. Default = 0 (upright label)
 
     [Returns]
-      - fig: figure object for the user to manipulate after calling this function
-      - ax: axes object for the user to manipulate after calling this function
+    fix, ax:
+        Figure and axes objects
+
     [Reference]
     http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.plot.html
     http://pandas.pydata.org/pandas-docs/version/0.18.1/visualization.html#bar-plots
@@ -367,10 +380,10 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
     variable being displayed on the map, such as population density or
     per-capita income.
 
-    [Inputs]
-      - data_per_state:
-          Numerical data of each state, to be plotted onto the map.
-          Acceptable data types include:
+    [Parameters]
+    data_per_state:
+        Numerical data of each state, to be plotted onto the map.
+        Acceptable data types include:
             - pandas Series: Index should be valid state identifiers (i.e.,
                              state full name, abbreviation, or FIPS code)
             - pandas DataFrame: The dataframe can have only one columns (with
@@ -380,39 +393,46 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
                                 identifiers).
             - dictionary: with keys being valid state identifiers, and values
                           being the numerical values to be visualized
-      - vmin: Minimum value to be shown on the map. If vmin is larger than the
-              actual minimum value in the data, some of the data values will be
-              "clipped". This is useful if there are extreme values in the data
-              and you do not want those values to complete skew the color
-              distribution.
-      - vmax: Maximum value to be shown on the map. Similar to vmin.
-      - map_title: Title of the map, to be shown on the top of the map.
-      - unit: Unit of the numerical (for example, "population per km^2"), to be
-              shown on the right side of the color bar.
-      - cmap: Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
-              for plotting deviation maps.
-      - fontsize: Font size of all the texts on the map.
-      - cmap_midpoint:
-          A numerical value that specifies the "deviation point". For example,
-          if your data ranges from -200 to 1000, and you want negative values
-          to appear blue-ish, and positive values to appear red-ish, then you
-          can set cmap_midpoint to 0.0.
-      - figsize: Size (width,height) of figure (including map and color bar).
-      - dpi: On-screen resolution.
-      - shapefile_dir:
-          Directory where shape files are stored. Shape files (state level and
-          county level) should be organized as follows:
-              [shapefile_dir]/usa_states/st99_d00.(...)
-              [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
+    vmin:
+        Minimum value to be shown on the map. If vmin is larger than the
+        actual minimum value in the data, some of the data values will be
+        "clipped". This is useful if there are extreme values in the data
+        and you do not want those values to complete skew the color
+        distribution.
+    vmax:
+        Maximum value to be shown on the map. Similar to vmin.
+    map_title:
+        Title of the map, to be shown on the top of the map.
+    unit:
+        Unit of the numerical (for example, "population per km^2"), to be
+        shown on the right side of the color bar.
+    cmap:
+        Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
+        for plotting deviation maps.
+    fontsize:
+        Font size of all the texts on the map.
+    cmap_midpoint:
+        A numerical value that specifies the "deviation point". For example,
+        if your data ranges from -200 to 1000, and you want negative values
+        to appear blue-ish, and positive values to appear red-ish, then you
+        can set cmap_midpoint to 0.0.
+    figsize:
+        Size (width,height) of figure (including map and color bar).
+    dpi:
+        On-screen resolution.
+    shapefile_dir:
+        Directory where shape files are stored. Shape files (state level and
+        county level) should be organized as follows:
+            [shapefile_dir]/usa_states/st99_d00.(...)
+            [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
     [Returns]
-      - fig: figure object for the user to manipulate after calling this function
-      - ax: axes object for the user to manipulate after calling this function
+    fix, ax:
+        Figure and axes objects
 
     [References]
         I based my modifications partly on some code snippets in this
-        stackoverflow thread:
-            https://stackoverflow.com/questions/39742305/how-to-use-basemap-python-to-plot-us-with-50-states
+        stackoverflow thread: https://stackoverflow.com/questions/39742305
     '''
     from mpl_toolkits.basemap import Basemap as Basemap
     from matplotlib.colors import rgb2hex, Normalize
@@ -558,7 +578,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
     for o in fig.findobj(mpl.text.Text):
         o.set_fontsize(fontsize)
 
-    return fig,ax  # return figure and axes handles
+    return fig, ax  # return figure and axes handles
 
 #%%############################################################################
 def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_r',
@@ -573,10 +593,10 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_
     variable being displayed on the map, such as population density or
     per-capita income.
 
-    [Inputs]
-      - data_per_county:
-          Numerical data of each county, to be plotted onto the map.
-          Acceptable data types include:
+    [Parameters]
+    data_per_county:
+        Numerical data of each county, to be plotted onto the map.
+        Acceptable data types include:
             - pandas Series: Index should be valid county identifiers (i.e.,
                              5 digit county FIPS codes)
             - pandas DataFrame: The dataframe can have only one columns (with
@@ -586,39 +606,46 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_
                                 identifiers).
             - dictionary: with keys being valid county identifiers, and values
                           being the numerical values to be visualized
-      - vmin: Minimum value to be shown on the map. If vmin is larger than the
-              actual minimum value in the data, some of the data values will be
-              "clipped". This is useful if there are extreme values in the data
-              and you do not want those values to complete skew the color
-              distribution.
-      - vmax: Maximum value to be shown on the map. Similar to vmin.
-      - map_title: Title of the map, to be shown on the top of the map.
-      - unit: Unit of the numerical (for example, "population per km^2"), to be
-              shown on the right side of the color bar.
-      - cmap: Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
-              for plotting deviation maps.
-      - fontsize: Font size of all the texts on the map.
-      - cmap_midpoint:
-          A numerical value that specifies the "deviation point". For example,
-          if your data ranges from -200 to 1000, and you want negative values
-          to appear blue-ish, and positive values to appear red-ish, then you
-          can set cmap_midpoint to 0.0.
-      - figsize: Size (width, height) of figure (including map and color bar).
-      - dpi: On-screen resolution.
-      - shapefile_dir:
-          Directory where shape files are stored. Shape files (state level and
-          county level) should be organized as follows:
-              [shapefile_dir]/usa_states/st99_d00.(...)
-              [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
+    vmin:
+        Minimum value to be shown on the map. If vmin is larger than the
+        actual minimum value in the data, some of the data values will be
+        "clipped". This is useful if there are extreme values in the data
+        and you do not want those values to complete skew the color
+        distribution.
+    vmax:
+        Maximum value to be shown on the map. Similar to vmin.
+    map_title:
+        Title of the map, to be shown on the top of the map.
+    unit:
+        Unit of the numerical (for example, "population per km^2"), to be
+        shown on the right side of the color bar.
+    cmap:
+        Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
+        for plotting deviation maps.
+    fontsize:
+        Font size of all the texts on the map.
+    cmap_midpoint:
+        A numerical value that specifies the "deviation point". For example,
+        if your data ranges from -200 to 1000, and you want negative values
+        to appear blue-ish, and positive values to appear red-ish, then you
+        can set cmap_midpoint to 0.0.
+    figsize:
+        Size (width, height) of figure (including map and color bar).
+    dpi:
+        On-screen resolution.
+    shapefile_dir:
+        Directory where shape files are stored. Shape files (state level and
+        county level) should be organized as follows:
+            [shapefile_dir]/usa_states/st99_d00.(...)
+            [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
     [Returns]
-      - fig: figure object for the user to manipulate after calling this function
-      - ax: axes object for the user to manipulate after calling this function
+    fix, ax:
+        Figure and axes objects
 
     [References]
         I based my modifications partly on some code snippets in this
-        stackoverflow thread:
-            https://stackoverflow.com/questions/39742305/how-to-use-basemap-python-to-plot-us-with-50-states
+        stackoverflow thread: https://stackoverflow.com/questions/39742305
     '''
 
     from mpl_toolkits.basemap import Basemap as Basemap
@@ -763,7 +790,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_
     for o in fig.findobj(mpl.text.Text):
         o.set_fontsize(fontsize)
 
-    return fig,ax  # return figure and axes handles
+    return fig, ax  # return figure and axes handles
 
 #%%############################################################################
 def adjust_colorbar_tick_labels(colorbar_obj,adjust_top=True,adjust_bottom=True):
@@ -1016,36 +1043,45 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
     '''
     Plot time_series, where its index indicates a date (e.g., year, month, date).
 
-    [Inputs]
-      - time_series: A pandas Series, with index being date;
-                     or a pandas DataFrame, with index being date, and each
-                     column being a different time series.
-      - fig, ax:
-            Figure and axes objects.
-            If provided, the histograms are plotted on the provided figure and
-            axes. If not, a new figure and new axes are created.
-      - figsize: figure size (width, height) in inches (fig object passed via
-                 "fig" will over override this parameter)
-      - xlabel: Label of X axis. Usually "Time" or "Date"
-      - ylabel: Label of Y axis. Usually the meaning of the data
-      - label:  Label of data, for plotting legends
-      - color: Color of line. If None, let Python decide for itself.
-      - xgrid_on: Whether or not to show vertical grid lines (default: True)
-      - ygrid_on: Whether or not to show horizontal grid lines (default: True)
-      - title: Figure title (optional)
-      - dpi: Screen resolution (fig object passed via "fig" will over override
-             this parameter)
-      - month_grid_width: the on-figure "horizontal width" that each time interval
-                          occupies. This value determines how X axis labels
-                          are displayed (e.g., smaller width leads to date
-                          labels being displayed with 90 deg rotation).
-                          Do not change this unless you really know what you
-                          are doing.
+    [Parameters]
+    time_series:
+        A pandas Series, with index being date; or a pandas DataFrame, with
+        index being date, and each column being a different time series.
+    fig, ax:
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize:
+        figure size (width, height) in inches (fig object passed via
+        "fig" will over override this parameter)
+    xlabel:
+        Label of X axis. Usually "Time" or "Date"
+    ylabel:
+        Label of Y axis. Usually the meaning of the data
+    label:
+        Label of data, for plotting legends
+    color:
+        Color of line. If None, let Python decide for itself.
+    xgrid_on:
+        Whether or not to show vertical grid lines (default: True)
+    ygrid_on:
+        Whether or not to show horizontal grid lines (default: True)
+    title:
+        Figure title (optional)
+    dpi:
+        Screen resolution (fig object passed via "fig" will over override
+        this parameter)
+    month_grid_width:
+        the on-figure "horizontal width" that each time interval occupies.
+        This value determines how X axis labels are displayed (e.g., smaller
+        width leads to date labels being displayed with 90 deg rotation).
+        Do not change this unless you really know what you are doing.
 
     [Returns]
-      - fig: figure object for the user to manipulate after calling this function
-      - ax: axes object for the user to manipulate after calling this function
+    fix, ax:
+        Figure and axes objects
     '''
+
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
     ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
 
@@ -1136,38 +1172,51 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
 
     And then plot the upper bound and lower bound as shaded areas beneath the line.
 
-    [Inputs]
-      - time_series: a pandas Series, with index being date
-      - upper_bound, lower_bound: upper/lower bounds of the time series,
-                                  must have the same length as time_series
-      - fig, ax:
-            Figure and axes objects.
-            If provided, the histograms are plotted on the provided figure and
-            axes. If not, a new figure and new axes are created.
-      - figsize: figure size (width, height) in inches (fig object passed via
-                 "fig" will over override this parameter)
-      - xlabel: Label of X axis. Usually "Time" or "Date"
-      - ylabel: Label of Y axis. Usually the meaning of the data
-      - label:  Label of data, for plotting legends
-      - color: Color of line. If None, let Python decide for itself.
-      - lw: line width of the line that represents time_series
-      - lw: line style of the line that represents time_series
-      - fontsize: font size of the texts in the figure
-      - xgrid_on: Whether or not to show vertical grid lines (default: True)
-      - ygrid_on: Whether or not to show horizontal grid lines (default: True)
-      - title: Figure title (optional)
-      - dpi: Screen resolution (fig object passed via "fig" will over override
-             this parameter)
-      - month_grid_width: the on-figure "horizontal width" that each time interval
-                          occupies. This value determines how X axis labels
-                          are displayed (e.g., smaller width leads to date
-                          labels being displayed with 90 deg rotation).
-                          Do not change this unless you really know what you
-                          are doing.
+    [Parameters]
+    time_series:
+        a pandas Series, with index being date
+    upper_bound, lower_bound:
+        upper/lower bounds of the time series, must have the same length as
+        time_series
+    fig, ax:
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize:
+        figure size (width, height) in inches (fig object passed via "fig"
+        will over override this parameter)
+    xlabel:
+        Label of X axis. Usually "Time" or "Date"
+    ylabel:
+        Label of Y axis. Usually the meaning of the data
+    label:
+        Label of data, for plotting legends
+    color:
+        Color of line. If None, let Python decide for itself.
+    lw:
+        line width of the line that represents time_series
+    ls:
+        line style of the line that represents time_series
+    fontsize:
+        font size of the texts in the figure
+    xgrid_on:
+        Whether or not to show vertical grid lines (default: True)
+    ygrid_on:
+        Whether or not to show horizontal grid lines (default: True)
+    title:
+        Figure title (optional)
+    dpi:
+        Screen resolution (fig object passed via "fig" will over override
+        this parameter)
+    month_grid_width:
+        the on-figure "horizontal width" that each time interval occupies.
+        This value determines how X axis labels are displayed (e.g., smaller
+        width leads to date labels being displayed with 90 deg rotation).
+        Do not change this unless you really know what you are doing.
 
     [Returns]
-      - fig: figure object for the user to manipulate after calling this function
-      - ax: axes object for the user to manipulate after calling this function
+    fix, ax:
+        Figure and axes objects
     '''
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
     ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
@@ -1410,7 +1459,7 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
     bounds shaded. The effect is similar to this illustration below.
 
 
-      y ^            ...                         ______________________
+      y ^            ...                         _____________________
         |         ...   ..........              |                     |
         |         .   ______     .              |  ---  Mean value    |
         |      ...   /      \    ..             |  ...  Error bounds  |
@@ -1423,28 +1472,38 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
        -|--------------------------------------->  x
 
 
-    [Inputs]
-        x, y: data points to be plotted as a line (should have the same length)
-        upper_bound, lower_bound: Upper and lower bounds to be plotted as
-                                  shaded areas. Should have the same length as
-                                  x and y.
-        line_color: color of the line of y
-        shade_color: color of the underlying shades
-        shade_alpha: transparency of the shades
-        linewidth: width of the line of y
-        legend_loc: location of the legend, to be passed directly to plt.legend()
-        line_label: label of the line of y, to be used in the legend
-        shade_label: label of the shades, to be used in the legend
-        fig, ax:
-            Figure and axes objects.
-            If provided, the histograms are plotted on the provided figure and
-            axes. If not, a new figure and new axes are created.
-        x_scale, y_scale:
-        grid_on: whether or not to show the grids
+    [Parameters]
+    x, y:
+        data points to be plotted as a line (should have the same length)
+    upper_bound, lower_bound:
+        Upper and lower bounds to be plotted as shaded areas. Should have the
+        same length as x and y.
+    line_color:
+        color of the line of y
+    shade_color:
+        color of the underlying shades
+    shade_alpha:
+        transparency of the shades
+    linewidth:
+        width of the line of y
+    legend_loc:
+        location of the legend, to be passed directly to plt.legend()
+    line_label:
+        label of the line of y, to be used in the legend
+    shade_label:
+        label of the shades, to be used in the legend
+    fig, ax:
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    logx, logy:
+        Whether or not to show x or y axis scales as log
+    grid_on:
+        whether or not to show the grids
 
     [Returns]
-        fig: figure object for the user to manipulate after calling this function
-        ax: axes object for the user to manipulate after calling this function
+    fix, ax:
+        Figure and axes objects
     '''
     if fig is None:  # if a figure handle is not provided, create new figure
         fig = pl.figure()
@@ -1482,7 +1541,7 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
     Plot correlation matrix of a dataset X, whose columns are different
     variables (or a sample of a certain random variable).
 
-    [Inputs]
+    [Parameters]
     X:
         The data set. Can be a numpy array or pandas dataframe.
     color_map:
@@ -1706,7 +1765,7 @@ def bin_and_mean(xdata,ydata,bins=10,distribution='normal',show_fig=True,
                     E(Y) = exp(mu + (1/2)*sigma^2)
           where mu and sigma are the two parameters of the distribution.
 
-    [Inputs]
+    [Parameters]
     xdata, ydata:
         Raw x and y data points (with the same length). Can be pandas Series or
         numpy arrays.
