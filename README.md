@@ -53,7 +53,38 @@ Similarly to above, another function called `pu.choropleth_map_county()` plots c
 
 ![choropleth_map_county](./examples/gallery/choropleth_map_county.png)
 
-### 4. Time series plotting
+### 4. Correlation matrix (aka, covariance matrix)
+
+Generates a plot of the correlation matrix of a dataset, `X`. Also generates scatter plots of variables with high correlations (absolute value >= 0.7).
+
+```python
+>>> import plot_utils as pu
+>>> pu.plot_correlation(X, scatter_plots=True)
+```
+
+[[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_example.ipynb)]
+
+![](./examples/gallery/correlation_matrix.png)
+
+![](./examples/gallery/scatter_plots.png)
+
+
+
+### 5. "Bin-and-mean" plot
+
+```python
+>>> import plot_utils as pu
+>>> pu.bin_and_mean(x, y, logx=True,
+         xlabel='Maximum strain [%]',ylabel='Goodness-of-fit scores')
+```
+
+[[doc](./docs/bin_and_mean.md)], [[example](./examples/Bin-and-mean_example.ipynb)]
+
+![](./examples/gallery/bin_and_mean.png)
+
+
+
+### 6. Time series plotting
 
 ```Python
 >>> import plot_utils as pu
@@ -67,7 +98,7 @@ Similarly to above, another function called `pu.choropleth_map_county()` plots c
 
 ![time_series](./examples/gallery/time_series.png)
 
-### 5. Plot with error bounds
+### 7. Plot with error bounds
 
 ```{python}
 >>> import plot_utils as pu
