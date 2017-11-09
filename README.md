@@ -36,7 +36,7 @@ The function `pu.histogram3d()` takes your data and automatically displays nice 
 
 You can organize your own state-specific data into a Python dictionary or Pandas Series/DataFrame, and `pu.choropleth_map_state()` can plot a nice choropleth map as shown below.
 
-For more details, see the `examples` folder.
+[[doc](./docs/choropleth_map.md)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 ![choropleth_map_state](./examples/gallery/choropleth_map_state.png)
 
@@ -49,7 +49,7 @@ For more details, see the `examples` folder.
 
 Similarly to above, another function called `pu.choropleth_map_county()` plots county-level numerical data as a choropleth map.
 
-The example (`Choropleth_map_plotting.ipynb`) in the `examples` folder shows how to make such a map from a raw `.csv` data file.
+[[doc](./docs/choropleth_map.md#plot_utilschoropleth_map_county)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 ![choropleth_map_county](./examples/gallery/choropleth_map_county.png)
 
@@ -63,7 +63,7 @@ The example (`Choropleth_map_plotting.ipynb`) in the `examples` folder shows how
 
 `pu.plot_multiple_timeseries()` generates plots multiple time series on the same plot nicely.
 
-For more detailed usage, check out `examples` folder.
+[[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 
 ![time_series](./examples/gallery/time_series.png)
 
@@ -76,7 +76,7 @@ For more detailed usage, check out `examples` folder.
 
 `pu.plot_with_error_bounds()` plots data and the associating error bounds on the same graph.
 
-For more detailed usage, check out `examples` folder.
+[[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 
 ![error_bounds](./examples/gallery/error_bounds.png)
 
