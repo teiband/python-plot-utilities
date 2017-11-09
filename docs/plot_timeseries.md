@@ -45,7 +45,7 @@ Plot time_series, where its index indicates a date (e.g., year, month, date).
 --------------------------------------------------------
 # plot_utils.plot_multiple_timeseries
 
-**plot_utils.plot_multiple_timeseries**(*multiple_time_series, show_legend=True, figsize=(10,3), dpi=96, **kwargs*):
+**plot_utils.plot_multiple_timeseries**(*multiple_time_series, show_legend=True, figsize=(10,3), dpi=96, \*\*kwargs*):
 
 This is just a wrapper around plot_timeseries(), which deals with plotting multiple time series on the same figure with or without legends.
 

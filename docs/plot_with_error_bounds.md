@@ -1,6 +1,6 @@
 # plot_utils.plot_with_error_bounds
 
-**plot_utils.plot_with_error_bounds**(*x, y, upper_bound, lower_bound, line_color=[0.4]*3, shade_color=[0.7]*3, shade_alpha=0.5, linewidth=2.0, legend_loc='best', line_label='Data', shade_label='`$\mathregular{\pm}$STD`', fig=None, ax=None, logx=False, logy=False, grid_on=True*):
+**plot_utils.plot_with_error_bounds**(*x, y, upper_bound, lower_bound, line_color=[0.4]\*3, shade_color=[0.7]\*3, shade_alpha=0.5, linewidth=2.0, legend_loc='best', line_label='Data', shade_label='`$\mathregular{\pm}$STD`', fig=None, ax=None, logx=False, logy=False, grid_on=True*):
 
 Plot a graph with one line and its upper and lower bounds, with areas between bounds shaded. The effect is similar to this illustration below.
 

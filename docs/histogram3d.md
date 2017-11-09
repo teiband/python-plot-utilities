@@ -1,6 +1,6 @@
 # plot_utils.histogram3d
 
-**plot_utils.histogram3d**(*X, bins=10, fig=None, ax=None, elev=30, azim=5, alpha=0.6, data_labels=None, plot_legend=True, plot_xlabel=False, dx_factor=0.6, dy_factor=0.8, ylabel='Data', zlabel='Counts', **legend_kwargs*):
+**plot_utils.histogram3d**(*X, bins=10, fig=None, ax=None, elev=30, azim=5, alpha=0.6, data_labels=None, plot_legend=True, plot_xlabel=False, dx_factor=0.6, dy_factor=0.8, ylabel='Data', zlabel='Counts', \*\*legend_kwargs*):
 
 
 Plot 3D histograms. 3D histograms are best used to compare the distribution
