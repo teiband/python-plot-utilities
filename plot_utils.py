@@ -77,7 +77,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
         Labels of y and z axes
 
     [Returns]
-    fix, ax:
+    fig, ax:
         Figure and axes objects
     '''
 
@@ -319,7 +319,7 @@ def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
         Rotation angle (degrees) of x axis label. Default = 0 (upright label)
 
     [Returns]
-    fix, ax:
+    fig, ax:
         Figure and axes objects
 
     [Reference]
@@ -427,7 +427,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
             [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
     [Returns]
-    fix, ax:
+    fig, ax:
         Figure and axes objects
 
     [References]
@@ -640,7 +640,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_
             [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
     [Returns]
-    fix, ax:
+    fig, ax:
         Figure and axes objects
 
     [References]
@@ -1049,7 +1049,7 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
         index being date, and each column being a different time series.
     fig, ax:
         Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
+        If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     figsize:
         figure size (width, height) in inches (fig object passed via
@@ -1078,7 +1078,7 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
         Do not change this unless you really know what you are doing.
 
     [Returns]
-    fix, ax:
+    fig, ax:
         Figure and axes objects
     '''
 
@@ -1180,7 +1180,7 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
         time_series
     fig, ax:
         Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
+        If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     figsize:
         figure size (width, height) in inches (fig object passed via "fig"
@@ -1215,7 +1215,7 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
         Do not change this unless you really know what you are doing.
 
     [Returns]
-    fix, ax:
+    fig, ax:
         Figure and axes objects
     '''
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
@@ -1494,7 +1494,7 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
         label of the shades, to be used in the legend
     fig, ax:
         Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
+        If provided, the graph are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     logx, logy:
         Whether or not to show x or y axis scales as log
@@ -1502,7 +1502,7 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
         whether or not to show the grids
 
     [Returns]
-    fix, ax:
+    fig, ax:
         Figure and axes objects
     '''
     if fig is None:  # if a figure handle is not provided, create new figure
@@ -1551,7 +1551,7 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
         RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr, seismic
     fig, ax:
         Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
+        If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     figsize:
         Size (width, height) of figure in inches. (fig object passed via "fig"
@@ -1578,7 +1578,7 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
     [Returns]
     correlations:
         The correlation matrix
-    fix, ax:
+    fig, ax:
         Figure and axes objects
     '''
 
@@ -1654,7 +1654,7 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
         length 2. The elements must either be both integers, or both strings.
     fig, ax:
         Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
+        If provided, the graphs are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     figsize:
         Size (width, height) of figure in inches. (fig object passed via "fig"
@@ -1671,7 +1671,7 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
         Whether or not to show grids.
 
     [Returns]
-    fix, ax:
+    fig, ax:
         Figure and axes objects
     '''
 
@@ -1780,7 +1780,7 @@ def bin_and_mean(xdata,ydata,bins=10,distribution='normal',show_fig=True,
         Whether or not to show a bin-and-mean plot
     fig, ax:
         Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
+        If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     figsize:
         Size (width, height) of figure in inches. (fig object passed via "fig"
@@ -1804,7 +1804,7 @@ def bin_and_mean(xdata,ydata,bins=10,distribution='normal',show_fig=True,
     [Returns]
     x_mean, y_mean:
         Mean values of x and y for each data group. Numpy arrays.
-    fix, ax:
+    fig, ax:
         Figure and axes objects
     '''
 
