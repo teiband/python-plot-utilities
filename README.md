@@ -111,14 +111,6 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 
 ![error_bounds](./examples/gallery/error_bounds.png)
 
-
-
-## Detailed examples
-
-The gallery above is just a sneak peak. The detailed examples for each of the five functionalities are presented as Jupyter Notebooks in the `examples` folder.
-
-
-
 ## Installation
 
 No installation required.
@@ -143,9 +135,12 @@ The aesthetics of of the `plot_utils` module are matplotlib-styled by default, b
 
 Unlike some plotting packages that enforces their own styles and restrict users from customizing, users of this module can adjust the figure styles freely: either from within matplotlib (https://matplotlib.org/devdocs/gallery/style_sheets/style_sheets_reference.html), or `import seaborn` and let seaborn take care of everything.
 
-
-
 ## References
 
 I did not built every function of this module entirely from scratch. I documented the sources that I referenced in the documentation of the corresponding functions.
 
+## Copyright and license
+
+(c) 2017, Jian Shi
+
+License: GPL v3.0
