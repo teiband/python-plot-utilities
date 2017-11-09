@@ -1,17 +1,20 @@
 # Python plotting utilities: `plot_utils`
 This is a Python module that contains some useful plotting utilities. Current functionalities include:
 
-+ **3D histograms**: visualizing multiple distributions easily and elegantly
-+ **Discrete histogram**, suitable for visualizing categorical values
-+ **Choropleth map** (aka heat map) of the United States, on both state and county level
-+ **Time series plotting**, for visualizing single or multiple time series data quickly and elegantly
-+ **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas
++ **3D histograms**: visualizing multiple distributions easily and elegantly [[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
++ **Discrete histogram**, suitable for visualizing categorical values [[doc](./docs/discrete_histogram.md)], [[example](./examples/Discrete_histogram_example.ipynb)]
++ **Choropleth map** (aka "heat map") of the United States, on both state and county level [[doc](./docs/choropleth_map.md)], [[example](./examples/Choropleth_map_example.ipynb)]
++ **Correlation matrix** (aka "covariance matrix") of a dataset [[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_example.ipynb)]
+  + and the one-to-one **scatter plots** for the variables within the dataset [[doc](./docs/scatter_plots_two_cols.md)]
++ **"Bin-and-mean" plot**, a good way to uncover the dependency between two variables [[doc](./docs/bin_and_mean.md)], [[example](./examples/Bin-and-mean_example.ipynb)]
++ **Time series plotting**, for visualizing single or multiple time series data quickly and elegantly [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
++ **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 
 
 
 ## Gallery
 
-### 1. 3D histograms
+### 1. Three-dimensional histograms
 
 ```{python}
 >>> import plot_utils as pu
@@ -20,7 +23,7 @@ This is a Python module that contains some useful plotting utilities. Current fu
 
 The function `pu.histogram3d()` takes your data and automatically displays nice 3D histograms. You can adjust the angle of view, transparency, etc., by yourself.
 
-For more details, see the `examples`  folder.
+[[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
 
 ![histogram_3d](./examples/gallery/histogram_3d.png)
 
