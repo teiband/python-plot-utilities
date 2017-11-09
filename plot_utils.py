@@ -68,7 +68,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
             is 0.9, there will be a small gap between bars in y direction.
         ylabel, zlabel: Labels of y and z axes
 
-    [Outputs]
+    [Returns]
       - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
     '''
@@ -306,7 +306,7 @@ def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
        alpha: Opacity of bar. If not specified, the default value (1.0) is used.
        rot: Rotation angle (degrees) of x axis label. Default = 0 (upright label)
 
-    [Outputs]
+    [Returns]
       - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
     [Reference]
@@ -397,7 +397,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
           if your data ranges from -200 to 1000, and you want negative values
           to appear blue-ish, and positive values to appear red-ish, then you
           can set cmap_midpoint to 0.0.
-      - figsize: Size of the whole figure (including map and color bar).
+      - figsize: Size (width,height) of figure (including map and color bar).
       - dpi: On-screen resolution.
       - shapefile_dir:
           Directory where shape files are stored. Shape files (state level and
@@ -405,7 +405,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
               [shapefile_dir]/usa_states/st99_d00.(...)
               [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
-    [Outputs]
+    [Returns]
       - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
 
@@ -603,7 +603,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_
           if your data ranges from -200 to 1000, and you want negative values
           to appear blue-ish, and positive values to appear red-ish, then you
           can set cmap_midpoint to 0.0.
-      - figsize: Size of the whole figure (including map and color bar).
+      - figsize: Size (width, height) of figure (including map and color bar).
       - dpi: On-screen resolution.
       - shapefile_dir:
           Directory where shape files are stored. Shape files (state level and
@@ -611,7 +611,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_
               [shapefile_dir]/usa_states/st99_d00.(...)
               [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
-    [Outputs]
+    [Returns]
       - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
 
@@ -1024,7 +1024,8 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
             Figure and axes objects.
             If provided, the histograms are plotted on the provided figure and
             axes. If not, a new figure and new axes are created.
-      - figsize: figure size
+      - figsize: figure size (width, height) in inches (fig object passed via
+                 "fig" will over override this parameter)
       - xlabel: Label of X axis. Usually "Time" or "Date"
       - ylabel: Label of Y axis. Usually the meaning of the data
       - label:  Label of data, for plotting legends
@@ -1032,7 +1033,8 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
       - xgrid_on: Whether or not to show vertical grid lines (default: True)
       - ygrid_on: Whether or not to show horizontal grid lines (default: True)
       - title: Figure title (optional)
-      - dpi: Screen resolution
+      - dpi: Screen resolution (fig object passed via "fig" will over override
+             this parameter)
       - month_grid_width: the on-figure "horizontal width" that each time interval
                           occupies. This value determines how X axis labels
                           are displayed (e.g., smaller width leads to date
@@ -1040,7 +1042,7 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
                           Do not change this unless you really know what you
                           are doing.
 
-    [Outputs]
+    [Returns]
       - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
     '''
@@ -1142,7 +1144,8 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
             Figure and axes objects.
             If provided, the histograms are plotted on the provided figure and
             axes. If not, a new figure and new axes are created.
-      - figsize: figure size
+      - figsize: figure size (width, height) in inches (fig object passed via
+                 "fig" will over override this parameter)
       - xlabel: Label of X axis. Usually "Time" or "Date"
       - ylabel: Label of Y axis. Usually the meaning of the data
       - label:  Label of data, for plotting legends
@@ -1153,7 +1156,8 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
       - xgrid_on: Whether or not to show vertical grid lines (default: True)
       - ygrid_on: Whether or not to show horizontal grid lines (default: True)
       - title: Figure title (optional)
-      - dpi: Screen resolution
+      - dpi: Screen resolution (fig object passed via "fig" will over override
+             this parameter)
       - month_grid_width: the on-figure "horizontal width" that each time interval
                           occupies. This value determines how X axis labels
                           are displayed (e.g., smaller width leads to date
@@ -1161,7 +1165,7 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
                           Do not change this unless you really know what you
                           are doing.
 
-    [Outputs]
+    [Returns]
       - fig: figure object for the user to manipulate after calling this function
       - ax: axes object for the user to manipulate after calling this function
     '''
@@ -1296,7 +1300,6 @@ def as_date(str_date):
 
     Reference: https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
     '''
-    #print(type(str_date))
 
     if pd.__version__ == '0.17.1':
         timestamp_type = pd.tslib.Timestamp
@@ -1401,8 +1404,7 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
                            shade_color=[0.7]*3,shade_alpha=0.5,linewidth=2.0,
                            legend_loc='best',
                            line_label='Data',shade_label='$\mathregular{\pm}$STD',
-                           fig=None,ax=None,
-                           x_scale='linear',y_scale='linear',grid_on=True):
+                           fig=None,ax=None,logx=False,logy=False,grid_on=True):
     '''
     Plot a graph with one line and its upper and lower bounds, with areas between
     bounds shaded. The effect is similar to this illustration below.
@@ -1436,10 +1438,11 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
         fig, ax:
             Figure and axes objects.
             If provided, the histograms are plotted on the provided figure and
-            axes. If not, a new figure and new axes are created.        y_scale
+            axes. If not, a new figure and new axes are created.
+        x_scale, y_scale:
         grid_on: whether or not to show the grids
 
-    [Outputs]
+    [Returns]
         fig: figure object for the user to manipulate after calling this function
         ax: axes object for the user to manipulate after calling this function
     '''
@@ -1458,8 +1461,10 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
                            linewidth=0.01, alpha=shade_alpha, interpolate=True,
                            label=shade_label)
     hl2, = ax.plot(x, y, color=line_color, linewidth=linewidth, label=line_label)
-    ax.set_xscale(x_scale)
-    ax.set_yscale(y_scale)
+    if logx:
+        ax.set_xscale('log')
+    if logy:
+        ax.set_yscale('log')
 
     if grid_on == True:
         ax.grid(ls=':',lw=0.5)
@@ -1468,4 +1473,347 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
     plt.legend(handles=[hl2,hl1],loc=legend_loc)
 
     return (fig, ax)
+
+#%%============================================================================
+def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
+                     figsize=(6,6),dpi=100,variable_names=None,
+                     scatter_plots=False,thres=0.7,ncols_scatter_plots=3):
+    '''
+    Plot correlation matrix of a dataset X, whose columns are different
+    variables (or a sample of a certain random variable).
+
+    [Inputs]
+    X:
+        The data set. Can be a numpy array or pandas dataframe.
+    color_map:
+        The color scheme to show high, low, negative high correlations. Legit
+        names are listed in https://matplotlib.org/users/colormaps.html. Using
+        diverging color maps are recommended: PiYG, PRGn, BrBG, PuOr, RdGy,
+        RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr, seismic
+    fig, ax:
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize:
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi:
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    variable_names:
+        Names of the variables in X. If X is a pandas dataframe, then this
+        argument is not need: column names of X is used as variable names. If
+        X is a numpy array, and this argument is not provided, then column
+        indices are used. The length of variable_names should match the number
+        of columns in X; if not, a warning will be thrown (but not error).
+    scatter_plots:
+        Whether or not to show the variable pairs with high correlation.
+        Variable pairs whose absolute value of correlation is higher than thres
+        will be plotted as scatter plots.
+    thres:
+        Threshold of correlation (absolute value). Variable pairs whose absolute
+        correlation is higher than thres will be plotted as scatter plots.
+    ncols_scatter_plots:
+        How many subplots within the scatter plots to show on one row.
+
+    [Returns]
+    correlations:
+        The correlation matrix
+    fix, ax:
+        Figure and axes objects
+    '''
+
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=figsize,dpi=dpi)
+    else:   # if provided, plot to the specified figure
+        pl.figure(fig.number)
+
+    if ax is None:  # if ax is not provided
+        ax = plt.axes()  # create new axes and plot lines on it
+    else:
+        ax = ax  # plot lines on the provided axes handle
+
+    if isinstance(X,np.ndarray):
+        X = pd.DataFrame(X,copy=True)
+
+    correlations = X.corr()
+    variable_list = list(correlations.columns)
+    nr = len(variable_list)
+
+    cax = ax.matshow(correlations, vmin=-1, vmax=1, cmap=color_map)
+    fig.colorbar(cax)
+    ticks = np.arange(0,correlations.shape[1],1)
+    ax.set_xticks(ticks)
+    ax.set_yticks(ticks)
+    if variable_names is None:# and isinstance(X,pd.DataFrame):
+        variable_names = variable_list
+
+    if variable_names is not None:
+        if len(variable_names) != len(variable_list):
+            print('*****  Warning: feature_names may not be valid!  *****')
+
+        ax.set_xticklabels(variable_names)
+        ax.set_yticklabels(variable_names)
+        plt.xticks(rotation=90)
+
+    if scatter_plots == True:
+        il = np.tril_indices(nr)
+        corr_abs = np.abs(np.array(correlations))
+        corr_abs[il] = 0
+        indices = zip(np.where(corr_abs>=thres)[0],np.where(corr_abs>=thres)[1])
+
+        n_cols = min(ncols_scatter_plots, len(indices))
+        n_rows = int(np.ceil(len(indices) / float(n_cols)))
+
+        sz = 2.5   # (approx.) size of each subplot (unit: inch)
+        mg = 0.28  # (approx.) margin between subplots (unit: inch)
+        fig_size_ = (n_cols*sz + mg*(n_cols-1), n_rows*sz + mg*(n_rows-1))
+        fig = plt.figure(figsize=fig_size_)
+        ax  = plt.axes()
+
+        for j, index in enumerate(indices):
+            sub_ax = plt.subplot(n_rows,n_cols,j+1)
+            scatter_plot_two_cols(X,[variable_names[i] for i in index],fig,sub_ax)
+
+        plt.tight_layout(h_pad=0.3)
+
+    return correlations, fig, ax
+
+#%%============================================================================
+def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
+                          figsize=(3,3),dpi=100,alpha=0.5,color=None,
+                          grid_on=True,logx=False,logy=False):
+    '''
+    Produce scatter plots of two of the columns in X (the data matrix).
+    The correlation between the two columns are shown on top of the plot.
+
+    [Input]
+    X:
+        The dataset. Currently only supports pandas dataframe.
+    two_columns:
+        The names or indices of the two columns within X. Must be a list of
+        length 2. The elements must either be both integers, or both strings.
+    fig, ax:
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize:
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi:
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    alpha:
+        Opacity of the scatter points.
+    color:
+        Color of the scatter points. If None, default matplotlib color palette
+        will be used.
+    grid_on:
+        Whether or not to show grids.
+
+    [Returns]
+    fix, ax:
+        Figure and axes objects
+    '''
+
+    from scipy import stats
+
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=figsize,dpi=dpi)
+    else:   # if provided, plot to the specified figure
+        pl.figure(fig.number)
+
+    if ax is None:  # if ax is not provided
+        ax = plt.axes()  # create new axes and plot lines on it
+    else:
+        ax = ax  # plot lines on the provided axes handle
+
+    if not isinstance(two_columns,list):
+        raise TypeError('"two_columns" must be a list of length 2.')
+    if len(two_columns) != 2:
+        raise TypeError('Length of "two_columns" must be 2.')
+
+    if isinstance(two_columns[0],str):
+        x = X[two_columns[0]]
+        xlabel = two_columns[0]
+    elif isinstance(two_columns[0],(int,np.integer)):
+        x = X.iloc[:,two_columns[0]]
+        xlabel = X.columns[two_columns[0]]
+    else:
+        sys.exit('*****  Error: two_columns must be str list or int list!  *****')
+
+    if isinstance(two_columns[1],str):
+        y = X[two_columns[1]]
+        ylabel = two_columns[1]
+    elif isinstance(two_columns[1],(int,np.integer)):
+        y = X.iloc[:,two_columns[1]]
+        ylabel = X.columns[two_columns[1]]
+    else:
+        sys.exit('*****  Error: two_columns must be str list or int list!  *****')
+
+    nan_index_in_x = np.where(np.isnan(x))[0]
+    nan_index_in_y = np.where(np.isnan(y))[0]
+    nan_index = set(nan_index_in_x) | set(nan_index_in_y)
+    not_nan_index = list(set(range(len(x))) - nan_index)
+    _, _, r_value, _, _ = stats.linregress(x[not_nan_index],y[not_nan_index])
+
+    ax.scatter(x,y,alpha=alpha,color=color)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title('$R$ = %.2f' % r_value)
+    if logx:
+        ax.set_xscale('log')
+    if logy:
+        ax.set_yscale('log')
+    if grid_on == True:
+        ax.grid(ls=':',lw=0.5)
+        ax.set_axisbelow(True)
+
+    return fig, ax
+
+#%%============================================================================
+def bin_and_mean(xdata,ydata,bins=10,distribution='normal',show_fig=True,
+                 fig=None, ax=None, figsize=(4,4), dpi=100,
+                 raw_data_label='raw',mean_data_label='average',
+                 xlabel='x',ylabel='y',logx=False,logy=False,grid_on=True,
+                 show_legend=True):
+    '''
+    Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
+
+    A "bin-and-mean" plot is a more salient way to show the dependency of ydata
+    on xdata. The data points (xdata, ydata) are divided into different groups
+    according to the value of x (via the "bins" argument), and within each
+    group, the mean values of x and y are calculated, and considered as the
+    representative x and y values.
+
+    "bin-and-mean" works better when data points are highly skewed (e.g.,
+    a lot of data points for when x is small, but very few for large x). The
+    data points when x is large are usually not noises, and could be even more
+    valuable (think of the case where x is earthquake magnitude and y is the
+    related economic loss). If we want to study the relationship between
+    economic loss and earthquake magnitude, we need to bin-and-mean raw data
+    and draw conclusions from the mean data points.
+
+    The theory that enables this method is the assumption that the data points
+    with similar x values follow the same distribution. Naively, we assume the
+    data points are normally distributed, then y_mean is the arithmetic mean of
+    the data points within a bin. We also often assume the data points follow
+    log-normal distribution (if we want to assert that y values are all
+    positive), then y_mean is the expected value of the log-normal distribution,
+    while x_mean for any bins are still just the arithmetic mean.
+
+    Note: For log-normal, the expective value of y is:
+                    E(Y) = exp(mu + (1/2)*sigma^2)
+          where mu and sigma are the two parameters of the distribution.
+
+    [Inputs]
+    xdata, ydata:
+        Raw x and y data points (with the same length). Can be pandas Series or
+        numpy arrays.
+    bins:
+        Number of bins (an integer), or an array representing the actual bin
+        edges. Note that the binning is done according x values.
+    distribution:
+        Specifies which distribution the y values within a bin follow. Use
+        'lognormal' if you want to assert all positive y values. Only supports
+        normal and log-normal distributions at this time.
+    show_fig:
+        Whether or not to show a bin-and-mean plot
+    fig, ax:
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize:
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi:
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    raw_data_label, mean_data_label:
+        Two strings that specify the names of the raw data and the averaged
+        data, respectively, such as "raw data" and "averaged data". Useless
+        if show_legend is False.
+    xlabel, ylabel:
+        Labels for x and y axes of the plot
+    logx, logy:
+        Whether or not to adjust the scales of x and/or y axes to log
+    grid_on:
+        Whether or not to show the grids
+    legend_on:
+        Whether or not to show the legend
+
+    [Returns]
+    x_mean, y_mean:
+        Mean values of x and y for each data group. Numpy arrays.
+    fix, ax:
+        Figure and axes objects
+    '''
+
+    from scipy import stats
+
+    if isinstance(bins,(int,np.integer)):  # if user specifies number of bins
+        if bins <= 0:
+            raise ValueError('"bins" must be a positive integer.')
+        else:
+            nr = bins + 1  # create bins with percentiles in xdata
+            x_uni = np.unique(xdata)
+            bins = [np.nanpercentile(x_uni,(j+0.)/bins*100) for j in range(nr)]
+            if not all(x <= y for x,y in zip(bins,bins[1:])):  # https://stackoverflow.com/a/4983359/8892243
+                print('\nWARNING: Resulting "bins" array is not monotonically '
+                      'increasing. Please use a smaller "bins" to avoid potential '
+                      'issues.\n')
+    elif isinstance(bins,(list,np.ndarray)):  # if user specifies array
+        nr = len(bins)
+    else:
+        raise TypeError('"bins" must be either an integer or an array.')
+
+    inds = np.digitize(xdata, bins)
+    x_mean = np.zeros(nr-1)
+    y_mean = np.zeros(nr-1)
+    for j in range(nr-1):
+        xdata_in_bin = xdata[inds == j+1]
+        ydata_in_bin = ydata[inds == j+1]
+        if len(xdata_in_bin) == 0:  # no point falls into current bin
+            x_mean[j] = np.nan  # this is to prevent numpy from throwing...
+            y_mean[j] = np.nan  #...confusing warning messages
+        else:
+            x_mean[j] = np.nanmean(xdata_in_bin)
+            if distribution == 'normal':
+                y_mean[j] = np.nanmean(ydata_in_bin)
+            elif distribution in ['log-normal','lognormal','logn']:
+                s, loc, scale = stats.lognorm.fit(ydata_in_bin, floc=0)
+                estimated_mu = np.log(scale)
+                estimated_sigma = s
+                y_mean[j] = np.exp(estimated_mu + estimated_sigma**2.0/2.0)
+
+    if show_fig:
+        if fig is None:  # if a figure handle is not provided, create new figure
+            fig = pl.figure(figsize=figsize,dpi=dpi)
+        else:   # if provided, plot to the specified figure
+            pl.figure(fig.number)
+
+        if ax is None:  # if ax is not provided
+            ax = plt.axes()  # create new axes and plot lines on it
+        else:
+            ax = ax  # plot lines on the provided axes handle
+
+        ax.scatter(xdata,ydata,c='gray',alpha=0.3,label=raw_data_label)
+        ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label)
+        ax.set_axisbelow(True)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        if logx:
+            ax.set_xscale('log')
+        if logy:
+            ax.set_yscale('log')
+        if grid_on:
+            ax.grid(ls=':')
+            ax.set_axisbelow(True)
+        if show_legend:
+            ax.legend(loc='best')
+
+        return x_mean, y_mean, fig, ax
+    else:
+        return x_mean, y_mean, None, None
+
 
