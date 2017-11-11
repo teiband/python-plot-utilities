@@ -25,7 +25,7 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
              figsize=(3,3), dpi=100, colors=None, autopct='%1.1f%%',
              fontsize=None, **piechart_kwargs):
     '''
-    Plot a pie chart demonstrating the fraction of different classes within
+    Plot a pie chart demonstrating proportions of different categories within 
     an array.
 
     [Parameters]
