@@ -79,9 +79,9 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
     else:
         ax = ax  # plot lines on the provided axes handle
 
-    if not isinstance(target_array,(np.ndarray,pd.DataFrame,pd.Series)):
+    if not isinstance(target_array,(np.ndarray,pd.DataFrame,pd.Series,list)):
         raise TypeError('Unrecognized data type for target_array.')
-    y = target_array.copy()
+    y = target_array  # short hand
 
     if any(pd.isnull(np.array(y))):
         print('*****  WARNING: target_array contains NaN''s.  *****')
