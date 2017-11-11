@@ -10,7 +10,7 @@ Plot a pie chart demonstrating the fraction of different classes within an array
     target_array : <array_like>
         An array containing categorical values (could have more than two
         categories). Target value can be numeric or texts.
-    class_names : <[str,str,str,...]>
+    class_names : sequence of str
         Names of different classes. The order should correspond to that in the
         target_array. For example, if target_array has 0 and 1 then class_names
         should be ['0', '1']; and if target_array has "pos" and "neg", then
