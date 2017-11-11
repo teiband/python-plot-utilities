@@ -32,6 +32,9 @@ Plot a pie chart demonstrating the fraction of different classes within an array
         of classes. If longer, only the first few colors are used; if shorter,
         colors are wrapped around.
         If None, automatically use the Pastel2 color map (8 colors total).
+    autopct : str
+        Format specification for displaying texts of proportions, to be passed
+        directly to matplotlib.pyplot.pie() function as keyword argument.
     fontsize : scalar or tuple/list of two scalars
         Font size. If scalar, both the class names and the percentages are set
         to the specified size. If tuple of two scalars, the first value sets
