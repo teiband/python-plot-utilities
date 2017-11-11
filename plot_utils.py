@@ -54,14 +54,15 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         of classes. If longer, only the first few colors are used; if shorter,
         colors are wrapped around.
         If None, automatically use the Pastel2 color map (8 colors total).
-    class_fontsize : <int, float>
-        Font size for displaying class names
-    frac_fontsize : <int, float>
-        Font size for displaying class fractions
+    fontsize : scalar or tuple/list of two scalars
+        Font size. If scalar, both the class names and the percentages are set
+        to the specified size. If tuple of two scalars, the first value sets
+        the font size of class names, and the last value sets the font size
+        of the percentages.
     **piechart_kwargs :
         Keyword arguments to be passed to matplotlib.pyplot.pie function,
-        except for "colors" and "labels" because this subroutine re-defines
-        these two arguments.
+        except for "colors", "labels"and  "autopct" because this subroutine
+        re-defines these three arguments.
         (See https://matplotlib.org/api/_as_gen/matplotlib.pyplot.pie.html)
 
     [Returns]
