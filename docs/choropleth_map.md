@@ -1,14 +1,10 @@
 # plot_utils.choropleth_map_state
 
-**plot_utils.choropleth_map_state**(*data_per_state, vmin=None, vmax=None, map_title='USA map', unit='', cmap='hot_r', fontsize=14, cmap_midpoint=None, figsize=(10,7), dpi=100, shapefile_dir=None*):
+**plot_utils.choropleth_map_state**(*data_per_state, vmin=None, vmax=None, map_title='USA map', unit='', cmap='OrRd', fontsize=14, cmap_midpoint=None, figsize=(10,7), dpi=100, shapefile_dir=None*):
 
-Generate a choropleth map of USA (including Alaska and Hawaii), on a state
-level.
+Generate a choropleth map of USA (including Alaska and Hawaii), on a state level.
 
-According to wikipedia, a choropleth map is a thematic map in which areas
-are shaded or patterned in proportion to the measurement of the statistical
-variable being displayed on the map, such as population density or
-per-capita income.
+According to wikipedia, a choropleth map is a thematic map in which areas are shaded or patterned in proportion to the measurement of the statistical variable being displayed on the map, such as population density or per-capita income.
 
 #### [Parameters]
     data_per_state:
@@ -62,12 +58,11 @@ per-capita income.
 
 #### [References]
     I based my modifications partly on some code snippets in this stackoverflow thread: https://stackoverflow.com/questions/39742305
-
 -------------------------------------------------------
-    
+
 # plot_utils.choropleth_map_county
 
-**plot_utils.choropleth_map_county**(*data_per_county, vmin=None, vmax=None, unit='', cmap='hot_r', map_title='USA county map', fontsize=14, cmap_midpoint=None, figsize=(10,7), dpi=100, shapefile_dir=None*):
+**plot_utils.choropleth_map_county**(*data_per_county, vmin=None, vmax=None, unit='', cmap='OrRd', map_title='USA county map', fontsize=14, cmap_midpoint=None, figsize=(10,7), dpi=100, shapefile_dir=None*):
 
 Generate a choropleth map of USA (including Alaska and Hawaii), on a county level.
 
