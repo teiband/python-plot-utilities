@@ -20,6 +20,100 @@ import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
+#%%============================================================================
+def piechart(target_array, class_names=None, fig=None, ax=None,
+             figsize=(3,3), dpi=100, colors=None, autopct='%1.1f%%',
+             fontsize=None, **piechart_kwargs):
+    '''
+    Plot a pie chart demonstrating the fraction of different classes within
+    an array.
+
+    [Parameters]
+    target_array : <array_like>
+        An array containing categorical values (could have more than two
+        categories). Target value can be numeric or texts.
+    class_names : <[str,str,str,...]>
+        Names of different classes. The order should correspond to that in the
+        target_array. For example, if target_array has 0 and 1 then class_names
+        should be ['0', '1']; and if target_array has "pos" and "neg", then
+        class_names should be ['neg','pos'] (i.e., alphabetical).
+        If None, values of the categories will be used as names.
+    fig, ax :
+        Figure and axes objects.
+        If provided, the graph is plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : <tuple of int/float>
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi : <int, float>
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    colors : <list> or None
+        A list of colors (can be RGB values, hex strings, or color names) to be
+        used for each class. The length can be longer or shorter than the number
+        of classes. If longer, only the first few colors are used; if shorter,
+        colors are wrapped around.
+        If None, automatically use the Pastel2 color map (8 colors total).
+    class_fontsize : <int, float>
+        Font size for displaying class names
+    frac_fontsize : <int, float>
+        Font size for displaying class fractions
+    **piechart_kwargs :
+        Keyword arguments to be passed to matplotlib.pyplot.pie function,
+        except for "colors" and "labels" because this subroutine re-defines
+        these two arguments.
+        (See https://matplotlib.org/api/_as_gen/matplotlib.pyplot.pie.html)
+
+    [Returns]
+    fig, ax:
+        Figure and axes objects
+    '''
+
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=figsize,dpi=dpi)
+    else:   # if provided, plot to the specified figure
+        pl.figure(fig.number)
+
+    if ax is None:  # if ax is not provided
+        ax = plt.axes()  # create new axes and plot lines on it
+    else:
+        ax = ax  # plot lines on the provided axes handle
+
+    if not isinstance(target_array,(np.ndarray,pd.DataFrame,pd.Series)):
+        raise TypeError('Unrecognized data type for target_array.')
+    y = target_array.copy()
+
+    if any(pd.isnull(np.array(y))):
+        print('*****  WARNING: target_array contains NaN''s.  *****')
+
+    vals = np.unique(y)  # vals is sorted by np.unique()
+    x = []
+    for val in vals:
+        if pd.isnull(val):
+            x.append(np.sum(pd.isnull(y)))  # count number of NaN's in y
+        else:
+            x.append(np.sum(y == val))
+
+    if not colors:  # set default color cycle to 'Pastel2'
+        colors_4 = mpl.cm.Pastel2(range(8))  # R,G,B,A values ("8" means Pastel2 has maximum 8 colors)
+        colors = [list(_)[:3] for _ in colors_4]  # remove the fourth value
+
+    if not class_names:
+        class_names = [str(val) for val in vals]
+
+    _,texts,autotexts = ax.pie(x,labels=class_names,colors=colors,
+                                     autopct=autopct,**piechart_kwargs)
+    if isinstance(fontsize,(list,tuple)):
+        for t_ in texts: t_.set_fontsize(fontsize[0])
+        for t_ in autotexts: t_.set_fontsize(fontsize[1])
+    elif fontsize:
+        for t_ in texts: t_.set_fontsize(fontsize)
+        for t_ in autotexts: t_.set_fontsize(fontsize)
+
+    ax.axis('equal')
+
+    return fig, ax
+
 #%%############################################################################
 def histogram3d(X,bins=10,fig=None,ax=None,
                 elev=30,azim=5,alpha=0.6,data_labels=None,
@@ -172,29 +266,69 @@ def get_colors(N,color_scheme='tab10'):
     '''
     Returns a list of N distinguisable colors. When N is larger than the color
     scheme capacity, the color cycle is wrapped around.
-    Use color_scheme to specify which color scheme is desired.
 
-    References:
+    What does each color_scheme look like?
+        https://matplotlib.org/mpl_examples/color/colormaps_reference_04.png
         https://matplotlib.org/users/dflt_style_changes.html#colors-color-cycles-and-color-maps
         https://github.com/vega/vega/wiki/Scales#scale-range-literals
+        https://www.mathworks.com/help/matlab/graphics_transition/why-are-plot-lines-different-colors.html
+
+    [Parameters]
+    N : <int> or None
+        Number of qualitative colors desired. If None, returns all the colors
+        in the specified color scheme.
+    color_scheme : <str> or {0, 10, 8.3, 8.4}
+        Color scheme specifier. Valid str names are:
+            'Pastel1'
+            'Pastel2'
+            'Paired'
+            'Accent'
+            'Dark2'
+            'Set1'
+            'Set2'
+            'Set3'
+            'tab10'
+            'tab20'
+            'tab20b'
+            'tab20c'
+
+    [Returns]
+    A list of colors.
     '''
+
+    nr_c = {'Pastel1': 9,  # number of qualitative colors in each color map
+            'Pastel2': 8,
+            'Paired': 12,
+            'Accent': 8,
+            'Dark2': 8,
+            'Set1': 9,
+            'Set2': 8,
+            'Set3': 12,
+            'tab10': 10,
+            'tab20': 20,
+            'tab20b': 20,
+            'tab20c': 20}
+
+    qcm_names = list(nr_c.keys())  # valid names of qualititative color maps
+    qcm_names_lower = ['pastel1','pastel2','paired','accent','dark2','set1',
+                       'set2','set3']  # lower case version (without 'tab' ones)
+
+    if not isinstance(color_scheme,(str,unicode,int,float)):
+        raise TypeError('Unrecognizable data type for color_scheme.')
 
     if color_scheme == 0:  # default matplotlib color scheme
         palette = ['b','g','r','c','m','y','k']
     elif (color_scheme == 10) or (color_scheme == 'tab10'):
         palette = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd',
                    '#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf']
-    elif color_scheme == 'set1':  # nine distinct colors
-        palette = [[0.894,0.102,0.110],
-                   [0.216,0.494,0.722],
-                   [0.302,0.686,0.290],
-                   [0.596,0.306,0.639],
-                   [1.000,0.498,0.000],
-                   [1.000,1.000,0.200],
-                   [0.651,0.337,0.157],
-                   [0.969,0.506,0.749],
-                   [0.600,0.600,0.600],
-                   [0.600,0.600,0.600]]
+    elif color_scheme in qcm_names:
+        c_s = color_scheme  # short hand [Note: no wrap-around behavior in mpl.cm functions]
+        rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))  # e.g., mpl.cm.Set1(range(10))
+        palette = [list(_)[:3] for _ in rgba]  # remove alpha value from each sub-list
+    elif color_scheme in qcm_names_lower:
+        c_s = color_scheme.title()  # first letter upper case
+        rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))
+        palette = [list(_)[:3] for _ in rgba]
     elif color_scheme == 8.3:  # MATLAB ver 8.3 (R2014a) and earlier
         palette = [[0, 0, 1.0000],  # blue
                    [0, 0.5000, 0],  # green
@@ -211,6 +345,8 @@ def get_colors(N,color_scheme='tab10'):
                    [0.4660, 0.6740, 0.1880],
                    [0.3010, 0.7450, 0.9330],
                    [0.6350, 0.0780, 0.1840]]
+    else:
+        raise ValueError('Invalid value of color_scheme.')
 
     L = len(palette)
     return [palette[i % L] for i in range(N)]  # wrap around 'palette' if N > L
@@ -1531,7 +1667,7 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
 
     plt.legend(handles=[hl2,hl1],loc=legend_loc)
 
-    return (fig, ax)
+    return fig, ax
 
 #%%============================================================================
 def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
@@ -1636,7 +1772,7 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
 
         plt.tight_layout(h_pad=0.3)
 
-    return correlations, fig, ax
+    return fig, ax, correlations
 
 #%%============================================================================
 def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
@@ -1719,7 +1855,7 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
     ax.scatter(x,y,alpha=alpha,color=color)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-    ax.set_title('$R$ = %.2f' % r_value)
+    ax.set_title('$r$ = %.2f' % r_value)
     if logx:
         ax.set_xscale('log')
     if logy:
@@ -1731,11 +1867,11 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
     return fig, ax
 
 #%%============================================================================
-def bin_and_mean(xdata,ydata,bins=10,distribution='normal',show_fig=True,
+def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                  fig=None, ax=None, figsize=(4,4), dpi=100,
-                 raw_data_label='raw',mean_data_label='average',
-                 xlabel='x',ylabel='y',logx=False,logy=False,grid_on=True,
-                 show_legend=True):
+                 raw_data_label='raw', mean_data_label='average',
+                 xlabel='x', ylabel='y', logx=False, logy=False, grid_on=True,
+                 show_legend=True, show_bins=False):
     '''
     Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
 
@@ -1800,6 +1936,8 @@ def bin_and_mean(xdata,ydata,bins=10,distribution='normal',show_fig=True,
         Whether or not to show the grids
     legend_on:
         Whether or not to show the legend
+    show_bins:
+        Whether or not to show the bin edges as vertical lines on the plots
 
     [Returns]
     x_mean, y_mean:
@@ -1856,8 +1994,8 @@ def bin_and_mean(xdata,ydata,bins=10,distribution='normal',show_fig=True,
         else:
             ax = ax  # plot lines on the provided axes handle
 
-        ax.scatter(xdata,ydata,c='gray',alpha=0.3,label=raw_data_label)
-        ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label)
+        ax.scatter(xdata,ydata,c='gray',alpha=0.3,label=raw_data_label,zorder=1)
+        ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
         ax.set_axisbelow(True)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
@@ -1868,11 +2006,17 @@ def bin_and_mean(xdata,ydata,bins=10,distribution='normal',show_fig=True,
         if grid_on:
             ax.grid(ls=':')
             ax.set_axisbelow(True)
+        if show_bins:
+            ylims = ax.get_ylim()
+            for k, edge in enumerate(bins):
+                lab_ = 'bin edges' if k==0 else None  # only label 1st edge
+                ec = get_colors(1)[0]
+                ax.plot([edge]*2,ylims,'--',c=ec,lw=1.0,zorder=2,label=lab_)
         if show_legend:
             ax.legend(loc='best')
 
-        return x_mean, y_mean, fig, ax
+        return fig, ax, x_mean, y_mean
     else:
-        return x_mean, y_mean, None, None
+        return None, None, x_mean, y_mean
 
 
