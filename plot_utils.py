@@ -505,7 +505,7 @@ class FixedOrderFormatter(ScalarFormatter):
 
 #%%############################################################################
 def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
-                   unit='',cmap='hot_r',fontsize=14,cmap_midpoint=None,
+                   unit='',cmap='OrRd',fontsize=14,cmap_midpoint=None,
                    figsize=(10,7),dpi=100,shapefile_dir=None):
     '''
     Generate a choropleth map of USA (including Alaska and Hawaii), on a state
@@ -632,9 +632,8 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
         if statename not in ['District of Columbia','Puerto Rico']:
             data_ = data_per_state[statename]
             if not np.isnan(data_):
-                # calling colormap with value between 0 and 1 returns
-                # rgba value. Take sqrt root to spread out colors more.
-                colors[statename] = cmap(np.sqrt((data_-vmin)/(vmax-vmin)))[:3]
+                # calling colormap with value between 0 and 1 returns rgba value.
+                colors[statename] = cmap((data_-vmin)/(vmax-vmin))[:3]
             else:  # if data_ is NaN, set color to light grey, and with hatching pattern
                 colors[statename] = None #np.nan#[0.93]*3
         statenames.append(statename)
@@ -717,7 +716,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
     return fig, ax  # return figure and axes handles
 
 #%%############################################################################
-def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_r',
+def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd',
                           map_title='USA county map',fontsize=14,cmap_midpoint=None,
                           figsize=(10,7),dpi=100,shapefile_dir=None):
     '''
@@ -839,10 +838,9 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='hot_
         else:
             data_ = np.nan
 
-        # calling colormap with value between 0 and 1 returns
-        # rgba value. Take sqrt root to spread out colors more.
+        # calling colormap with value between 0 and 1 returns rgba value.
         if not np.isnan(data_):
-            colors[county_FIPS_code] = cmap(np.sqrt((data_-vmin)/(vmax-vmin)))[:3]
+            colors[county_FIPS_code] = cmap((data_-vmin)/(vmax-vmin))[:3]
         else:
             colors[county_FIPS_code] = None
 
