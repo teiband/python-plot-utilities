@@ -7,6 +7,7 @@ This is a Python module that contains some useful plotting utilities. Current fu
 + **Correlation matrix** (aka "covariance matrix") of a dataset [[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
   + and the one-to-one **scatter plots** for the variables within the dataset [[doc](./docs/scatter_plots_two_cols.md)]
 + **"Bin-and-mean" plot**, a good way to uncover the dependency between two variables [[doc](./docs/bin_and_mean.md)], [[example](./examples/Bin-and-mean_example.ipynb)]
++ **Pie chart**, to visualize proportion, more convenient than matplotlib's pie() function [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)]
 + **Time series plotting**, for visualizing single or multiple time series data quickly and elegantly [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 + **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 
@@ -27,6 +28,7 @@ The function `pu.histogram3d()` takes your data and automatically displays nice 
 
 ![histogram_3d](./examples/gallery/histogram_3d.png)
 
+
 ### 2. Choropleth map (state level)
 
 ```python
@@ -40,6 +42,7 @@ You can organize your own state-specific data into a Python dictionary or Pandas
 
 ![choropleth_map_state](./examples/gallery/choropleth_map_state.png)
 
+
 ### 3. Choropleth map (county level)
 
 ```{python}
@@ -52,6 +55,7 @@ Similarly to above, another function called `pu.choropleth_map_county()` plots c
 [[doc](./docs/choropleth_map.md#plot_utilschoropleth_map_county)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 ![choropleth_map_county](./examples/gallery/choropleth_map_county.png)
+
 
 ### 4. Correlation matrix (aka, covariance matrix)
 
@@ -69,7 +73,6 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 ![](./examples/gallery/scatter_plots.png)
 
 
-
 ### 5. "Bin-and-mean" plot
 
 ```python
@@ -83,8 +86,18 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 ![](./examples/gallery/bin_and_mean.png)
 
 
+### 6. Pie chart
+```Python
+>>> import plot_utils as pu
+>>> pu.piechart(iris['species'])  # plots single time series
+```
 
-### 6. Time series plotting
+[[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)] 
+
+![](./examples/gallery/pie_chart.png)
+
+
+### 7. Time series plotting
 
 ```Python
 >>> import plot_utils as pu
@@ -96,9 +109,10 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 
 [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 
-![time_series](./examples/gallery/time_series.png)
+![](./examples/gallery/time_series.png)
 
-### 7. Plot with error bounds
+
+### 8. Plot with error bounds
 
 ```{python}
 >>> import plot_utils as pu
@@ -109,7 +123,9 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 
 [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 
-![error_bounds](./examples/gallery/error_bounds.png)
+![](./examples/gallery/error_bounds.png)
+
+
 
 ## Installation
 
@@ -135,9 +151,13 @@ The aesthetics of of the `plot_utils` module are matplotlib-styled by default, b
 
 Unlike some plotting packages that enforces their own styles and restrict users from customizing, users of this module can adjust the figure styles freely: either from within matplotlib (https://matplotlib.org/devdocs/gallery/style_sheets/style_sheets_reference.html), or `import seaborn` and let seaborn take care of everything.
 
+
+
 ## References
 
 I did not built every function of this module entirely from scratch. I documented the sources that I referenced in the documentation of the corresponding functions.
+
+
 
 ## Copyright and license
 
