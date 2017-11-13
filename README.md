@@ -7,6 +7,8 @@ This is a Python module that contains some useful plotting utilities. Current fu
 + **Correlation matrix** (aka "covariance matrix") of a dataset [[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
   + and the one-to-one **scatter plots** for the variables within the dataset [[doc](./docs/scatter_plots_two_cols.md)]
 + **"Bin-and-mean" plot**, a good way to uncover the dependency between two variables [[doc](./docs/bin_and_mean.md)], [[example](./examples/Bin-and-mean_example.ipynb)]
++ A **get_colors()** function that conveniently queries different qualitative color palettes [[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
+    + and a **get_linespecs()** function that generates distinct color/linestyle/linewidth combinations for plotting many lines [[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
 + **Pie chart** to visualize proportions, more convenient than matplotlib's `pie()` function [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)]
 + **Time series plotting**, for visualizing single or multiple time series data quickly and elegantly [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 + **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
@@ -86,7 +88,34 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 ![](./examples/gallery/bin_and_mean.png)
 
 
-### 6. Pie chart
+### 6.1. `get_colors()` function
+
+```python
+>>> import seaborn as sns
+>>> import plot_utils as pu
+>>> colors = pu.get_colors(color_scheme='tab10',N=10)
+>>> sns.palplot(colors)
+```
+
+[[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
+
+![](./examples/gallery/get_colors.png)
+
+
+### 6.2. `get_linespecs()` function
+
+```python
+>>> import plot_utils as pu
+>>> line_specs = pu.get_linespecs(color_scheme='bw',range_linewidth=[3,8],priority='linewidth')
+>>> pu.linespecs_demo(line_specs);
+```
+
+[[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
+
+![](./examples/gallery/get_linespecs.png)
+
+
+### 7. Pie chart
 ```Python
 >>> import plot_utils as pu
 >>> pu.piechart(iris['species'])  # plots single time series
@@ -97,7 +126,7 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 ![](./examples/gallery/pie_chart.png)
 
 
-### 7. Time series plotting
+### 8. Time series plotting
 
 ```Python
 >>> import plot_utils as pu
@@ -112,7 +141,7 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 ![](./examples/gallery/time_series.png)
 
 
-### 8. Plot with error bounds
+### 9. Plot with error bounds
 
 ```{python}
 >>> import plot_utils as pu
