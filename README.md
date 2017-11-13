@@ -19,40 +19,38 @@ This is a Python module that contains some useful plotting utilities. Current fu
 
 ### 1. Three-dimensional histograms
 
+Plots 3D histograms. Useful for comparing multiple distributions.
+
 ```{python}
 >>> import plot_utils as pu
 >>> pu.histogram3d(X)  # X is the dataset to be visualized
 ```
 
-The function `pu.histogram3d()` takes your data and automatically displays nice 3D histograms. You can adjust the angle of view, transparency, etc., by yourself.
-
 [[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
 
 ![histogram_3d](./examples/gallery/histogram_3d.png)
 
-
 ### 2. Choropleth map (state level)
+
+Plots state-level choropleth maps from a Python dictionary or Pandas Series/DataFrame.
 
 ```python
 >>> import plot_utils as pu
 >>> pu.choropleth_map_state(state_level_data)
 ```
 
-You can organize your own state-specific data into a Python dictionary or Pandas Series/DataFrame, and `pu.choropleth_map_state()` can plot a nice choropleth map as shown below.
-
 [[doc](./docs/choropleth_map.md)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 ![choropleth_map_state](./examples/gallery/choropleth_map_state.png)
 
-
 ### 3. Choropleth map (county level)
+
+Plots county-level choropleth map from a Python dictionary or Pandas Series/DataFrame.
 
 ```{python}
 >>> import plot_utils as pu
 >>> pu.choropleth_map_county(county_level_data)
 ```
-
-Similarly to above, another function called `pu.choropleth_map_county()` plots county-level numerical data as a choropleth map.
 
 [[doc](./docs/choropleth_map.md#plot_utilschoropleth_map_county)], [[example](./examples/Choropleth_map_example.ipynb)]
 
@@ -61,7 +59,7 @@ Similarly to above, another function called `pu.choropleth_map_county()` plots c
 
 ### 4. Correlation matrix (aka, covariance matrix)
 
-Generates a plot of the correlation matrix of a dataset, `X`. Also generates scatter plots of variables with high correlations (absolute value >= 0.7).
+Plots correlation matrix of a dataset, `X`. Also automatically generates scatter plots of variables with high correlations.
 
 ```python
 >>> import plot_utils as pu
@@ -74,8 +72,9 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 
 ![](./examples/gallery/scatter_plots.png)
 
-
 ### 5. "Bin-and-mean" plot
+
+Useful for discovering correlation within data.
 
 ```python
 >>> import plot_utils as pu
@@ -87,8 +86,9 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 
 ![](./examples/gallery/bin_and_mean.png)
 
-
 ### 6.1. `get_colors()` function
+
+Easy querying of distinguishable color palettes.
 
 ```python
 >>> import seaborn as sns
@@ -101,54 +101,55 @@ Generates a plot of the correlation matrix of a dataset, `X`. Also generates sca
 
 ![](./examples/gallery/get_colors.png)
 
-
 ### 6.2. `get_linespecs()` function
+
+Easy querying of distinguishable line specs.
 
 ```python
 >>> import plot_utils as pu
 >>> line_specs = pu.get_linespecs(color_scheme='bw',range_linewidth=[3,8],priority='linewidth')
->>> pu.linespecs_demo(line_specs);
+>>> pu.linespecs_demo(line_specs)
 ```
 
 [[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
 
 ![](./examples/gallery/get_linespecs.png)
 
-
 ### 7. Pie chart
+
+Plots a pie chart from a single array.
+
 ```Python
 >>> import plot_utils as pu
->>> pu.piechart(iris['species'])  # plots single time series
+>>> pu.piechart(iris['species'])
 ```
 
 [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)] 
 
 ![](./examples/gallery/pie_chart.png)
 
-
 ### 8. Time series plotting
+
+Plots single or multiple time series data on the same plot nicely.
 
 ```Python
 >>> import plot_utils as pu
 >>> pu.plot_time_series(x)  # plots single time series
->>> pu.plot_multiple_timeseries(X)  # plots more than one time series
+>>> pu.plot_multiple_timeseries(X)  # plots multiple time series
 ```
-
-`pu.plot_multiple_timeseries()` generates plots multiple time series on the same plot nicely.
 
 [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 
 ![](./examples/gallery/time_series.png)
 
-
 ### 9. Plot with error bounds
+
+Plots data and error bounds on the same graph.
 
 ```{python}
 >>> import plot_utils as pu
 >>> pu.plot_with_error_bounds(data,upper_bound,lower_bound)
 ```
-
-`pu.plot_with_error_bounds()` plots data and the associating error bounds on the same graph.
 
 [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 
