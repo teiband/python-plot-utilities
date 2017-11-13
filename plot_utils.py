@@ -28,7 +28,8 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
     Plot a pie chart demonstrating proportions of different categories within
     an array.
 
-    [Parameters]
+    Parameters
+    ----------
     target_array : <array_like>
         An array containing categorical values (could have more than two
         categories). Target value can be numeric or texts.
@@ -68,7 +69,8 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         re-defines these three arguments.
         (See https://matplotlib.org/api/_as_gen/matplotlib.pyplot.pie.html)
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
     '''
@@ -129,12 +131,14 @@ def histogram3d(X,bins=10,fig=None,ax=None,
     Plot 3D histograms. 3D histograms are best used to compare the distribution
     of more than one set of data.
 
-    [Notes on x and y directions]
+    Notes on x and y directions
+    ---------------------------
         x direction: across data sets (i.e., if we have three datasets, the
                      bars will occupy three different x values)
         y direction: within dataset
 
-    [Parameters]
+    Parameters
+    ----------
     X:
         Input data. X can be:
            (1) a 2D numpy array, where each row is one data set;
@@ -174,7 +178,8 @@ def histogram3d(X,bins=10,fig=None,ax=None,
     ylabel, zlabel:
         Labels of y and z axes
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
     '''
@@ -277,7 +282,8 @@ def get_colors(color_scheme='tab10',N=None):
         https://github.com/vega/vega/wiki/Scales#scale-range-literals
         https://www.mathworks.com/help/matlab/graphics_transition/why-are-plot-lines-different-colors.html
 
-    [Parameters]
+    Parameters
+    ----------
     color_scheme : <str> or {8.3, 8.4}
         Color scheme specifier. Valid specifiers are:
         (1) Matplotlib qualitative color map names:
@@ -306,7 +312,8 @@ def get_colors(color_scheme='tab10',N=None):
         Number of qualitative colors desired. If None, returns all the colors
         in the specified color scheme.
 
-    [Returns]
+    Returns
+    -------
     A list of colors.
     '''
 
@@ -385,8 +392,8 @@ def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
     Returns a list of distinguishable line specifications (color, line style,
     and line width combinations).
 
-    [Parameters]
-
+    Parameters
+    ----------
     color_scheme : <str> or {8.3, 8.4}
         Color scheme specifier. See docs of get_colors() for valid specifiers.
     n_linestyle : {1, 2, 3, 4}
@@ -400,8 +407,8 @@ def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
         style, or line width) should change first in the resulting list of
         line specifications.
 
-    [Returns]
-
+    Returns
+    -------
     A list whose every element is a dictionary that looks like this:
     {'color': '#1f77b4', 'ls': '-', 'lw': 1}. Each element can then be passed
     as keyword arguments to matplotlib.pyplot.plot() or other similar functions.
@@ -433,16 +440,16 @@ def linespecs_demo(line_specs, horizontal_plot=False):
     '''
     Demonstrate all generated line specifications given by get_linespecs()
 
-    [Parameter]
-
+    Parameter
+    ---------
     line_spec :
         A list of dictionaries that is the returned value of get_linespecs().
     horizontal_plot : bool
         Whether or not to demonstrate the line specifications in a horizontal
         plot.
 
-    [Returns]
-
+    Returns
+    -------
     fig, ax : <obj>
         Figure and axes objects.
     '''
@@ -477,25 +484,28 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
     like the upper x_limit to be a multiple of 50, then this function returns
     950.
 
-    [Parameters]
-        data_limit: The upper and/or lower limit(s) of data.
-                    (1) If a tuple (or list) of two elements is provided, then
-                        the upper and lower axis limits are automatically
-                        determined. (The order of the two elements does not
-                        matter.)
-                    (2) If a scalar (float or int)is provided, then the axis
-                        limit is determined based on the DIRECTION provided.
-        tick_base_unit: For example, if you want your axis limit(s) to be a
-                        multiple of 20 (such as 80, 120, 2020, etc.), then use
-                        20.
-        direction: 'upper' or 'lower'; used only when data_limit is a scalar.
-                   If data_limit is a tuple/list, then this variable is
-                   disregarded.
-    [Returns]
-        If data_limit is a list/tuple of length 2, return [min_limit,max_limit]
-        (Note: it is always ordered no matter what the order of data_limit is.)
+    Parameters
+    ----------
+    data_limit: The upper and/or lower limit(s) of data.
+                (1) If a tuple (or list) of two elements is provided, then
+                    the upper and lower axis limits are automatically
+                    determined. (The order of the two elements does not
+                    matter.)
+                (2) If a scalar (float or int)is provided, then the axis
+                    limit is determined based on the DIRECTION provided.
+    tick_base_unit: For example, if you want your axis limit(s) to be a
+                    multiple of 20 (such as 80, 120, 2020, etc.), then use
+                    20.
+    direction: 'upper' or 'lower'; used only when data_limit is a scalar.
+               If data_limit is a tuple/list, then this variable is
+               disregarded.
 
-        If data_limit is a scalar, return axis_limit according to the DIRECTION.
+    Returns
+    -------
+    If data_limit is a list/tuple of length 2, return [min_limit,max_limit]
+    (Note: it is always ordered no matter what the order of data_limit is.)
+
+    If data_limit is a scalar, return axis_limit according to the DIRECTION.
     '''
     if isinstance(data_limit,float) or isinstance(data_limit,int):  # is scalar
         if direction == 'upper':
@@ -556,7 +566,8 @@ def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
     In the figure, N is the number of values where x = x1, x2, x3, or x4.
     And x1, x2, x3, x4, etc. are the discrete values within x.
 
-    [Parameters]
+    Parameters
+    ----------
     x:
         A list of numpy array that contain the data to be visualized.
     fig, ax:
@@ -571,11 +582,13 @@ def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
     rot:
         Rotation angle (degrees) of x axis label. Default = 0 (upright label)
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
 
-    [Reference]
+    Reference
+    ---------
     http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.plot.html
     http://pandas.pydata.org/pandas-docs/version/0.18.1/visualization.html#bar-plots
     '''
@@ -633,7 +646,8 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
     variable being displayed on the map, such as population density or
     per-capita income.
 
-    [Parameters]
+    Parameters
+    ----------
     data_per_state:
         Numerical data of each state, to be plotted onto the map.
         Acceptable data types include:
@@ -679,11 +693,13 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
             [shapefile_dir]/usa_states/st99_d00.(...)
             [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
 
-    [References]
+    References
+    ----------
         I based my modifications partly on some code snippets in this
         stackoverflow thread: https://stackoverflow.com/questions/39742305
     '''
@@ -845,7 +861,8 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd
     variable being displayed on the map, such as population density or
     per-capita income.
 
-    [Parameters]
+    Parameters
+    ----------
     data_per_county:
         Numerical data of each county, to be plotted onto the map.
         Acceptable data types include:
@@ -891,11 +908,13 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd
             [shapefile_dir]/usa_states/st99_d00.(...)
             [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
 
-    [References]
+    References
+    ----------
         I based my modifications partly on some code snippets in this
         stackoverflow thread: https://stackoverflow.com/questions/39742305
     '''
@@ -1294,7 +1313,8 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
     '''
     Plot time_series, where its index indicates a date (e.g., year, month, date).
 
-    [Parameters]
+    Parameters
+    ----------
     time_series:
         A pandas Series, with index being date; or a pandas DataFrame, with
         index being date, and each column being a different time series.
@@ -1328,7 +1348,8 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
         width leads to date labels being displayed with 90 deg rotation).
         Do not change this unless you really know what you are doing.
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
     '''
@@ -1423,7 +1444,8 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
 
     And then plot the upper bound and lower bound as shaded areas beneath the line.
 
-    [Parameters]
+    Parameters
+    ----------
     time_series:
         a pandas Series, with index being date
     upper_bound, lower_bound:
@@ -1465,7 +1487,8 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
         width leads to date labels being displayed with 90 deg rotation).
         Do not change this unless you really know what you are doing.
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
     '''
@@ -1723,7 +1746,8 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
        -|--------------------------------------->  x
 
 
-    [Parameters]
+    Parameters
+    ----------
     x, y:
         data points to be plotted as a line (should have the same length)
     upper_bound, lower_bound:
@@ -1752,7 +1776,8 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
     grid_on:
         whether or not to show the grids
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
     '''
@@ -1792,7 +1817,8 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
     Plot correlation matrix of a dataset X, whose columns are different
     variables (or a sample of a certain random variable).
 
-    [Parameters]
+    Parameters
+    ----------
     X:
         The data set. Can be a numpy array or pandas dataframe.
     color_map:
@@ -1826,7 +1852,8 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
     ncols_scatter_plots:
         How many subplots within the scatter plots to show on one row.
 
-    [Returns]
+    Returns
+    -------
     correlations:
         The correlation matrix
     fig, ax:
@@ -1897,7 +1924,8 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
     Produce scatter plots of two of the columns in X (the data matrix).
     The correlation between the two columns are shown on top of the plot.
 
-    [Input]
+    Input
+    -----
     X:
         The dataset. Currently only supports pandas dataframe.
     two_columns:
@@ -1921,7 +1949,8 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
     grid_on:
         Whether or not to show grids.
 
-    [Returns]
+    Returns
+    -------
     fig, ax:
         Figure and axes objects
     '''
@@ -2016,7 +2045,8 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                     E(Y) = exp(mu + (1/2)*sigma^2)
           where mu and sigma are the two parameters of the distribution.
 
-    [Parameters]
+    Parameters
+    ----------
     xdata, ydata:
         Raw x and y data points (with the same length). Can be pandas Series or
         numpy arrays.
@@ -2054,7 +2084,8 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     show_bins:
         Whether or not to show the bin edges as vertical lines on the plots
 
-    [Returns]
+    Returns
+    -------
     x_mean, y_mean:
         Mean values of x and y for each data group. Numpy arrays.
     fig, ax:
