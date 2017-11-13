@@ -2012,10 +2012,10 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
 
 #%%============================================================================
 def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
-                 fig=None, ax=None, figsize=(4,4), dpi=100,
+                 fig=None, ax=None, figsize=(4,4), dpi=100, show_bins=True,
                  raw_data_label='raw', mean_data_label='average',
                  xlabel='x', ylabel='y', logx=False, logy=False, grid_on=True,
-                 show_legend=True, show_bins=False):
+                 show_legend=True):
     '''
     Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
 
@@ -2069,6 +2069,8 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     dpi:
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
+    show_bins:
+        Whether or not to show the bin edges as vertical lines on the plots
     raw_data_label, mean_data_label:
         Two strings that specify the names of the raw data and the averaged
         data, respectively, such as "raw data" and "averaged data". Useless
@@ -2081,9 +2083,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         Whether or not to show the grids
     legend_on:
         Whether or not to show the legend
-    show_bins:
-        Whether or not to show the bin edges as vertical lines on the plots
-
+    
     Returns
     -------
     x_mean, y_mean:

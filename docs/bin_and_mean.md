@@ -1,6 +1,6 @@
 # plot_utils.bin_and_mean
 
-**plot_utils.bin_and_mean**(*xdata, ydata, bins=10, distribution='normal', show_fig=True, fig=None, ax=None, figsize=(4,4), dpi=100, raw_data_label='raw', mean_data_label='average', xlabel='x', ylabel='y', logx=False, logy=False, grid_on=True, show_legend=True*):
+**plot_utils.bin_and_mean**(*xdata, ydata, bins=10, distribution='normal', show_fig=True, fig=None, ax=None, figsize=(4,4), dpi=100, show_bins=True, raw_data_label='raw', mean_data_label='average', xlabel='x', ylabel='y', logx=False, logy=False, grid_on=True, show_legend=True*):
 
 Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
 
@@ -37,6 +37,8 @@ The theory that enables this method is the assumption that the data points with 
     dpi:
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
+    show_bins:
+            Whether or not to show the bin edges as vertical lines on the plots
     raw_data_label, mean_data_label:
         Two strings that specify the names of the raw data and the averaged
         data, respectively, such as "raw data" and "averaged data". Useless
