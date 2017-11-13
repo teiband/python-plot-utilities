@@ -215,7 +215,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
     ax.view_init(elev,azim)  # set view elevation and angle
 
     proxy = [[None]] * N  # create a 'proxy' to help generating legends
-    c = get_colors(N,10)  # get a list of colors
+    c = get_colors(N,'tab10')  # get a list of colors
     xpos_list = [[None]] * N  # pre-allocation
     for j in range(N):  # loop through each dataset
         if type(bins) == list and len(bins) > 1:  # if 'bins' is a list and length > 1
@@ -266,7 +266,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
     return fig, ax
 
 #%%############################################################################
-def get_colors(N,color_scheme='tab10'):
+def get_colors(N=None,color_scheme='tab10'):
     '''
     Returns a list of N distinguisable colors. When N is larger than the color
     scheme capacity, the color cycle is wrapped around.
@@ -281,7 +281,7 @@ def get_colors(N,color_scheme='tab10'):
     N : <int> or None
         Number of qualitative colors desired. If None, returns all the colors
         in the specified color scheme.
-    color_scheme : <str> or {0, 10, 8.3, 8.4}
+    color_scheme : <str> or {8.3, 8.4}
         Color scheme specifier. Valid specifiers are:
         (1) Matplotlib qualitative color map names:
             'Pastel1'
@@ -302,8 +302,7 @@ def get_colors(N,color_scheme='tab10'):
             ![](https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder_old.png)
             New:
             ![](https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder.png)
-        (3) 0 and 10 (ints):
-            0 is equivalent to old MATLAB scheme; 10 is equivalent to 'tab10'.
+        (3) 'rgbcmyk': old default Matplotlib color palette (v1.5 and earlier)
 
     [Returns]
     A list of colors.
@@ -329,9 +328,12 @@ def get_colors(N,color_scheme='tab10'):
     if not isinstance(color_scheme,(str,unicode,int,float)):
         raise TypeError('Unrecognizable data type for color_scheme.')
 
-    if color_scheme == 0:  # default matplotlib color scheme
+    if color_scheme == 'rgbcmyk':  # default matplotlib v1.5 color scheme
         palette = ['b','g','r','c','m','y','k']
-    elif (color_scheme == 10) or (color_scheme == 'tab10'):
+    elif color_scheme == 'tab10':
+        ## This is the default color scheme, and it is a duplicate if the next
+        ## case. The only difference is that this case returns HEX values instead
+        ## of RGB values, hence shorter (better for demonstrative purposes.)
         palette = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd',
                    '#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf']
     elif color_scheme in qcm_names:
@@ -362,7 +364,34 @@ def get_colors(N,color_scheme='tab10'):
         raise ValueError('Invalid value of color_scheme.')
 
     L = len(palette)
+    if N is None:
+        N = L
+    elif not isinstance(N,(int,np.integer)):
+        raise TypeError('N should be either None or integers.')
     return [palette[i % L] for i in range(N)]  # wrap around 'palette' if N > L
+
+#%%############################################################################
+def get_linespecs(color_scheme='tab10',n_linestyle=4,range_linewidth=[1,2,3],
+                  color_priority=True):
+
+    import cycler
+
+    colors = get_colors(N=None,color_scheme=color_scheme)
+    if n_linestyle in [1,2,3,4]:
+        linestyles = ['-', '--', '-.', ':'][:n_linestyle]
+    else:
+        raise ValueError('n_linestyle should be 1, 2, 3, or 4.')
+
+    color_cycle = cycler.cycler(color=colors)
+    ls_cycle = cycler.cycler(ls=linestyles)
+    lw_cycle = cycler.cycler(lw=range_linewidth)
+
+    if color_priority:
+        style_cycle = lw_cycle * ls_cycle * color_cycle
+    else:
+        style_cycle = lw_cycle * color_cycle * ls_cycle
+
+    return list(style_cycle)
 
 #%%############################################################################
 def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
