@@ -215,7 +215,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
     ax.view_init(elev,azim)  # set view elevation and angle
 
     proxy = [[None]] * N  # create a 'proxy' to help generating legends
-    c = get_colors(N,'tab10')  # get a list of colors
+    c = get_colors('tab10',N)  # get a list of colors
     xpos_list = [[None]] * N  # pre-allocation
     for j in range(N):  # loop through each dataset
         if type(bins) == list and len(bins) > 1:  # if 'bins' is a list and length > 1
@@ -266,7 +266,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
     return fig, ax
 
 #%%############################################################################
-def get_colors(N=None,color_scheme='tab10'):
+def get_colors(color_scheme='tab10',N=None):
     '''
     Returns a list of N distinguisable colors. When N is larger than the color
     scheme capacity, the color cycle is wrapped around.
@@ -278,9 +278,6 @@ def get_colors(N=None,color_scheme='tab10'):
         https://www.mathworks.com/help/matlab/graphics_transition/why-are-plot-lines-different-colors.html
 
     [Parameters]
-    N : <int> or None
-        Number of qualitative colors desired. If None, returns all the colors
-        in the specified color scheme.
     color_scheme : <str> or {8.3, 8.4}
         Color scheme specifier. Valid specifiers are:
         (1) Matplotlib qualitative color map names:
@@ -289,7 +286,7 @@ def get_colors(N=None,color_scheme='tab10'):
             'Paired'
             'Accent'
             'Dark2'
-            'Set1'
+            'Set1'(
             'Set2'
             'Set3'
             'tab10'
@@ -303,6 +300,11 @@ def get_colors(N=None,color_scheme='tab10'):
             New:
             ![](https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder.png)
         (3) 'rgbcmyk': old default Matplotlib color palette (v1.5 and earlier)
+        (4) 'bw' (or 'bw3'), 'bw4', and 'bw5'
+            Black-and-white (grayscale colors in 3, 4, and 5 levels)
+    N : <int> or None
+        Number of qualitative colors desired. If None, returns all the colors
+        in the specified color scheme.
 
     [Returns]
     A list of colors.
@@ -330,6 +332,12 @@ def get_colors(N=None,color_scheme='tab10'):
 
     if color_scheme == 'rgbcmyk':  # default matplotlib v1.5 color scheme
         palette = ['b','g','r','c','m','y','k']
+    elif color_scheme in ['bw','bw3']:  # black and white, 3 levels
+        palette = [[0]*3,[0.4]*3,[0.75]*3]
+    elif color_scheme == 'bw4':  # black and white, 4 levels
+        palette = [[0]*3,[0.25]*3,[0.5]*3,[0.75]*3]
+    elif color_scheme == 'bw5':  # black and white, 5 levels
+        palette = [[0]*3,[0.15]*3,[0.3]*3,[0.5]*3,[0.7]*3,]
     elif color_scheme == 'tab10':
         ## This is the default color scheme, and it is a duplicate if the next
         ## case. The only difference is that this case returns HEX values instead
@@ -371,8 +379,33 @@ def get_colors(N=None,color_scheme='tab10'):
     return [palette[i % L] for i in range(N)]  # wrap around 'palette' if N > L
 
 #%%############################################################################
-def get_linespecs(color_scheme='tab10',n_linestyle=4,range_linewidth=[1,2,3],
-                  color_priority=True):
+def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
+                  priority='color'):
+    '''
+    Returns a list of distinguishable line specifications (color, line style,
+    and line width combinations).
+
+    [Parameters]
+
+    color_scheme : <str> or {8.3, 8.4}
+        Color scheme specifier. See docs of get_colors() for valid specifiers.
+    n_linestyle : {1, 2, 3, 4}
+        Number of different line styles to use. There are only 4 available line
+        stylies in Matplotlib to choose from: (1) - (2) -- (3) -. and (4) ..
+        For example, if you use 2, you choose only - and --
+    range_linewidth : array_like
+        The range of different line width values to use.
+    priority : {'color', 'linestyle', 'linewidth'}
+        Which one of the three line specification aspects (i.e., color, line
+        style, or line width) should change first in the resulting list of
+        line specifications.
+
+    [Returns]
+
+    A list whose every element is a dictionary that looks like this:
+    {'color': '#1f77b4', 'ls': '-', 'lw': 1}. Each element can then be passed
+    as keyword arguments to matplotlib.pyplot.plot() or other similar functions.
+    '''
 
     import cycler
 
@@ -386,12 +419,54 @@ def get_linespecs(color_scheme='tab10',n_linestyle=4,range_linewidth=[1,2,3],
     ls_cycle = cycler.cycler(ls=linestyles)
     lw_cycle = cycler.cycler(lw=range_linewidth)
 
-    if color_priority:
+    if priority == 'color':
         style_cycle = lw_cycle * ls_cycle * color_cycle
-    else:
+    elif priority == 'linestyle':
         style_cycle = lw_cycle * color_cycle * ls_cycle
+    elif priority == 'linewidth':
+        style_cycle = color_cycle * lw_cycle * ls_cycle
 
     return list(style_cycle)
+
+#%%############################################################################
+def linespecs_demo(line_specs, horizontal_plot=False):
+    '''
+    Demonstrate all generated line specifications given by get_linespecs()
+
+    [Parameter]
+
+    line_spec :
+        A list of dictionaries that is the returned value of get_linespecs().
+    horizontal_plot : bool
+        Whether or not to demonstrate the line specifications in a horizontal
+        plot.
+
+    [Returns]
+
+    fig, ax : <obj>
+        Figure and axes objects.
+    '''
+    x = np.arange(0,10,0.05)  # define x and y points to plot
+    y = np.sin(x)
+    fig_width = 8
+    fig_height = len(line_specs) * 0.2
+    if horizontal_plot:
+        x, y = y, x
+        fig_width, fig_height = fig_height, fig_width
+
+    figsize = (fig_width, fig_height)
+    fig = plt.figure(figsize=figsize)
+    ax =  plt.axes()
+
+    for j, linespec in enumerate(line_specs):
+        if horizontal_plot:
+            plt.plot(x+j, y, **linespec)
+        else:
+            plt.plot(x, y-j, **linespec)
+
+    ax.axis('off')  # no coordinate axes boxe
+
+    return fig, ax
 
 #%%############################################################################
 def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
@@ -2050,7 +2125,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
             ylims = ax.get_ylim()
             for k, edge in enumerate(bins):
                 lab_ = 'bin edges' if k==0 else None  # only label 1st edge
-                ec = get_colors(1)[0]
+                ec = get_colors(N=1)[0]
                 ax.plot([edge]*2,ylims,'--',c=ec,lw=1.0,zorder=2,label=lab_)
         if show_legend:
             ax.legend(loc='best')
