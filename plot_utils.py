@@ -464,7 +464,7 @@ def linespecs_demo(line_specs, horizontal_plot=False):
         else:
             plt.plot(x, y-j, **linespec)
 
-    ax.axis('off')  # no coordinate axes boxe
+    ax.axis('off')  # no coordinate axes box
 
     return fig, ax
 
