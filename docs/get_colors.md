@@ -32,9 +32,19 @@ What does each color_scheme look like?
 ![](https://matplotlib.org/mpl_examples/color/colormaps_reference_04.png)
         (2) 8.3 and 8.4 (floats): old and new MATLAB color scheme
             Old:
+
+
 ![](https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder_old.png)
+
+
+
             New:
+
+
 ![](https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder.png)
+
+
+
         (3) 0 and 10 (ints):
             0 is equivalent to old MATLAB scheme; 10 is equivalent to 'tab10'.
 
