@@ -4,6 +4,8 @@
 
 Plot time_series, where its index indicates dates (e.g., year, month, date).
 
+You can plot multiple time series by supplying a multi-column pandas Dataframe as time_series, but you cannot use custom line specifications (colors, width, and styles) for each time series. It is recommended to use plot_multiple_timeseries() in stead.
+
 #### [Parameters]
     time_series:
         A pandas Series, with index being date; or a pandas DataFrame, with
@@ -48,6 +50,8 @@ Plot time_series, where its index indicates dates (e.g., year, month, date).
 **plot_utils.plot_multiple_timeseries**(*multiple_time_series, show_legend=True, fig=None, ax=None, figsize=(10,3), dpi=100, ncol_legend=3, \*\*kwargs*):
 
 Plot multiple_time_series, where its index indicates dates (e.g., year, month, date).
+
+Note that setting keyword arguments such as color or ls ("linestyle") will force all time series to have the same color or ls. So it is recommended to let this function generate distinguishable line specifications (color/linestyle/linewidth combinations) by itself. (Although the more time series, the less the distinguishability. 240 time series or less is recommended.)
 
 #### [Parameters]
     multiple_time_series : <pandas.DataFrame>

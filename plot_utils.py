@@ -1308,10 +1308,15 @@ def check_all_states(dict1):
 #%%============================================================================
 def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
                     xlabel='Time', ylabel=None, label=None, color=None, lw=2,
-                    ls='-', marker=None, fontsize=12, xgrid_on=True,
+                    ls=None, marker=None, fontsize=12, xgrid_on=True,
                     ygrid_on=True, title=None, month_grid_width=None):
     '''
     Plot time_series, where its index indicates dates (e.g., year, month, date).
+
+    You can plot multiple time series by supplying a multi-column pandas
+    Dataframe as time_series, but you cannot use custom line specifications
+    (colors, width, and styles) for each time series. It is recommended to use
+    plot_multiple_timeseries() in stead.
 
     Parameters
     ----------
@@ -1347,7 +1352,6 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
         This value determines how X axis labels are displayed (e.g., smaller
         width leads to date labels being displayed with 90 deg rotation).
         Do not change this unless you really know what you are doing.
-
     Returns
     -------
     fig, ax:
@@ -1400,6 +1404,12 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
     Plot multiple_time_series, where its index indicates dates (e.g., year,
     month, date).
 
+    Note that setting keyword arguments such as color or ls ("linestyle") will
+    force all time series to have the same color or ls. So it is recommended
+    to let this function generate distinguishable line specifications (color/
+    linestyle/linewidth combinations) by itself. (Although the more time series,
+    the less the distinguishability. 240 time series or less is recommended.)
+
     Parameters
     ----------
     multiple_time_series : <pandas.DataFrame>
@@ -1442,26 +1452,26 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         fig, ax = plot_timeseries(multiple_time_series, fig, ax, figsize, dpi,
                                   **kwargs)  # to plot_timeseries()
     else:
-        nr_timeseries = multiple_time_series.shape[1]
-        if 'marker' in kwargs:
-            kwargs.pop('marker')
-        if 'ls' in kwargs:
-            kwargs.pop('ls')
+        if isinstance(multiple_time_series,pd.Series):
+            nr_timeseries  = 1
+            multiple_time_series = pd.DataFrame(multiple_time_series,copy=True)
+        else:
+            nr_timeseries = multiple_time_series.shape[1]
 
         if nr_timeseries <= 120:
             linespecs = get_linespecs(range_linewidth=[2,3,4])
         elif nr_timeseries <= 240:
             linespecs = get_linespecs(color_scheme='tab20',range_linewidth=[2,3,4])
         else:
-            linespecs = get_linespecs(color_scheme='tab20',range_linewidth=[2,3,4])
-            print('WARNING: Too many time series to plot. There will be duplicate time series.')
+            linespecs = get_linespecs(color_scheme='tab20',  # use more line widths
+                            range_linewidth=range(2,(nr_timeseries-1)/240+5))
 
         for j in range(nr_timeseries):
-            kwargs.update(linespecs[j % nr_timeseries])
+            tmp_dict = linespecs[j % nr_timeseries].copy()
+            tmp_dict.update(kwargs)  # kwargs overwrites tmp_dict if key already exists in tmp_dict
             plot_timeseries(multiple_time_series.iloc[:,j],
-                            fig=fig, ax=ax,
-                            label=multiple_time_series.columns[j],
-                            **kwargs)
+                            fig=fig, ax=ax, label=multiple_time_series.columns[j],
+                            **tmp_dict)
 
         if 'title' not in kwargs:
             bbox_anchor_loc = (0., 1.02, 1., .102)
