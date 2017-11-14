@@ -1306,12 +1306,12 @@ def check_all_states(dict1):
     return dict2
 
 #%%============================================================================
-def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
-                   xlabel='Time',ylabel=None,label=None,color=None,lw=2,ls='-',
-                   marker=None,fontsize=12,xgrid_on=True,ygrid_on=True,
-                   title=None,dpi=96,month_grid_width=None):
+def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
+                    xlabel='Time', ylabel=None, label=None, color=None, lw=2,
+                    ls='-', marker=None, fontsize=12, xgrid_on=True,
+                    ygrid_on=True, title=None, month_grid_width=None):
     '''
-    Plot time_series, where its index indicates a date (e.g., year, month, date).
+    Plot time_series, where its index indicates dates (e.g., year, month, date).
 
     Parameters
     ----------
@@ -1325,6 +1325,9 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
     figsize:
         figure size (width, height) in inches (fig object passed via
         "fig" will over override this parameter)
+    dpi:
+        Screen resolution (fig object passed via "fig" will over override
+        this parameter)
     xlabel:
         Label of X axis. Usually "Time" or "Date"
     ylabel:
@@ -1339,9 +1342,6 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
         Whether or not to show horizontal grid lines (default: True)
     title:
         Figure title (optional)
-    dpi:
-        Screen resolution (fig object passed via "fig" will over override
-        this parameter)
     month_grid_width:
         the on-figure "horizontal width" that each time interval occupies.
         This value determines how X axis labels are displayed (e.g., smaller
@@ -1361,6 +1361,7 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
         fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
     else:   # if provided, plot to the specified figure
         pl.figure(fig.number)
+        figsize = fig.get_size_inches()  # overwrite default figsize for calculating month_grid_width
 
     if ax is None:  # if ax is not provided
         ax = plt.axes()  # create new axes and plot lines on it
@@ -1372,8 +1373,8 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
     ax.set_xlabel(xlabel)
     if ylabel is not None:
         ax.set_ylabel(ylabel)
-    if month_grid_width == None:
-        month_grid_width = figsize[0]/calc_month_interval(ts.index) # width of each month in inches
+    if month_grid_width == None:  # width of each month in inches
+        month_grid_width = float(figsize[0])/calc_month_interval(ts.index)
     ax = format_xlabel(ax,month_grid_width)
 
     if ygrid_on == True:
@@ -1392,35 +1393,74 @@ def plot_timeseries(time_series,fig=None,ax=None,figsize=(10,3),
     return fig, ax
 
 #%%============================================================================
-def plot_multiple_timeseries(multiple_time_series,show_legend=True,
-                             figsize=(10,3),dpi=96,**kwargs):
+def plot_multiple_timeseries(multiple_time_series, show_legend=True,
+                             fig=None, ax=None, figsize=(10,3), dpi=100,
+                             ncol_legend=3, **kwargs):
     '''
-    This is just a wrapper around plot_timeseries(), which deals with plotting
-    multiple time series on the same figure with or without legends.
+    Plot multiple_time_series, where its index indicates dates (e.g., year,
+    month, date).
 
-    I created this function to plot time series for the 50 states in the USA,
-    therefore robustness (as well as aesthetics) are not guaranteed for other
-    cases.
+    Parameters
+    ----------
+    multiple_time_series : <pandas.DataFrame>
+        A pandas dataframe, with index being date , andeach column being a
+        different time series.
+    fig, ax : <matplotlib objects>
+        Figure and axes objects.
+        If provided, the graph is plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : <tuple>
+        Figure size (width, height) in inches (fig object passed via
+        "fig" will over override this parameter)
+    dpi : <scalar>
+        Screen resolution (fig object passed via "fig" will over override
+        this parameter)
+    ncol_legend : <int>
+        Number of columns of the legend
+    **kwargs : <dict>
+        Other keyword arguments to be passed to plot_timeseries(), such as
+        color, marker, fontsize, etc. (Check docstring of plot_timeseries()).
+
+    Returns
+    -------
+    fig, ax:
+        Figure and axes objects
     '''
-    if show_legend is False:  # if no need to show legends, just pass everything
-        fig,ax = plot_timeseries(multiple_time_series,**kwargs)  # to plot_timeseries()
+
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
+    else:   # if provided, plot to the specified figure
+        pl.figure(fig.number)
+        figsize = fig.get_size_inches()  # overwrite default figsize for reusing
+
+    if ax is None:  # if ax is not provided
+        ax = plt.axes()  # create new axes and plot lines on it
     else:
-        fig = plt.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
-        ax = plt.axes()
+        ax = ax  # plot lines on the provided axes handle
+
+    if show_legend is False:  # if no need to show legends, just pass everything
+        fig, ax = plot_timeseries(multiple_time_series, fig, ax, figsize, dpi,
+                                  **kwargs)  # to plot_timeseries()
+    else:
         nr_timeseries = multiple_time_series.shape[1]
-        linestyle_list = ['-','--','-',':','-','-']
-        marker_list = [None,None,'+',None,'o','^']
         if 'marker' in kwargs:
             kwargs.pop('marker')
         if 'ls' in kwargs:
             kwargs.pop('ls')
 
+        if nr_timeseries <= 120:
+            linespecs = get_linespecs(range_linewidth=[2,3,4])
+        elif nr_timeseries <= 240:
+            linespecs = get_linespecs(color_scheme='tab20',range_linewidth=[2,3,4])
+        else:
+            linespecs = get_linespecs(color_scheme='tab20',range_linewidth=[2,3,4])
+            print('WARNING: Too many time series to plot. There will be duplicate time series.')
+
         for j in range(nr_timeseries):
+            kwargs.update(linespecs[j % nr_timeseries])
             plot_timeseries(multiple_time_series.iloc[:,j],
                             fig=fig, ax=ax,
                             label=multiple_time_series.columns[j],
-                            ls=linestyle_list[int(j/10) % len(linestyle_list)],
-                            marker=marker_list[int(j/10) % len(marker_list)],
                             **kwargs)
 
         if 'title' not in kwargs:
@@ -1428,7 +1468,7 @@ def plot_multiple_timeseries(multiple_time_series,show_legend=True,
         else:
             bbox_anchor_loc = (0., 1.08, 1., .102)
         ax.legend(bbox_to_anchor=bbox_anchor_loc,
-                  loc='lower center', ncol=10)
+                  loc='lower center', ncol=ncol_legend)
 
     return fig, ax
 
@@ -1568,33 +1608,57 @@ def format_xlabel(ax,month_width):
 
     For narrower cases, year will be put below month.
     For even narrower cases, not every month will be displayed as a label.
+    For very narrow cases (e.g., many years), months will not be displayed, and
+    sometimes not every year will be displayed.
     '''
-    if month_width < 0.06:
-        intvl = 6
-    elif month_width < 0.09:
-        intvl = 4
-    elif month_width < 0.15:
-        intvl = 3
-    elif month_width < 0.25:
-        intvl = 2
-    else:
-        intvl = 1
 
-    years = mpl.dates.YearLocator()
-    months = mpl.dates.MonthLocator(interval=intvl)  # only show every two months
-    years_fmt = mpl.dates.DateFormatter('\n%Y')  # add some space for the year label
+    rot = None  # degree of rotation
+    y_int = None  # year interval
+    if month_width < 0.038:
+        m_int = None  # month interval
+        y_int = 3 * int(0.038/month_width)  # interval increases with narrower size
+    elif month_width < 0.043:
+        m_int = None
+        y_int = 2
+    elif month_width < 0.05:
+        m_int = None
+        rot = 30
+    elif month_width < 0.055:
+        m_int = 6  # display month label for every 6 months
+        rot = 30
+    elif month_width < 0.06:
+        m_int = 6
+    elif month_width < 0.09:
+        m_int = 4
+    elif month_width < 0.15:
+        m_int = 3
+    elif month_width < 0.32:
+        m_int = 2
+    else:
+        m_int = 1
+
+    if y_int:  # show only every 'y_int' years
+        years = mpl.dates.YearLocator(base=y_int)
+    else:  # show every year
+        years = mpl.dates.YearLocator()
+
     months_fmt = mpl.dates.DateFormatter('%m')
 
-    ax.xaxis.set_minor_locator(months)
-    #ax.xaxis.set_minor_locator(tkr.MultipleLocator(base=60))  # date interval: 60 days (~2 months)
-    ax.xaxis.set_minor_formatter(months_fmt)
-    #if absolute_bar_width <= 0.25:  # for narrow bars
-    #    plt.setp(ax.xaxis.get_minorticklabels(),rotation=90)  # rotate 'month' label 90 degrees
-    #else:  # for wider bars
-    #    pass  # do not rotate (i.e., rotation = 0)
+    if m_int:   # show every 'm_int' months
+        months = mpl.dates.MonthLocator(interval=m_int)
+        ax.xaxis.set_minor_locator(months)
+        ax.xaxis.set_minor_formatter(months_fmt)
+        years_fmt = mpl.dates.DateFormatter('\n%Y')  # show year on next line
+    else:  # do not show months in x axis label
+        years_fmt = mpl.dates.DateFormatter('%Y')  # show year on current line
+
     ax.xaxis.set_major_locator(years)
     ax.xaxis.set_major_formatter(years_fmt)
     ax.tick_params(labelright=True)  # also show y axis on right edge of figure
+
+    if rot:
+        plt.setp(ax.xaxis.get_majorticklabels(),rotation=rot)
+
     return ax
 
 #%%============================================================================
@@ -1633,9 +1697,7 @@ def as_date(str_date):
         date_list = str_date  # return str_date as is
     else:
         # -----------  Convert to list for pd.Series or np.ndarray objects  -------
-        if isinstance(str_date,pd.Series):
-            str_date = list(str_date)
-        if isinstance(str_date,np.ndarray):
+        if isinstance(str_date,(pd.Series,np.ndarray,pd.Index)):
             str_date = list(str_date)
 
         # ----------  Element-wise checks and conversion  -------------------------
@@ -1648,24 +1710,27 @@ def as_date(str_date):
             else:  # length is larger than 1
                 nr = len(str_date)
                 date_list = [[None]] * nr
-                for j in range(nr):
-                    if isinstance(str_date[j],str) and str_date[j].isdigit():
-                        date_ = str(int(str_date[j]))
-                    if isinstance(str_date[j],str) and not str_date[j].isdigit():
-                        date_ = str_date[j]
-                    if isinstance(str_date[j],int) or isinstance(str_date[j],np.float64):
-                        date_ = str(int(str_date[j]))  # robustness not guarenteed!
-                    date_list[j] = str2date_kernel(date_)  # do conversion element by element
+                for j in range(nr):  # loop every element in str_date
+                    j_th = str_date[j]
+                    if isinstance(j_th,(str,unicode)) and j_th.isdigit():
+                        date_ = str(int(j_th))
+                    elif isinstance(j_th,(str,unicode)) and not j_th.isdigit():
+                        date_ = j_th
+                    elif isinstance(j_th,(int,np.integer,np.float)):
+                        date_ = str(int(j_th))  # robustness not guarenteed!
+                    else:
+                        raise TypeError('Date type of the element(s) in str_date not recognized.')
+                    date_list[j] = pd.to_datetime(date_)  # do conversion element by element
         elif type(str_date) == dt.date:  # if a datetime.date object
             date_list = str_date  # no need for conversion
-        elif isinstance(str_date,int) or isinstance(str_date,np.float64):  # integer or float
+        elif isinstance(str_date,(int,np.integer,np.float)):  # integer or float
             date_ = str(int(str_date))
-            date_list = str2date_kernel(date_)
-        elif isinstance(str_date,str):  # a single string, such as '2015-04'
+            date_list = pd.to_datetime(date_)
+        elif isinstance(str_date,(str,unicode)):  # a single string, such as '2015-04'
             date_ = str_date  # no conversion needed
-            date_list = str2date_kernel(date_)
+            date_list = pd.to_datetime(date_)
         else:
-            print('#####  Edge case encountered! (Input data type of str_date not recognized.) #####')
+            raise TypeError('Input data type of str_date not recognized.')
             print('\ntype(str_date) is: %s' % type(str_date))
             try:
                 print('Length of str_date is: %s' % len(str_date))
@@ -2083,7 +2148,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         Whether or not to show the grids
     legend_on:
         Whether or not to show the legend
-    
+
     Returns
     -------
     x_mean, y_mean:

@@ -2,7 +2,7 @@
 
 **plot_utils.plot_timeseries**(*time_series, fig=None, ax=None, figsize=(10,3), xlabel='Time', ylabel=None, label=None, color=None, lw=2, ls='-', marker=None, fontsize=12, xgrid_on=True, ygrid_on=True, title=None, dpi=96, month_grid_width=None*):
 
-Plot time_series, where its index indicates a date (e.g., year, month, date).
+Plot time_series, where its index indicates dates (e.g., year, month, date).
 
 #### [Parameters]
     time_series:
@@ -10,11 +10,14 @@ Plot time_series, where its index indicates a date (e.g., year, month, date).
         index being date, and each column being a different time series.
     fig, ax:
         Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
+        If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     figsize:
         figure size (width, height) in inches (fig object passed via
         "fig" will over override this parameter)
+    dpi:
+        Screen resolution (fig object passed via "fig" will over override
+        this parameter)
     xlabel:
         Label of X axis. Usually "Time" or "Date"
     ylabel:
@@ -29,9 +32,6 @@ Plot time_series, where its index indicates a date (e.g., year, month, date).
         Whether or not to show horizontal grid lines (default: True)
     title:
         Figure title (optional)
-    dpi:
-        Screen resolution (fig object passed via "fig" will over override
-        this parameter)
     month_grid_width:
         the on-figure "horizontal width" that each time interval occupies.
         This value determines how X axis labels are displayed (e.g., smaller
@@ -45,11 +45,33 @@ Plot time_series, where its index indicates a date (e.g., year, month, date).
 --------------------------------------------------------
 # plot_utils.plot_multiple_timeseries
 
-**plot_utils.plot_multiple_timeseries**(*multiple_time_series, show_legend=True, figsize=(10,3), dpi=96, \*\*kwargs*):
+**plot_utils.plot_multiple_timeseries**(*multiple_time_series, show_legend=True, fig=None, ax=None, figsize=(10,3), dpi=100, ncol_legend=3, \*\*kwargs*):
 
-This is just a wrapper around plot_timeseries(), which deals with plotting multiple time series on the same figure with or without legends.
+Plot multiple_time_series, where its index indicates dates (e.g., year, month, date).
 
-I created this function to plot time series for the 50 states in the USA, therefore robustness (as well as aesthetics) are not guaranteed for other cases.
+#### [Parameters]
+    multiple_time_series : <pandas.DataFrame>
+        A pandas dataframe, with index being date , andeach column being a
+        different time series.
+    fig, ax : <matplotlib objects>
+        Figure and axes objects.
+        If provided, the graph is plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : <tuple>
+        Figure size (width, height) in inches (fig object passed via
+        "fig" will over override this parameter)
+    dpi : <scalar>
+        Screen resolution (fig object passed via "fig" will over override
+        this parameter)
+    ncol_legend : <int>
+        Number of columns of the legend
+    **kwargs : <dict>
+        Other keyword arguments to be passed to plot_timeseries(), such as
+        color, marker, fontsize, etc. (Check docstring of plot_timeseries()).
+
+#### [Returns]
+    fig, ax:
+        Figure and axes objects
 
 ---------------------------------------------------------
 # plot_utils.fill_timeseries
