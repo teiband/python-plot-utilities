@@ -1309,7 +1309,8 @@ def check_all_states(dict1):
 def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
                     xlabel='Time', ylabel=None, label=None, color=None, lw=2,
                     ls=None, marker=None, fontsize=12, xgrid_on=True,
-                    ygrid_on=True, title=None, month_grid_width=None):
+                    ygrid_on=True, title=None, zorder=None,
+                    month_grid_width=None):
     '''
     Plot time_series, where its index indicates dates (e.g., year, month, date).
 
@@ -1320,38 +1321,41 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
 
     Parameters
     ----------
-    time_series:
+    time_series : <pd.Series or pd.DataFrame>
         A pandas Series, with index being date; or a pandas DataFrame, with
         index being date, and each column being a different time series.
-    fig, ax:
+    fig, ax : <matplotlib obj>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize:
+    figsize : <tuple>
         figure size (width, height) in inches (fig object passed via
         "fig" will over override this parameter)
-    dpi:
+    dpi : <scalar>
         Screen resolution (fig object passed via "fig" will over override
         this parameter)
-    xlabel:
+    xlabel : <str>
         Label of X axis. Usually "Time" or "Date"
-    ylabel:
+    ylabel : <str>
         Label of Y axis. Usually the meaning of the data
-    label:
+    label : <str>
         Label of data, for plotting legends
-    color:
+    color : <list or str>
         Color of line. If None, let Python decide for itself.
-    xgrid_on:
+    xgrid_on : <bool>
         Whether or not to show vertical grid lines (default: True)
-    ygrid_on:
+    ygrid_on : <bool>
         Whether or not to show horizontal grid lines (default: True)
-    title:
+    title : <str>
         Figure title (optional)
-    month_grid_width:
+    zorder: (any number)
+        Set the zorder for lines. Higher zorder are drawn on top.
+    month_grid_width : <scalar>
         the on-figure "horizontal width" that each time interval occupies.
         This value determines how X axis labels are displayed (e.g., smaller
         width leads to date labels being displayed with 90 deg rotation).
         Do not change this unless you really know what you are doing.
+
     Returns
     -------
     fig, ax:
@@ -1372,7 +1376,10 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
     else:
         ax = ax  # plot lines on the provided axes handle
 
-    ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label)
+    if zorder:
+        ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label,zorder=zorder)
+    else:
+        ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label)
     ax.set_label(label)  # set label for legends using argument 'label'
     ax.set_xlabel(xlabel)
     if ylabel is not None:
@@ -1399,7 +1406,7 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
 #%%============================================================================
 def plot_multiple_timeseries(multiple_time_series, show_legend=True,
                              fig=None, ax=None, figsize=(10,3), dpi=100,
-                             ncol_legend=3, **kwargs):
+                             ncol_legend=5, **kwargs):
     '''
     Plot multiple_time_series, where its index indicates dates (e.g., year,
     month, date).
@@ -1458,20 +1465,25 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         else:
             nr_timeseries = multiple_time_series.shape[1]
 
-        if nr_timeseries <= 120:
-            linespecs = get_linespecs(range_linewidth=[2,3,4])
+        if nr_timeseries <= 40:  # 10 colors x 4 linestyles = 40, so use lw=2
+            linespecs = get_linespecs(range_linewidth=[2])
+        elif nr_timeseries <= 120:  # need multiple line widths
+            linespecs = get_linespecs(range_linewidth=[1,3,5])
         elif nr_timeseries <= 240:
-            linespecs = get_linespecs(color_scheme='tab20',range_linewidth=[2,3,4])
+            linespecs = get_linespecs(color_scheme='tab20',range_linewidth=[1,3,5])
         else:
             linespecs = get_linespecs(color_scheme='tab20',  # use more line widths
-                            range_linewidth=range(2,(nr_timeseries-1)/240+5))
+                            range_linewidth=range(1,(nr_timeseries-1)/240+5,2))
 
         for j in range(nr_timeseries):
             tmp_dict = linespecs[j % nr_timeseries].copy()
             tmp_dict.update(kwargs)  # kwargs overwrites tmp_dict if key already exists in tmp_dict
+            if 'lw' in tmp_dict.keys():
+                zorder = 1.0/tmp_dict['lw']  # make thinner lines on top of thicker lines
+
             plot_timeseries(multiple_time_series.iloc[:,j],
                             fig=fig, ax=ax, label=multiple_time_series.columns[j],
-                            **tmp_dict)
+                            zorder=zorder, **tmp_dict)
 
         if 'title' not in kwargs:
             bbox_anchor_loc = (0., 1.02, 1., .102)
@@ -1480,6 +1492,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         ax.legend(bbox_to_anchor=bbox_anchor_loc,
                   loc='lower center', ncol=ncol_legend)
 
+    ax.set_axisbelow(True)
     return fig, ax
 
 #%%============================================================================
@@ -1591,7 +1604,10 @@ def calc_month_interval(date_array):
     date9 = list(date_array)[-1]
     date0 = list(date_array)[0]
     delta_days = (date9 - date0).days
-    delta_months = delta_days//30
+    if delta_days < 30:  # within one month
+        delta_months = delta_days/30.0  # return a float between 0 and 1
+    else:
+        delta_months = delta_days//30
     return delta_months
 
 #%%============================================================================
@@ -1624,6 +1640,7 @@ def format_xlabel(ax,month_width):
 
     rot = None  # degree of rotation
     y_int = None  # year interval
+    d_int = None  # day interval
     if month_width < 0.038:
         m_int = None  # month interval
         y_int = 3 * int(0.038/month_width)  # interval increases with narrower size
@@ -1646,16 +1663,44 @@ def format_xlabel(ax,month_width):
         m_int = 2
     else:
         m_int = 1
+        if month_width < 3:
+            pass  # d_int is still None
+        elif month_width < 4:
+            d_int = 10
+        elif month_width < 7:
+            d_int = 6
+        elif month_width < 10:
+            d_int = 5
+        elif month_width < 14:
+            d_int = 3
+        elif month_width < 24:
+            d_int = 2
+        else:
+            d_int = 1
 
     if y_int:  # show only every 'y_int' years
         years = mpl.dates.YearLocator(base=y_int)
-    else:  # show every year
+    else:  # show year on January of every year
         years = mpl.dates.YearLocator()
 
-    months_fmt = mpl.dates.DateFormatter('%m')
+    xlim = ax.get_xlim()  # number of days since 0001/Jan/1-00:00:00 UTC plus one
+    xlim_ = [mpl.dates.num2date(i) for i in xlim]  # convert to datetime object
+    if xlim_[0].year == xlim_[1].year:  # if date range is within same year
+        if xlim_[0].day > 1:  # not first day of month: show year on next month
+            years = mpl.dates.YearLocator(base=1,month=xlim_[0].month+1,day=1)
+        else:   # first day of month: show year on this month
+            years = mpl.dates.YearLocator(base=1,month=xlim_[0].month  ,day=1)
+
+    if not d_int:  # no day labels will be shown
+        months_fmt = mpl.dates.DateFormatter('%m')
+    else:
+        months_fmt = mpl.dates.DateFormatter('%m/%d')
 
     if m_int:   # show every 'm_int' months
-        months = mpl.dates.MonthLocator(interval=m_int)
+        if d_int:  # day labels will be shown
+            months = mpl.dates.DayLocator(interval=d_int)
+        else:
+            months = mpl.dates.MonthLocator(interval=m_int)
         ax.xaxis.set_minor_locator(months)
         ax.xaxis.set_minor_formatter(months_fmt)
         years_fmt = mpl.dates.DateFormatter('\n%Y')  # show year on next line
@@ -1974,20 +2019,23 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
         corr_abs[il] = 0
         indices = zip(np.where(corr_abs>=thres)[0],np.where(corr_abs>=thres)[1])
 
-        n_cols = min(ncols_scatter_plots, len(indices))
-        n_rows = int(np.ceil(len(indices) / float(n_cols)))
+        if indices:  # not empty list
+            n_cols = min(ncols_scatter_plots, len(indices))
+            n_rows = int(np.ceil(len(indices) / float(n_cols)))
 
-        sz = 2.5   # (approx.) size of each subplot (unit: inch)
-        mg = 0.28  # (approx.) margin between subplots (unit: inch)
-        fig_size_ = (n_cols*sz + mg*(n_cols-1), n_rows*sz + mg*(n_rows-1))
-        fig = plt.figure(figsize=fig_size_)
-        ax  = plt.axes()
+            sz = 2.5   # (approx.) size of each subplot (unit: inch)
+            mg = 0.28  # (approx.) margin between subplots (unit: inch)
+            fig_size_ = (n_cols*sz + mg*(n_cols-1), n_rows*sz + mg*(n_rows-1))
+            fig = plt.figure(figsize=fig_size_)
+            ax  = plt.axes()
 
-        for j, index in enumerate(indices):
-            sub_ax = plt.subplot(n_rows,n_cols,j+1)
-            scatter_plot_two_cols(X,[variable_names[i] for i in index],fig,sub_ax)
+            for j, index in enumerate(indices):
+                sub_ax = plt.subplot(n_rows,n_cols,j+1)
+                scatter_plot_two_cols(X,[variable_names[i] for i in index],fig,sub_ax)
 
-        plt.tight_layout(h_pad=0.3)
+            plt.tight_layout(h_pad=0.3)
+        else:
+            print('*****  No two variables have correlation higher than threshold.  *****')
 
     return fig, ax, correlations
 

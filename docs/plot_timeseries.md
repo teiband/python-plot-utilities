@@ -7,34 +7,36 @@ Plot time_series, where its index indicates dates (e.g., year, month, date).
 You can plot multiple time series by supplying a multi-column pandas Dataframe as time_series, but you cannot use custom line specifications (colors, width, and styles) for each time series. It is recommended to use plot_multiple_timeseries() in stead.
 
 #### [Parameters]
-    time_series:
+time_series : <pd.Series or pd.DataFrame>
         A pandas Series, with index being date; or a pandas DataFrame, with
         index being date, and each column being a different time series.
-    fig, ax:
+    fig, ax : <matplotlib obj>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize:
+    figsize : <tuple>
         figure size (width, height) in inches (fig object passed via
         "fig" will over override this parameter)
-    dpi:
+    dpi : <scalar>
         Screen resolution (fig object passed via "fig" will over override
         this parameter)
-    xlabel:
+    xlabel : <str>
         Label of X axis. Usually "Time" or "Date"
-    ylabel:
+    ylabel : <str>
         Label of Y axis. Usually the meaning of the data
-    label:
+    label : <str>
         Label of data, for plotting legends
-    color:
+    color : <list or str>
         Color of line. If None, let Python decide for itself.
-    xgrid_on:
+    xgrid_on : <bool>
         Whether or not to show vertical grid lines (default: True)
-    ygrid_on:
+    ygrid_on : <bool>
         Whether or not to show horizontal grid lines (default: True)
-    title:
+    title : <str>
         Figure title (optional)
-    month_grid_width:
+    zorder: (any number)
+        Set the zorder for lines. Higher zorder are drawn on top.
+    month_grid_width : <scalar>
         the on-figure "horizontal width" that each time interval occupies.
         This value determines how X axis labels are displayed (e.g., smaller
         width leads to date labels being displayed with 90 deg rotation).
