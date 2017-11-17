@@ -1,4 +1,6 @@
 # Python plotting utilities: `plot_utils`
+##### Author: Jian Shi
+
 This is a Python module that contains some useful plotting utilities. Current functionalities include:
 
 + **3D histograms**: visualizing multiple distributions easily and elegantly [[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
