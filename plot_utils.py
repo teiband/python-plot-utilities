@@ -190,7 +190,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
 
     from mpl_toolkits.mplot3d import Axes3D
 
-    if type(X) is np.ndarray:
+    if isinstance(X,np.ndarray):
         if X.ndim <= 1:  # X is a 1D numpy array
             N = 1
             X = [list(X)]  # e.g., np.array([1,2,3]) --> [[1,2,3]], so that X[0] = [1,2,3]
@@ -227,9 +227,9 @@ def histogram3d(X,bins=10,fig=None,ax=None,
     c = get_colors('tab10',N)  # get a list of colors
     xpos_list = [[None]] * N  # pre-allocation
     for j in range(N):  # loop through each dataset
-        if type(bins) == list and len(bins) > 1:  # if 'bins' is a list and length > 1
+        if isinstance(bins,(list,np.ndarray)) and len(bins) > 1:  # if 'bins' is a list and length > 1
             bar_width = np.min(np.array(bins[1:])-np.array(bins[:-1]))  # pick the mininum bin width as bar_width
-        elif type(bins) == int:  # if 'bins' is an integer (i.e., number of bins)
+        elif isinstance(bins,(int,np.integer)):  # if integer (i.e., number of bins)
             bar_width = (np.max(X[j])-np.min(X[j]))/float(bins)  # use the most narrow bin width as bar_width
         else:  # for other type of "bins", try to convert it into a list
             bins = list(bins)
@@ -263,8 +263,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
         ax.set_xticks(xpos_list)  # show x ticks
         ax.set_xticklabels(data_labels)  # use data_labels to denote X ticks
     else:
-        ax.set_xticks([None])  # do not show X ticks
-        ax.set_xticklabels([] * len(data_labels))  # do not show X tick labels
+        ax.set_xticks([])  # do not show X ticks and X tick labels
 
     ax.set_ylabel(ylabel)
     ax.set_zlabel(zlabel)
@@ -2018,10 +2017,11 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
         plt.xticks(rotation=90)
 
     if scatter_plots == True:
-        il = np.tril_indices(nr)
+        iu = np.triu_indices(nr)  # indices of upper-triangle elements
         corr_abs = np.abs(np.array(correlations))
-        corr_abs[il] = 0
-        indices = zip(np.where(corr_abs>=thres)[0],np.where(corr_abs>=thres)[1])
+        corr_abs[iu] = 0  # only keep lower-triangle elements
+        hi_corr_idx = np.where(corr_abs >= thres)  # row & col indices of eligible variables
+        indices = list(zip(hi_corr_idx[0],hi_corr_idx[1]))  # variable pairs
 
         if indices:  # not empty list
             n_cols = min(ncols_scatter_plots, len(indices))
