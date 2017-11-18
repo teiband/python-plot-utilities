@@ -20,6 +20,10 @@ import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
+#%%----------------------------------------------------------------------------
+if sys.version_info.major == 3:  # Python 3
+    unicode = str  # define 'unicode' as type name
+
 #%%============================================================================
 def piechart(target_array, class_names=None, fig=None, ax=None,
              figsize=(3,3), dpi=100, colors=None, autopct='%1.1f%%',
@@ -766,7 +770,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
             data_ = data_per_state[statename]
             if not np.isnan(data_):
                 # calling colormap with value between 0 and 1 returns rgba value.
-                colors[statename] = cmap((data_-vmin)/(vmax-vmin))[:3]
+                colors[statename] = cmap(float(data_-vmin)/(vmax-vmin))[:3]
             else:  # if data_ is NaN, set color to light grey, and with hatching pattern
                 colors[statename] = None #np.nan#[0.93]*3
         statenames.append(statename)
@@ -976,7 +980,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd
 
         # calling colormap with value between 0 and 1 returns rgba value.
         if not np.isnan(data_):
-            colors[county_FIPS_code] = cmap((data_-vmin)/(vmax-vmin))[:3]
+            colors[county_FIPS_code] = cmap(float(data_-vmin)/(vmax-vmin))[:3]
         else:
             colors[county_FIPS_code] = None
 
@@ -1473,7 +1477,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
             linespecs = get_linespecs(color_scheme='tab20',range_linewidth=[1,3,5])
         else:
             linespecs = get_linespecs(color_scheme='tab20',  # use more line widths
-                            range_linewidth=range(1,(nr_timeseries-1)/240+5,2))
+                            range_linewidth=range(1,(nr_timeseries-1)//240+5,2))
 
         for j in range(nr_timeseries):
             tmp_dict = linespecs[j % nr_timeseries].copy()
@@ -1577,7 +1581,7 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
     ax.set_xlabel(xlabel)
     if ylabel is not None:
         ax.set_ylabel(ylabel)
-    month_width = figsize[0]/calc_month_interval(ts.index) # width of each month in inches
+    month_width = float(figsize[0])/calc_month_interval(ts.index) # width of each month in inches
     ax = format_xlabel(ax,month_width)
 
     if ygrid_on == True:
