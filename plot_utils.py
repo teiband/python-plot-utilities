@@ -1659,27 +1659,40 @@ def format_xlabel(ax,month_width):
     elif month_width < 0.06:
         m_int = 6
     elif month_width < 0.09:
+        m_int = 5
+    elif month_width < 0.11:
         m_int = 4
-    elif month_width < 0.15:
+    elif month_width < 0.16:
         m_int = 3
     elif month_width < 0.32:
         m_int = 2
     else:
         m_int = 1
-        if month_width < 3:
+        if month_width < 3.5:
             pass  # d_int is still None
         elif month_width < 4:
             d_int = 10
+        elif month_width < 5:
+            d_int = 9
+        elif month_width < 6:
+            d_int = 8
         elif month_width < 7:
+            d_int = 7
+        elif month_width < 8:
             d_int = 6
         elif month_width < 10:
             d_int = 5
-        elif month_width < 14:
+        elif month_width < 12.5:
+            d_int = 4
+        elif month_width < 20.5:
             d_int = 3
-        elif month_width < 24:
+            rot = 30
+        elif month_width < 28.5:
             d_int = 2
+            rot = 30
         else:
             d_int = 1
+            rot = 30
 
     if y_int:  # show only every 'y_int' years
         years = mpl.dates.YearLocator(base=y_int)
@@ -1706,7 +1719,10 @@ def format_xlabel(ax,month_width):
             months = mpl.dates.MonthLocator(interval=m_int)
         ax.xaxis.set_minor_locator(months)
         ax.xaxis.set_minor_formatter(months_fmt)
-        years_fmt = mpl.dates.DateFormatter('\n%Y')  # show year on next line
+        if d_int and rot:  # days are shown as rotated
+            years_fmt = mpl.dates.DateFormatter('\n\n%Y')  # show year on next next line
+        else:
+            years_fmt = mpl.dates.DateFormatter('\n%Y')  # show year on next line
     else:  # do not show months in x axis label
         years_fmt = mpl.dates.DateFormatter('%Y')  # show year on current line
 
@@ -1714,7 +1730,9 @@ def format_xlabel(ax,month_width):
     ax.xaxis.set_major_formatter(years_fmt)
     ax.tick_params(labelright=True)  # also show y axis on right edge of figure
 
-    if rot:
+    if rot and d_int:  # days/months are shown as rotated
+        plt.setp(ax.xaxis.get_minorticklabels(),rotation=rot)
+    elif rot and not d_int:  # only show years as rotated
         plt.setp(ax.xaxis.get_majorticklabels(),rotation=rot)
 
     return ax
