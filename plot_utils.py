@@ -1481,8 +1481,8 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         for j in range(nr_timeseries):
             tmp_dict = linespecs[j % nr_timeseries].copy()
             tmp_dict.update(kwargs)  # kwargs overwrites tmp_dict if key already exists in tmp_dict
-            if 'lw' in tmp_dict.keys():
-                zorder = 1.0/tmp_dict['lw']  # make thinner lines on top of thicker lines
+            if 'lw' in tmp_dict.keys():  # thinner lines above thicker lines
+                zorder = 1 + 1.0/tmp_dict['lw']  # and "+1" to put all lines above grid line
 
             plot_timeseries(multiple_time_series.iloc[:,j],
                             fig=fig, ax=ax, label=multiple_time_series.columns[j],
