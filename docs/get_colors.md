@@ -30,6 +30,7 @@ What does each color_scheme look like?
             'tab20b'
             'tab20c'
 ![](https://matplotlib.org/mpl_examples/color/colormaps_reference_04.png)
+
         (2) 8.3 and 8.4 (floats): old and new MATLAB color scheme
             Old:
 
