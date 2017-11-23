@@ -295,7 +295,7 @@ def get_colors(color_scheme='tab10',N=None):
             'Paired'
             'Accent'
             'Dark2'
-            'Set1'(
+            'Set1'
             'Set2'
             'Set3'
             'tab10'
@@ -1372,12 +1372,13 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
         fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
     else:   # if provided, plot to the specified figure
         pl.figure(fig.number)
-        figsize = fig.get_size_inches()  # overwrite default figsize for calculating month_grid_width
 
     if ax is None:  # if ax is not provided
         ax = plt.axes()  # create new axes and plot lines on it
     else:
         ax = ax  # plot lines on the provided axes handle
+
+    ax_size = get_ax_size(fig, ax)
 
     if zorder:
         ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label,zorder=zorder)
@@ -1388,7 +1389,7 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
     if ylabel is not None:
         ax.set_ylabel(ylabel)
     if month_grid_width == None:  # width of each month in inches
-        month_grid_width = float(figsize[0])/calc_month_interval(ts.index)
+        month_grid_width = float(ax_size[0])/calc_month_interval(ts.index)
     ax = format_xlabel(ax,month_grid_width)
 
     if ygrid_on == True:
@@ -1451,7 +1452,6 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
     else:   # if provided, plot to the specified figure
         pl.figure(fig.number)
-        figsize = fig.get_size_inches()  # overwrite default figsize for reusing
 
     if ax is None:  # if ax is not provided
         ax = plt.axes()  # create new axes and plot lines on it
@@ -1459,8 +1459,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         ax = ax  # plot lines on the provided axes handle
 
     if show_legend is False:  # if no need to show legends, just pass everything
-        fig, ax = plot_timeseries(multiple_time_series, fig, ax, figsize, dpi,
-                                  **kwargs)  # to plot_timeseries()
+        fig, ax = plot_timeseries(multiple_time_series, fig, ax, dpi, **kwargs)
     else:
         if isinstance(multiple_time_series,pd.Series):
             nr_timeseries  = 1
@@ -1499,11 +1498,11 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
     return fig, ax
 
 #%%============================================================================
-def fill_timeseries(time_series,upper_bound,lower_bound,
-                    fig=None,ax=None,figsize=(10,3),
-                    xlabel='Time',ylabel=None,label=None,
-                    color=None,lw=3,ls='-',fontsize=12,title=None,dpi=96,
-                    xgrid_on=True,ygrid_on=True):
+def fill_timeseries(time_series, upper_bound, lower_bound,
+                    fig=None, ax=None, figsize=(10,3), dpi=96,
+                    xlabel='Time', ylabel=None, label=None,
+                    color=None, lw=3, ls='-', fontsize=12, title=None,
+                    xgrid_on=True, ygrid_on=True):
     '''
     Plot time_series as a line, where its index indicates a date (e.g., year,
     month, date).
@@ -1524,6 +1523,9 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
     figsize:
         figure size (width, height) in inches (fig object passed via "fig"
         will over override this parameter)
+    dpi:
+        Screen resolution (fig object passed via "fig" will over override
+        this parameter)
     xlabel:
         Label of X axis. Usually "Time" or "Date"
     ylabel:
@@ -1538,26 +1540,19 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
         line style of the line that represents time_series
     fontsize:
         font size of the texts in the figure
+    title:
+        Figure title (optional)
     xgrid_on:
         Whether or not to show vertical grid lines (default: True)
     ygrid_on:
         Whether or not to show horizontal grid lines (default: True)
-    title:
-        Figure title (optional)
-    dpi:
-        Screen resolution (fig object passed via "fig" will over override
-        this parameter)
-    month_grid_width:
-        the on-figure "horizontal width" that each time interval occupies.
-        This value determines how X axis labels are displayed (e.g., smaller
-        width leads to date labels being displayed with 90 deg rotation).
-        Do not change this unless you really know what you are doing.
 
     Returns
     -------
     fig, ax:
         Figure and axes objects
     '''
+
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
     ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
     lb = lower_bound.copy()
@@ -1580,8 +1575,8 @@ def fill_timeseries(time_series,upper_bound,lower_bound,
     ax.set_xlabel(xlabel)
     if ylabel is not None:
         ax.set_ylabel(ylabel)
-    month_width = float(figsize[0])/calc_month_interval(ts.index) # width of each month in inches
-    ax = format_xlabel(ax,month_width)
+    month_grid_width = float(figsize[0])/calc_month_interval(ts.index) # width of each month in inches
+    ax = format_xlabel(ax,month_grid_width)
 
     if ygrid_on == True:
         ax.yaxis.grid(ygrid_on,ls=':',color=[0.75]*3)
@@ -1604,6 +1599,7 @@ def calc_month_interval(date_array):
     Calculate how many months are there between the first month and the last
     month of the given date_array.
     '''
+
     date9 = list(date_array)[-1]
     date0 = list(date_array)[0]
     delta_days = (date9 - date0).days
@@ -1618,6 +1614,7 @@ def calc_bar_width(width):
     '''
     Calculate width (in points) of bar plot from figure width (in inches)
     '''
+
     if width <= 7:
         bar_width = width * 3.35  # these numbers are manually fine-tuned
     elif width <= 9:
@@ -1628,6 +1625,21 @@ def calc_bar_width(width):
         bar_width = width * 1.2
 
     return bar_width
+
+#%%============================================================================
+def get_ax_size(fig, ax, unit='inches'):
+    '''
+    Get size of axes within a figure, given fig and ax objects.
+
+    https://stackoverflow.com/questions/19306510/determine-matplotlib-axis-size-in-pixels
+    '''
+
+    bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    width, height = bbox.width, bbox.height
+    if unit == 'pixels':
+        width *= fig.dpi  # convert from inches to pixels
+        height *= fig.dpi
+    return width, height
 
 #%%============================================================================
 def format_xlabel(ax,month_width):
@@ -1664,30 +1676,32 @@ def format_xlabel(ax,month_width):
         m_int = 4
     elif month_width < 0.16:
         m_int = 3
-    elif month_width < 0.32:
+    elif month_width < 0.29:
         m_int = 2
     else:
         m_int = 1
-        if month_width < 3.5:
+        if month_width < 1.9:
             pass  # d_int is still None
-        elif month_width < 4:
+        elif month_width < 2.9:
+            d_int = 15
+        elif month_width < 3.5:
             d_int = 10
-        elif month_width < 5:
+        elif month_width < 4:
             d_int = 9
-        elif month_width < 6:
+        elif month_width < 5:
             d_int = 8
-        elif month_width < 7:
+        elif month_width < 6:
             d_int = 7
-        elif month_width < 8:
+        elif month_width < 7:
             d_int = 6
-        elif month_width < 10:
+        elif month_width < 8.5:
             d_int = 5
-        elif month_width < 12.5:
+        elif month_width < 11:
             d_int = 4
-        elif month_width < 20.5:
+        elif month_width < 15:
             d_int = 3
             rot = 30
-        elif month_width < 28.5:
+        elif month_width < 25.5:
             d_int = 2
             rot = 30
         else:
