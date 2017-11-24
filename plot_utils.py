@@ -25,6 +25,28 @@ if sys.version_info.major == 3:  # Python 3
     unicode = str  # define 'unicode' as type name
 
 #%%============================================================================
+def process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
+    '''
+    Process figure and axes objects. If fig and ax are None, create new figure
+    and new axes according to figsize, dpi, and ax_proj (axes projection). If
+    fig and ax are not None, use the passed-in fig and/or ax.
+
+    Returns fig and ax back to its caller.
+    '''
+
+    if fig is None:  # if a figure handle is not provided, create new figure
+        fig = pl.figure(figsize=figsize,dpi=dpi)
+    else:   # if provided, plot to the specified figure
+        pl.figure(fig.number)
+
+    if ax is None:  # if ax is not provided
+        ax = plt.axes(projection=ax_proj)  # create new axes and plot lines on it
+    else:
+        ax = ax  # plot lines on the provided axes handle
+
+    return fig, ax
+
+#%%============================================================================
 def piechart(target_array, class_names=None, fig=None, ax=None,
              figsize=(3,3), dpi=100, colors=None, autopct='%1.1f%%',
              fontsize=None, **piechart_kwargs):
@@ -59,7 +81,7 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         of classes. If longer, only the first few colors are used; if shorter,
         colors are wrapped around.
         If None, automatically use the Pastel2 color map (8 colors total).
-    autopct : str
+    autopct : <str>
         Format specification for displaying texts of proportions, to be passed
         directly to matplotlib.pyplot.pie() function as keyword argument.
     fontsize : scalar or tuple/list of two scalars
@@ -79,15 +101,7 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         Figure and axes objects
     '''
 
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure(figsize=figsize,dpi=dpi)
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
-
-    if ax is None:  # if ax is not provided
-        ax = plt.axes()  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if not isinstance(target_array,(np.ndarray,pd.DataFrame,pd.Series,list)):
         raise TypeError('Unrecognized data type for target_array.')
@@ -125,11 +139,11 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
     return fig, ax
 
 #%%############################################################################
-def histogram3d(X,bins=10,fig=None,ax=None,
-                elev=30,azim=5,alpha=0.6,data_labels=None,
-                plot_legend=True,plot_xlabel=False,
-                dx_factor=0.6,dy_factor=0.8,
-                ylabel='Data',zlabel='Counts',
+def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
+                elev=30, azim=5, alpha=0.6, data_labels=None,
+                plot_legend=True, plot_xlabel=False,
+                dx_factor=0.6, dy_factor=0.8,
+                ylabel='Data', zlabel='Counts',
                 **legend_kwargs):
     '''
     Plot 3D histograms. 3D histograms are best used to compare the distribution
@@ -162,6 +176,12 @@ def histogram3d(X,bins=10,fig=None,ax=None,
         Figure and axes objects.
         If provided, the histograms are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
+    figsize : <tuple of int/float>
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi : <int, float>
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
     elev, azim:
         Elevation and azimuth (3D projection view points)
     alpha:
@@ -211,15 +231,7 @@ def histogram3d(X,bins=10,fig=None,ax=None,
         for j in range(N):
             data_labels[j] = 'Dataset #%d' % (j+1)  # use generic data set names
 
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure(figsize=(8,4),dpi=96,facecolor='w',edgecolor='k')
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
-
-    if ax is None:  # if ax is not provided
-        ax = plt.axes(projection='3d')  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi, '3d')
 
     ax.view_init(elev,azim)  # set view elevation and angle
 
@@ -447,7 +459,7 @@ def linespecs_demo(line_specs, horizontal_plot=False):
     ---------
     line_spec :
         A list of dictionaries that is the returned value of get_linespecs().
-    horizontal_plot : bool
+    horizontal_plot : <bool>
         Whether or not to demonstrate the line specifications in a horizontal
         plot.
 
@@ -596,15 +608,7 @@ def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
     http://pandas.pydata.org/pandas-docs/version/0.18.1/visualization.html#bar-plots
     '''
 
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure(figsize=figsize,dpi=dpi)
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
-
-    if ax is None:  # if ax is not provided
-        ax = plt.axes()  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     X = pd.Series(x)  # convert x into series
     value_count = X.value_counts().sort_index()  # count distinct values and sort
@@ -637,9 +641,10 @@ class FixedOrderFormatter(ScalarFormatter):
         self.orderOfMagnitude = self._order_of_mag
 
 #%%############################################################################
-def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
-                   unit='',cmap='OrRd',fontsize=14,cmap_midpoint=None,
-                   figsize=(10,7),dpi=100,shapefile_dir=None):
+def choropleth_map_state(data_per_state, figsize=(10,7),
+                         dpi=100, vmin=None, vmax=None, map_title='USA map',
+                         unit='', cmap='OrRd', fontsize=14, cmap_midpoint=None,
+                         shapefile_dir=None):
     '''
     Generate a choropleth map of USA (including Alaska and Hawaii), on a state
     level.
@@ -651,7 +656,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
 
     Parameters
     ----------
-    data_per_state:
+    data_per_state : <dict> or <pd.Series> or <pd.DataFrame>
         Numerical data of each state, to be plotted onto the map.
         Acceptable data types include:
             - pandas Series: Index should be valid state identifiers (i.e.,
@@ -663,34 +668,36 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
                                 identifiers).
             - dictionary: with keys being valid state identifiers, and values
                           being the numerical values to be visualized
-    vmin:
+    figsize : tuple of two scalars
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    vmin : scalar
         Minimum value to be shown on the map. If vmin is larger than the
         actual minimum value in the data, some of the data values will be
         "clipped". This is useful if there are extreme values in the data
         and you do not want those values to complete skew the color
         distribution.
-    vmax:
+    vmax : scalar
         Maximum value to be shown on the map. Similar to vmin.
-    map_title:
+    map_title : <str>
         Title of the map, to be shown on the top of the map.
-    unit:
+    unit : <str>
         Unit of the numerical (for example, "population per km^2"), to be
         shown on the right side of the color bar.
-    cmap:
+    cmap : <str> or <matplotlib.colors.Colormap>
         Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
         for plotting deviation maps.
-    fontsize:
+    fontsize : scalar
         Font size of all the texts on the map.
-    cmap_midpoint:
+    cmap_midpoint : scalar
         A numerical value that specifies the "deviation point". For example,
         if your data ranges from -200 to 1000, and you want negative values
         to appear blue-ish, and positive values to appear red-ish, then you
         can set cmap_midpoint to 0.0.
-    figsize:
-        Size (width,height) of figure (including map and color bar).
-    dpi:
-        On-screen resolution.
-    shapefile_dir:
+    shapefile_dir : <str>
         Directory where shape files are stored. Shape files (state level and
         county level) should be organized as follows:
             [shapefile_dir]/usa_states/st99_d00.(...)
@@ -736,7 +743,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
 
     data_per_state = check_all_states(data_per_state)  # see function definition of check_all_states()
 
-    fig = plt.figure(figsize=(10,7),dpi=dpi)
+    fig, ax = process_fig_ax_objects(None, None, figsize, dpi)
 
     # Lambert Conformal map of lower 48 states.
     m = Basemap(llcrnrlon=-119,llcrnrlat=20,urcrnrlon=-64,urcrnrlat=49,
@@ -836,8 +843,7 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
         norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=cmap_midpoint)
 
     ax_c = fig.add_axes([0.92, 0.1, 0.03, 0.8])
-    cb = ColorbarBase(ax_c,cmap=cmap,norm=norm,orientation='vertical',
-                      label=unit)
+    cb = ColorbarBase(ax_c,cmap=cmap,norm=norm,orientation='vertical',label=unit)
 
     mpl_version = mpl.__version__.split('.')
     if float(mpl_version[0] + '.' + mpl_version[0]) >= 2.1: # version > 2.1.0
@@ -852,9 +858,10 @@ def choropleth_map_state(data_per_state,vmin=None,vmax=None,map_title='USA map',
     return fig, ax  # return figure and axes handles
 
 #%%############################################################################
-def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd',
-                          map_title='USA county map',fontsize=14,cmap_midpoint=None,
-                          figsize=(10,7),dpi=100,shapefile_dir=None):
+def choropleth_map_county(data_per_county, figsize=(10,7),
+                          dpi=100, vmin=None, vmax=None, unit='', cmap='OrRd',
+                          map_title='USA county map', fontsize=14,
+                          cmap_midpoint=None, shapefile_dir=None):
     '''
     Generate a choropleth map of USA (including Alaska and Hawaii), on a county
     level.
@@ -866,7 +873,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd
 
     Parameters
     ----------
-    data_per_county:
+    data_per_county : <dict> or <pd.Series> or <pd.DataFrame>
         Numerical data of each county, to be plotted onto the map.
         Acceptable data types include:
             - pandas Series: Index should be valid county identifiers (i.e.,
@@ -878,34 +885,36 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd
                                 identifiers).
             - dictionary: with keys being valid county identifiers, and values
                           being the numerical values to be visualized
-    vmin:
+    figsize : tuple of two scalars
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    vmin : scalar
         Minimum value to be shown on the map. If vmin is larger than the
         actual minimum value in the data, some of the data values will be
         "clipped". This is useful if there are extreme values in the data
         and you do not want those values to complete skew the color
         distribution.
-    vmax:
+    vmax : scalar
         Maximum value to be shown on the map. Similar to vmin.
-    map_title:
+    map_title : <str>
         Title of the map, to be shown on the top of the map.
-    unit:
+    unit : <str>
         Unit of the numerical (for example, "population per km^2"), to be
         shown on the right side of the color bar.
-    cmap:
+    cmap : <str> or <matplotlib.colors.Colormap>
         Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
         for plotting deviation maps.
-    fontsize:
+    fontsize : scalar
         Font size of all the texts on the map.
-    cmap_midpoint:
+    cmap_midpoint : scalar
         A numerical value that specifies the "deviation point". For example,
         if your data ranges from -200 to 1000, and you want negative values
         to appear blue-ish, and positive values to appear red-ish, then you
         can set cmap_midpoint to 0.0.
-    figsize:
-        Size (width, height) of figure (including map and color bar).
-    dpi:
-        On-screen resolution.
-    shapefile_dir:
+    shapefile_dir : <str>
         Directory where shape files are stored. Shape files (state level and
         county level) should be organized as follows:
             [shapefile_dir]/usa_states/st99_d00.(...)
@@ -935,8 +944,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd
         data_per_county = data_per_county.set_index('FIPS_code')  # colunm name hard-coded here for safety
         data_per_county = data_per_county.iloc[:,0].to_dict()
 
-    fig = plt.figure(figsize=(10,7),dpi=dpi)
-    ax = plt.gca() # get current axes instance
+    fig, ax = process_fig_ax_objects(None, None, figsize, dpi)
 
     # Lambert Conformal map of lower 48 states.
     m = Basemap(llcrnrlon=-119,llcrnrlat=20,urcrnrlon=-64,urcrnrlat=49,
@@ -1050,8 +1058,7 @@ def choropleth_map_county(data_per_county,vmin=None,vmax=None,unit='',cmap='OrRd
         norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=cmap_midpoint)
 
     ax_c = fig.add_axes([0.92, 0.1, 0.03, 0.8])
-    cb = ColorbarBase(ax_c,cmap=cmap,norm=norm,orientation='vertical',
-                      label=unit)
+    cb = ColorbarBase(ax_c,cmap=cmap,norm=norm,orientation='vertical',label=unit)
 
     mpl_version = mpl.__version__.split('.')
     if float(mpl_version[0] + '.' + mpl_version[0]) >= 2.1: # version > 2.1.0
@@ -1365,20 +1372,12 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
         Figure and axes objects
     '''
 
-    ts = time_series.copy()  # shorten the name + avoid changing some_time_series
-    ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
-
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
-
-    if ax is None:  # if ax is not provided
-        ax = plt.axes()  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     ax_size = get_ax_size(fig, ax)
+
+    ts = time_series.copy()  # shorten the name + avoid changing some_time_series
+    ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
 
     if zorder:
         ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label,zorder=zorder)
@@ -1448,15 +1447,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         Figure and axes objects
     '''
 
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
-
-    if ax is None:  # if ax is not provided
-        ax = plt.axes()  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if show_legend is False:  # if no need to show legends, just pass everything
         fig, ax = plot_timeseries(multiple_time_series, fig, ax, dpi, **kwargs)
@@ -1499,7 +1490,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
 
 #%%============================================================================
 def fill_timeseries(time_series, upper_bound, lower_bound,
-                    fig=None, ax=None, figsize=(10,3), dpi=96,
+                    fig=None, ax=None, figsize=(10,3), dpi=100,
                     xlabel='Time', ylabel=None, label=None,
                     color=None, lw=3, ls='-', fontsize=12, title=None,
                     xgrid_on=True, ygrid_on=True):
@@ -1553,20 +1544,12 @@ def fill_timeseries(time_series, upper_bound, lower_bound,
         Figure and axes objects
     '''
 
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
+
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
     ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
     lb = lower_bound.copy()
     ub = upper_bound.copy()
-
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure(figsize=figsize,dpi=dpi,facecolor='w',edgecolor='k')
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
-
-    if ax is None:  # if ax is not provided
-        ax = plt.axes()  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
 
     ax.fill_between(ts.index,lb,ub,color=color,facecolor=color,
                     linewidth=0.01,alpha=0.5,interpolate=True)
@@ -1841,7 +1824,6 @@ def str2date_kernel(date_):
     (4) 2016-07
     (5) 2015-02-21
     '''
-    import datetime as dt
 
     day = None
     if ('-' in date_) and (len(date_) == 8):  # for date style 'Aug-2014'
@@ -1878,11 +1860,12 @@ def str2date_kernel(date_):
         return dt.date(year,month,day)
 
 #%%============================================================================
-def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
-                           shade_color=[0.7]*3,shade_alpha=0.5,linewidth=2.0,
-                           legend_loc='best',
-                           line_label='Data',shade_label='$\mathregular{\pm}$STD',
-                           fig=None,ax=None,logx=False,logy=False,grid_on=True):
+def plot_with_error_bounds(x, y, upper_bound, lower_bound,
+                           fig=None, ax=None, figsize=None, dpi=100,
+                           line_color=[0.4]*3, shade_color=[0.7]*3,
+                           shade_alpha=0.5, linewidth=2.0, legend_loc='best',
+                           line_label='Data', shade_label='$\mathregular{\pm}$STD',
+                           logx=False, logy=False, grid_on=True):
     '''
     Plot a graph with one line and its upper and lower bounds, with areas between
     bounds shaded. The effect is similar to this illustration below.
@@ -1905,6 +1888,10 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
     ----------
     x, y:
         data points to be plotted as a line (should have the same length)
+    fig, ax:
+        Figure and axes objects.
+        If provided, the graph are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
     upper_bound, lower_bound:
         Upper and lower bounds to be plotted as shaded areas. Should have the
         same length as x and y.
@@ -1922,10 +1909,6 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
         label of the line of y, to be used in the legend
     shade_label:
         label of the shades, to be used in the legend
-    fig, ax:
-        Figure and axes objects.
-        If provided, the graph are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
     logx, logy:
         Whether or not to show x or y axis scales as log
     grid_on:
@@ -1936,15 +1919,8 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
     fig, ax:
         Figure and axes objects
     '''
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure()
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
 
-    if ax is None:  # if ax is not provided
-        ax = plt.axes()  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     hl1 = ax.fill_between(x, lower_bound, upper_bound,
                            color=shade_color, facecolor=shade_color,
@@ -1965,9 +1941,9 @@ def plot_with_error_bounds(x,y,upper_bound,lower_bound,line_color=[0.4]*3,
     return fig, ax
 
 #%%============================================================================
-def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
-                     figsize=(6,6),dpi=100,variable_names=None,
-                     scatter_plots=False,thres=0.7,ncols_scatter_plots=3):
+def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None,
+                     figsize=(6,6), dpi=100, variable_names=None,
+                     scatter_plots=False, thres=0.7, ncols_scatter_plots=3):
     '''
     Plot correlation matrix of a dataset X, whose columns are different
     variables (or a sample of a certain random variable).
@@ -2015,15 +1991,7 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
         Figure and axes objects
     '''
 
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure(figsize=figsize,dpi=dpi)
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
-
-    if ax is None:  # if ax is not provided
-        ax = plt.axes()  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if isinstance(X,np.ndarray):
         X = pd.DataFrame(X,copy=True)
@@ -2076,9 +2044,9 @@ def plot_correlation(X,color_map='RdBu_r',fig=None,ax=None,
     return fig, ax, correlations
 
 #%%============================================================================
-def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
-                          figsize=(3,3),dpi=100,alpha=0.5,color=None,
-                          grid_on=True,logx=False,logy=False):
+def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
+                          figsize=(3,3), dpi=100, alpha=0.5, color=None,
+                          grid_on=True, logx=False, logy=False):
     '''
     Produce scatter plots of two of the columns in X (the data matrix).
     The correlation between the two columns are shown on top of the plot.
@@ -2116,15 +2084,7 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
 
     from scipy import stats
 
-    if fig is None:  # if a figure handle is not provided, create new figure
-        fig = pl.figure(figsize=figsize,dpi=dpi)
-    else:   # if provided, plot to the specified figure
-        pl.figure(fig.number)
-
-    if ax is None:  # if ax is not provided
-        ax = plt.axes()  # create new axes and plot lines on it
-    else:
-        ax = ax  # plot lines on the provided axes handle
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if not isinstance(two_columns,list):
         raise TypeError('"two_columns" must be a list of length 2.')
@@ -2171,7 +2131,7 @@ def scatter_plot_two_cols(X,two_columns,fig=None,ax=None,
 
 #%%============================================================================
 def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
-                 fig=None, ax=None, figsize=(4,4), dpi=100, show_bins=True,
+                 fig=None, ax=None, figsize=None, dpi=100, show_bins=True,
                  raw_data_label='raw', mean_data_label='average',
                  xlabel='x', ylabel='y', logx=False, logy=False, grid_on=True,
                  show_legend=True):
@@ -2289,15 +2249,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                 y_mean[j] = np.exp(estimated_mu + estimated_sigma**2.0/2.0)
 
     if show_fig:
-        if fig is None:  # if a figure handle is not provided, create new figure
-            fig = pl.figure(figsize=figsize,dpi=dpi)
-        else:   # if provided, plot to the specified figure
-            pl.figure(fig.number)
-
-        if ax is None:  # if ax is not provided
-            ax = plt.axes()  # create new axes and plot lines on it
-        else:
-            ax = ax  # plot lines on the provided axes handle
+        fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
         ax.scatter(xdata,ydata,c='gray',alpha=0.3,label=raw_data_label,zorder=1)
         ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
