@@ -15,45 +15,46 @@ The theory that enables this method is the assumption that the data points with 
           where mu and sigma are the two parameters of the distribution.
 
 #### [Parameters]
-    xdata, ydata:
+    xdata, ydata : <array_like>
         Raw x and y data points (with the same length). Can be pandas Series or
         numpy arrays.
-    bins:
+    bins : <int> or <array_like>
         Number of bins (an integer), or an array representing the actual bin
         edges. Note that the binning is done according x values.
-    distribution:
+    distribution : <str>
         Specifies which distribution the y values within a bin follow. Use
         'lognormal' if you want to assert all positive y values. Only supports
         normal and log-normal distributions at this time.
-    show_fig:
+    show_fig : <bool>
         Whether or not to show a bin-and-mean plot
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
+        If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize:
+    figsize : tuple of two scalars
         Size (width, height) of figure in inches. (fig object passed via "fig"
         will over override this parameter)
-    dpi:
+    dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
-    show_bins:
-            Whether or not to show the bin edges as vertical lines on the plots
-    raw_data_label, mean_data_label:
+    show_bins : <bool>
+        Whether or not to show the bin edges as vertical lines on the plots
+    raw_data_label, mean_data_label : <str>
         Two strings that specify the names of the raw data and the averaged
         data, respectively, such as "raw data" and "averaged data". Useless
         if show_legend is False.
-    xlabel, ylabel:
+    xlabel, ylabel : <str>
         Labels for x and y axes of the plot
-    logx, logy:
+    logx, logy : <bool>
         Whether or not to adjust the scales of x and/or y axes to log
-    grid_on:
+    grid_on : <bool>
         Whether or not to show the grids
-    legend_on:
+    legend_on : <bool>
         Whether or not to show the legend
 
 #### [Returns]
-    x_mean, y_mean:
-        Mean values of x and y for each data group. Numpy arrays.
-    fix, ax:
+    x_mean, y_mean : <np.ndarray>
+        Mean values of x and y for each data group.
+    fig, ax :
         Figure and axes objects
+

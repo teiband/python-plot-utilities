@@ -7,7 +7,7 @@ Generate a choropleth map of USA (including Alaska and Hawaii), on a state level
 According to wikipedia, a choropleth map is a thematic map in which areas are shaded or patterned in proportion to the measurement of the statistical variable being displayed on the map, such as population density or per-capita income.
 
 #### [Parameters]
-    data_per_state:
+    data_per_state : <dict> or <pd.Series> or <pd.DataFrame>
         Numerical data of each state, to be plotted onto the map.
         Acceptable data types include:
             - pandas Series: Index should be valid state identifiers (i.e.,
@@ -19,34 +19,36 @@ According to wikipedia, a choropleth map is a thematic map in which areas are sh
                                 identifiers).
             - dictionary: with keys being valid state identifiers, and values
                           being the numerical values to be visualized
-    vmin:
+    figsize : tuple of two scalars
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    vmin : scalar
         Minimum value to be shown on the map. If vmin is larger than the
         actual minimum value in the data, some of the data values will be
         "clipped". This is useful if there are extreme values in the data
         and you do not want those values to complete skew the color
         distribution.
-    vmax:
+    vmax : scalar
         Maximum value to be shown on the map. Similar to vmin.
-    map_title:
+    map_title : <str>
         Title of the map, to be shown on the top of the map.
-    unit:
+    unit : <str>
         Unit of the numerical (for example, "population per km^2"), to be
         shown on the right side of the color bar.
-    cmap:
+    cmap : <str> or <matplotlib.colors.Colormap>
         Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
         for plotting deviation maps.
-    fontsize:
+    fontsize : scalar
         Font size of all the texts on the map.
-    cmap_midpoint:
+    cmap_midpoint : scalar
         A numerical value that specifies the "deviation point". For example,
         if your data ranges from -200 to 1000, and you want negative values
         to appear blue-ish, and positive values to appear red-ish, then you
         can set cmap_midpoint to 0.0.
-    figsize:
-        Size (width,height) of figure (including map and color bar).
-    dpi:
-        On-screen resolution.
-    shapefile_dir:
+    shapefile_dir : <str>
         Directory where shape files are stored. Shape files (state level and
         county level) should be organized as follows:
             [shapefile_dir]/usa_states/st99_d00.(...)
@@ -69,7 +71,7 @@ Generate a choropleth map of USA (including Alaska and Hawaii), on a county leve
 According to wikipedia, a choropleth map is a thematic map in which areas are shaded or patterned in proportion to the measurement of the statistical variable being displayed on the map, such as population density or per-capita income.
 
 #### [Parameters]
-    data_per_county:
+    data_per_county : <dict> or <pd.Series> or <pd.DataFrame>
         Numerical data of each county, to be plotted onto the map.
         Acceptable data types include:
             - pandas Series: Index should be valid county identifiers (i.e.,
@@ -81,34 +83,36 @@ According to wikipedia, a choropleth map is a thematic map in which areas are sh
                                 identifiers).
             - dictionary: with keys being valid county identifiers, and values
                           being the numerical values to be visualized
-    vmin:
+    figsize : tuple of two scalars
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    vmin : scalar
         Minimum value to be shown on the map. If vmin is larger than the
         actual minimum value in the data, some of the data values will be
         "clipped". This is useful if there are extreme values in the data
         and you do not want those values to complete skew the color
         distribution.
-    vmax:
+    vmax : scalar
         Maximum value to be shown on the map. Similar to vmin.
-    map_title:
+    map_title : <str>
         Title of the map, to be shown on the top of the map.
-    unit:
+    unit : <str>
         Unit of the numerical (for example, "population per km^2"), to be
         shown on the right side of the color bar.
-    cmap:
+    cmap : <str> or <matplotlib.colors.Colormap>
         Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
         for plotting deviation maps.
-    fontsize:
+    fontsize : scalar
         Font size of all the texts on the map.
-    cmap_midpoint:
+    cmap_midpoint : scalar
         A numerical value that specifies the "deviation point". For example,
         if your data ranges from -200 to 1000, and you want negative values
         to appear blue-ish, and positive values to appear red-ish, then you
         can set cmap_midpoint to 0.0.
-    figsize:
-        Size (width, height) of figure (including map and color bar).
-    dpi:
-        On-screen resolution.
-    shapefile_dir:
+    shapefile_dir : <str>
         Directory where shape files are stored. Shape files (state level and
         county level) should be organized as follows:
             [shapefile_dir]/usa_states/st99_d00.(...)

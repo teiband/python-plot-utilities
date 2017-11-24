@@ -19,32 +19,32 @@ Plot a graph with one line and its upper and lower bounds, with areas between bo
 ```
 
 #### [Parameters]
-    x, y:
+    x, y: <array_like>
         data points to be plotted as a line (should have the same length)
-    upper_bound, lower_bound:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the graph are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    upper_bound, lower_bound : <array_like>
         Upper and lower bounds to be plotted as shaded areas. Should have the
         same length as x and y.
-    line_color:
+    line_color : <str> or list or tuple
         color of the line of y
-    shade_color:
+    shade_color : <str> or list or tuple
         color of the underlying shades
-    shade_alpha:
+    shade_alpha : scalar
         transparency of the shades
-    linewidth:
+    linewidth : scalar
         width of the line of y
-    legend_loc:
+    legend_loc : <int> or <str>
         location of the legend, to be passed directly to plt.legend()
-    line_label:
+    line_label : <str>
         label of the line of y, to be used in the legend
-    shade_label:
+    shade_label : <str>
         label of the shades, to be used in the legend
-    fig, ax:
-        Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    logx, logy:
+    logx, logy : <bool>
         Whether or not to show x or y axis scales as log
-    grid_on:
+    grid_on : <bool>
         whether or not to show the grids
 
 #### [Returns]

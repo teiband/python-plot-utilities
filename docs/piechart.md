@@ -16,14 +16,14 @@ Plot a pie chart demonstrating proportions of different categories within an arr
         should be ['0', '1']; and if target_array has "pos" and "neg", then
         class_names should be ['neg','pos'] (i.e., alphabetical).
         If None, values of the categories will be used as names.
-    fig, ax :
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize : <tuple of int/float>
+    figsize : tuple of scalars
         Size (width, height) of figure in inches. (fig object passed via "fig"
         will over override this parameter)
-    dpi : <int, float>
+    dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
     colors : <list> or None
@@ -32,7 +32,7 @@ Plot a pie chart demonstrating proportions of different categories within an arr
         of classes. If longer, only the first few colors are used; if shorter,
         colors are wrapped around.
         If None, automatically use the Pastel2 color map (8 colors total).
-    autopct : str
+    autopct : <str>
         Format specification for displaying texts of proportions, to be passed
         directly to matplotlib.pyplot.pie() function as keyword argument.
     fontsize : scalar or tuple/list of two scalars

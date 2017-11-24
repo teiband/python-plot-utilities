@@ -65,14 +65,14 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         should be ['0', '1']; and if target_array has "pos" and "neg", then
         class_names should be ['neg','pos'] (i.e., alphabetical).
         If None, values of the categories will be used as names.
-    fig, ax :
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize : <tuple of int/float>
+    figsize : tuple of scalars
         Size (width, height) of figure in inches. (fig object passed via "fig"
         will over override this parameter)
-    dpi : <int, float>
+    dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
     colors : <list> or None
@@ -149,15 +149,9 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
     Plot 3D histograms. 3D histograms are best used to compare the distribution
     of more than one set of data.
 
-    Notes on x and y directions
-    ---------------------------
-        x direction: across data sets (i.e., if we have three datasets, the
-                     bars will occupy three different x values)
-        y direction: within dataset
-
     Parameters
     ----------
-    X:
+    X :
         Input data. X can be:
            (1) a 2D numpy array, where each row is one data set;
            (2) a 1D numpy array, containing only one set of data;
@@ -166,46 +160,53 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
            (4) a list of 1D numpy arrays.
                [Note: Robustness is not guaranteed for X being a list of
                       2D numpy arrays.]
-    bins:
+    bins : <int> or <array_like>
         Bin specifications. Can be:
            (1) An integer, which indicates number of bins;
            (2) An array or list, which specifies bin edges.
                [Note: If an integer is used, the widths of bars across data
                       sets may be different. Thus array/list is recommended.]
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the histograms are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize : <tuple of int/float>
+    figsize : tuple of two scalars
         Size (width, height) of figure in inches. (fig object passed via "fig"
         will over override this parameter)
-    dpi : <int, float>
+    dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
-    elev, azim:
+    elev, azim : scalars
         Elevation and azimuth (3D projection view points)
-    alpha:
+    alpha : scalar
         Opacity of bars
-    data_labels:
+    data_labels : list of <str>
         Names of different datasets, e.g., ['Simulation', 'Measurement'].
         If not provided, generic names ['Dataset #1', 'Dataset #2', ...]
         are used. The data_labels are only shown when either plot_legend or
         plot_xlabel is True.
-    plot_legend:
+    plot_legend : <bool>
         Whether to show legends or not
-    plot_xlabel:
+    plot_xlabel : <str>
         Whether to show data_labels of each data set on their respective x
         axis position or not
-    dx_factor, dy_factor:
+    dx_factor, dy_factor : scalars
         Width factor 3D bars in x and y directions. For example, if dy_factor
         is 0.9, there will be a small gap between bars in y direction.
-    ylabel, zlabel:
+    ylabel, zlabel : <str>
         Labels of y and z axes
 
     Returns
     -------
-    fig, ax:
+    fig, ax :
         Figure and axes objects
+
+    Notes on x and y directions
+    ---------------------------
+        x direction: across data sets (i.e., if we have three datasets, the
+                     bars will occupy three different x values)
+        y direction: within dataset
+
     '''
 
     from mpl_toolkits.mplot3d import Axes3D
@@ -465,7 +466,7 @@ def linespecs_demo(line_specs, horizontal_plot=False):
 
     Returns
     -------
-    fig, ax : <obj>
+    fig, ax :
         Figure and axes objects.
     '''
     x = np.arange(0,10,0.05)  # define x and y points to plot
@@ -559,8 +560,8 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
             sys.exit()
 
 #%%############################################################################
-def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
-                       rot=0,logy=False,title='',figsize=(5,3),dpi=100):
+def discrete_histogram(x, fig=None, ax=None, color=None, alpha=None,
+                       rot=0, logy=False, title='', figsize=(5,3), dpi=100):
     '''
     Plot a discrete histogram based on "x", such as below:
 
@@ -583,23 +584,23 @@ def discrete_histogram(x,fig=None,ax=None,color=None,alpha=None,
 
     Parameters
     ----------
-    x:
-        A list of numpy array that contain the data to be visualized.
-    fig, ax:
+    x : <array_like>
+        Data to be visualized.
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the histograms are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    color:
+    color : <str> or <list>
         Color of bar. If not specified, the default color (muted blue)
         is used.
-    alpha:
+    alpha : scalar
         Opacity of bar. If not specified, the default value (1.0) is used.
-    rot:
+    rot : scalar
         Rotation angle (degrees) of x axis label. Default = 0 (upright label)
 
     Returns
     -------
-    fig, ax:
+    fig, ax :
         Figure and axes objects
 
     Reference
@@ -705,7 +706,7 @@ def choropleth_map_state(data_per_state, figsize=(10,7),
 
     Returns
     -------
-    fig, ax:
+    fig, ax :
         Figure and axes objects
 
     References
@@ -922,7 +923,7 @@ def choropleth_map_county(data_per_county, figsize=(10,7),
 
     Returns
     -------
-    fig, ax:
+    fig, ax :
         Figure and axes objects
 
     References
@@ -1331,17 +1332,17 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
 
     Parameters
     ----------
-    time_series : <pd.Series or pd.DataFrame>
+    time_series : <pd.Series> or <pd.DataFrame>
         A pandas Series, with index being date; or a pandas DataFrame, with
         index being date, and each column being a different time series.
-    fig, ax : <matplotlib obj>
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize : <tuple>
+    figsize : tuple of two scalars
         figure size (width, height) in inches (fig object passed via
         "fig" will over override this parameter)
-    dpi : <scalar>
+    dpi : scalar
         Screen resolution (fig object passed via "fig" will over override
         this parameter)
     xlabel : <str>
@@ -1350,7 +1351,7 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
         Label of Y axis. Usually the meaning of the data
     label : <str>
         Label of data, for plotting legends
-    color : <list or str>
+    color : <list> or <str>
         Color of line. If None, let Python decide for itself.
     xgrid_on : <bool>
         Whether or not to show vertical grid lines (default: True)
@@ -1358,7 +1359,7 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
         Whether or not to show horizontal grid lines (default: True)
     title : <str>
         Figure title (optional)
-    zorder: (any number)
+    zorder : scalar
         Set the zorder for lines. Higher zorder are drawn on top.
     month_grid_width : <scalar>
         the on-figure "horizontal width" that each time interval occupies.
@@ -1368,7 +1369,7 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
 
     Returns
     -------
-    fig, ax:
+    fig, ax :
         Figure and axes objects
     '''
 
@@ -1425,11 +1426,11 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
     multiple_time_series : <pandas.DataFrame>
         A pandas dataframe, with index being date , andeach column being a
         different time series.
-    fig, ax : <matplotlib objects>
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize : <tuple>
+    figsize : tuple of two scalars
         Figure size (width, height) in inches (fig object passed via
         "fig" will over override this parameter)
     dpi : <scalar>
@@ -1437,13 +1438,13 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         this parameter)
     ncol_legend : <int>
         Number of columns of the legend
-    **kwargs : <dict>
+    **kwargs :
         Other keyword arguments to be passed to plot_timeseries(), such as
         color, marker, fontsize, etc. (Check docstring of plot_timeseries()).
 
     Returns
     -------
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects
     '''
 
@@ -1502,45 +1503,45 @@ def fill_timeseries(time_series, upper_bound, lower_bound,
 
     Parameters
     ----------
-    time_series:
+    time_series : <pd.Series> or <pd.DataFrame>
         a pandas Series, with index being date
-    upper_bound, lower_bound:
+    upper_bound, lower_bound : <pd.Series>
         upper/lower bounds of the time series, must have the same length as
         time_series
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize:
+    figsize : tuple of two scalars
         figure size (width, height) in inches (fig object passed via "fig"
         will over override this parameter)
-    dpi:
+    dpi : scalar
         Screen resolution (fig object passed via "fig" will over override
         this parameter)
-    xlabel:
+    xlabel : <str>
         Label of X axis. Usually "Time" or "Date"
-    ylabel:
+    ylabel : <str>
         Label of Y axis. Usually the meaning of the data
-    label:
+    label : <str>
         Label of data, for plotting legends
-    color:
+    color : <str> or list or tuple
         Color of line. If None, let Python decide for itself.
-    lw:
+    lw : scalar
         line width of the line that represents time_series
-    ls:
+    ls : <str>
         line style of the line that represents time_series
-    fontsize:
+    fontsize : scalar
         font size of the texts in the figure
-    title:
+    title : <str>
         Figure title (optional)
-    xgrid_on:
+    xgrid_on : <bool>
         Whether or not to show vertical grid lines (default: True)
-    ygrid_on:
+    ygrid_on : <bool>
         Whether or not to show horizontal grid lines (default: True)
 
     Returns
     -------
-    fig, ax:
+    fig, ax :
         Figure and axes objects
     '''
 
@@ -1886,37 +1887,37 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
 
     Parameters
     ----------
-    x, y:
+    x, y: <array_like>
         data points to be plotted as a line (should have the same length)
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    upper_bound, lower_bound:
+    upper_bound, lower_bound : <array_like>
         Upper and lower bounds to be plotted as shaded areas. Should have the
         same length as x and y.
-    line_color:
+    line_color : <str> or list or tuple
         color of the line of y
-    shade_color:
+    shade_color : <str> or list or tuple
         color of the underlying shades
-    shade_alpha:
+    shade_alpha : scalar
         transparency of the shades
-    linewidth:
+    linewidth : scalar
         width of the line of y
-    legend_loc:
+    legend_loc : <int> or <str>
         location of the legend, to be passed directly to plt.legend()
-    line_label:
+    line_label : <str>
         label of the line of y, to be used in the legend
-    shade_label:
+    shade_label : <str>
         label of the shades, to be used in the legend
-    logx, logy:
+    logx, logy : <bool>
         Whether or not to show x or y axis scales as log
-    grid_on:
+    grid_on : <bool>
         whether or not to show the grids
 
     Returns
     -------
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects
     '''
 
@@ -1950,44 +1951,44 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None,
 
     Parameters
     ----------
-    X:
-        The data set. Can be a numpy array or pandas dataframe.
-    color_map:
+    X : <np.ndarray> or <pd.DataFrame>
+        The data set.
+    color_map : <str> or <matplotlib.colors.Colormap>
         The color scheme to show high, low, negative high correlations. Legit
         names are listed in https://matplotlib.org/users/colormaps.html. Using
         diverging color maps are recommended: PiYG, PRGn, BrBG, PuOr, RdGy,
         RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr, seismic
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize:
+    figsize : tuple of two scalars
         Size (width, height) of figure in inches. (fig object passed via "fig"
         will over override this parameter)
-    dpi:
+    dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
-    variable_names:
+    variable_names : list of <str>
         Names of the variables in X. If X is a pandas dataframe, then this
         argument is not need: column names of X is used as variable names. If
         X is a numpy array, and this argument is not provided, then column
         indices are used. The length of variable_names should match the number
         of columns in X; if not, a warning will be thrown (but not error).
-    scatter_plots:
+    scatter_plots : bool
         Whether or not to show the variable pairs with high correlation.
         Variable pairs whose absolute value of correlation is higher than thres
         will be plotted as scatter plots.
-    thres:
+    thres : scalar between 0 and 1
         Threshold of correlation (absolute value). Variable pairs whose absolute
         correlation is higher than thres will be plotted as scatter plots.
-    ncols_scatter_plots:
+    ncols_scatter_plots : <int>
         How many subplots within the scatter plots to show on one row.
 
     Returns
     -------
-    correlations:
+    correlations : <pd.DataFrame>
         The correlation matrix
-    fig, ax:
+    fig, ax :
         Figure and axes objects
     '''
 
@@ -2053,32 +2054,32 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
 
     Input
     -----
-    X:
+    X : <pd.DataFrame>
         The dataset. Currently only supports pandas dataframe.
-    two_columns:
+    two_columns : list of two <str> or two <int>
         The names or indices of the two columns within X. Must be a list of
         length 2. The elements must either be both integers, or both strings.
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graphs are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize:
+    figsize : list of two scalars
         Size (width, height) of figure in inches. (fig object passed via "fig"
         will over override this parameter)
-    dpi:
+    dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
-    alpha:
+    alpha : scalar
         Opacity of the scatter points.
-    color:
+    color : <str> or list of tuple
         Color of the scatter points. If None, default matplotlib color palette
         will be used.
-    grid_on:
+    grid_on : <bool>
         Whether or not to show grids.
 
     Returns
     -------
-    fig, ax:
+    fig, ax :
         Figure and axes objects
     '''
 
@@ -2166,48 +2167,48 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
 
     Parameters
     ----------
-    xdata, ydata:
+    xdata, ydata : <array_like>
         Raw x and y data points (with the same length). Can be pandas Series or
         numpy arrays.
-    bins:
+    bins : <int> or <array_like>
         Number of bins (an integer), or an array representing the actual bin
         edges. Note that the binning is done according x values.
-    distribution:
+    distribution : <str>
         Specifies which distribution the y values within a bin follow. Use
         'lognormal' if you want to assert all positive y values. Only supports
         normal and log-normal distributions at this time.
-    show_fig:
+    show_fig : <bool>
         Whether or not to show a bin-and-mean plot
-    fig, ax:
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize:
+    figsize : tuple of two scalars
         Size (width, height) of figure in inches. (fig object passed via "fig"
         will over override this parameter)
-    dpi:
+    dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
-    show_bins:
+    show_bins : <bool>
         Whether or not to show the bin edges as vertical lines on the plots
-    raw_data_label, mean_data_label:
+    raw_data_label, mean_data_label : <str>
         Two strings that specify the names of the raw data and the averaged
         data, respectively, such as "raw data" and "averaged data". Useless
         if show_legend is False.
-    xlabel, ylabel:
+    xlabel, ylabel : <str>
         Labels for x and y axes of the plot
-    logx, logy:
+    logx, logy : <bool>
         Whether or not to adjust the scales of x and/or y axes to log
-    grid_on:
+    grid_on : <bool>
         Whether or not to show the grids
-    legend_on:
+    legend_on : <bool>
         Whether or not to show the legend
 
     Returns
     -------
-    x_mean, y_mean:
-        Mean values of x and y for each data group. Numpy arrays.
-    fig, ax:
+    x_mean, y_mean : <np.ndarray>
+        Mean values of x and y for each data group.
+    fig, ax :
         Figure and axes objects
     '''
 

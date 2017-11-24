@@ -23,18 +23,18 @@ In the figure, N is the number of values where x = x1, x2, x3, or x4.
 And x1, x2, x3, x4, etc. are the discrete values within x.
 
 #### [Parameters]
-    x:
-        A list of numpy array that contain the data to be visualized.
-    fig, ax:
+    x : <array_like>
+        Data to be visualized.
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the histograms are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    color: 
+    color : <str> or <list>
         Color of bar. If not specified, the default color (muted blue)
         is used.
-    alpha: 
+    alpha : scalar
         Opacity of bar. If not specified, the default value (1.0) is used.
-    rot:
+    rot : scalar
         Rotation angle (degrees) of x axis label. Default = 0 (upright label)
         
 #### [Returns]
