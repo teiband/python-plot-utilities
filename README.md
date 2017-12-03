@@ -23,7 +23,7 @@ This is a Python module that contains some useful plotting utilities. Current fu
 
 Plots 3D histograms. Useful for comparing multiple distributions.
 
-```{python}
+```python
 >>> import plot_utils as pu
 >>> pu.histogram3d(X)  # X is the dataset to be visualized
 ```
@@ -49,7 +49,7 @@ Plots state-level choropleth maps from a Python dictionary or Pandas Series/Data
 
 Plots county-level choropleth map from a Python dictionary or Pandas Series/DataFrame.
 
-```{python}
+```python
 >>> import plot_utils as pu
 >>> pu.choropleth_map_county(county_level_data)
 ```
@@ -148,7 +148,7 @@ Plots single or multiple time series data on the same plot nicely.
 
 Plots data and error bounds on the same graph.
 
-```{python}
+```python
 >>> import plot_utils as pu
 >>> pu.plot_with_error_bounds(data,upper_bound,lower_bound)
 ```
