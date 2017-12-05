@@ -141,7 +141,7 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
 #%%############################################################################
 def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
                 elev=30, azim=5, alpha=0.6, data_labels=None,
-                plot_legend=True, plot_xlabel=False,
+                plot_legend=True, plot_xlabel=False, color=None,
                 dx_factor=0.6, dy_factor=0.8,
                 ylabel='Data', zlabel='Counts',
                 **legend_kwargs):
@@ -190,6 +190,10 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
     plot_xlabel : <str>
         Whether to show data_labels of each data set on their respective x
         axis position or not
+    color : list of lists, or tuple of tuples
+        Colors of each distributions. Needs to be at least the same length as
+        the number of data series in X. Can be RGB colors, HEX colors, or valid
+        color names in Python. If None, get_colors('tab10',N=N) will be queried.
     dx_factor, dy_factor : scalars
         Width factor 3D bars in x and y directions. For example, if dy_factor
         is 0.9, there will be a small gap between bars in y direction.
@@ -237,7 +241,13 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
     ax.view_init(elev,azim)  # set view elevation and angle
 
     proxy = [[None]] * N  # create a 'proxy' to help generating legends
-    c = get_colors('tab10',N)  # get a list of colors
+    if not color:
+        c_ = get_colors('tab10',N)  # get a list of colors
+    else:
+        valid_color_flag, msg = check_color_types(color, N)
+        if not valid_color_flag:
+            raise TypeError(msg)
+        c_ = color
     xpos_list = [[None]] * N  # pre-allocation
     for j in range(N):  # loop through each dataset
         if isinstance(bins,(list,np.ndarray)) and len(bins) > 1:  # if 'bins' is a list and length > 1
@@ -258,8 +268,8 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
             bar3d_kwargs = {'alpha':alpha}  # 'lw' argument clashes with alpha in 2.0+ versions
         else:
             bar3d_kwargs = {'alpha':alpha, 'lw':0.5}
-        ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=c[j], **bar3d_kwargs)
-        proxy[j] = plt.Rectangle((0, 0), 1, 1, fc=c[j])  # generate proxy for plotting legends
+        ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=c_[j], **bar3d_kwargs)
+        proxy[j] = plt.Rectangle((0, 0), 1, 1, fc=c_[j])  # generate proxy for plotting legends
         xpos_list[j] = xpos[0] + dx/2.0  # '+dx/2.0' makes x ticks pass through center of bars
 
     if plot_legend is True:
@@ -285,6 +295,32 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
     plt.tight_layout(pad=0.3)
 
     return fig, ax
+
+#%%############################################################################
+def check_color_types(color, n=None):
+    '''
+    Helper function that checks whether a Python object "color" is indeed a
+    valid list (or tuple) of length n that defines n colors.
+
+    Returns True (valid) or False (otherwise), and an error message (empty
+    message if True).
+    '''
+    if not isinstance(color,(list,tuple)):
+        is_valid = False
+        err_msg = '"color" must be a list of lists (or tuple of tuples).'
+    elif not all([isinstance(c_,(list,tuple)) for c_ in color]) and \
+         not all([isinstance(c_,(str,unicode)) for c_ in color]):
+            is_valid = False
+            err_msg = '"color" must be a list of lists (or tuple of tuples).'
+    else:
+        if n and len(color) < n:
+            is_valid = False
+            err_msg = 'Length of "color" must be at least the same length as "n".'
+        else:
+            is_valid = True
+            err_msg = ''
+
+    return is_valid, err_msg
 
 #%%############################################################################
 def get_colors(color_scheme='tab10',N=None):

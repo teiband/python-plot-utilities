@@ -1,6 +1,6 @@
 # plot_utils.histogram3d
 
-**plot_utils.histogram3d(*X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100, elev=30, azim=5, alpha=0.6, data_labels=None, plot_legend=True, plot_xlabel=False, dx_factor=0.6, dy_factor=0.8, ylabel='Data', zlabel='Counts', \*\*legend_kwargs*):
+**plot_utils.histogram3d(*X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100, elev=30, azim=5, alpha=0.6, data_labels=None, plot_legend=True, plot_xlabel=False, color=None, dx_factor=0.6, dy_factor=0.8, ylabel='Data', zlabel='Counts', \*\*legend_kwargs*):
 
 Plot 3D histograms. 3D histograms are best used to compare the distribution
 of more than one set of data.
@@ -45,6 +45,10 @@ of more than one set of data.
     plot_xlabel : <str>
         Whether to show data_labels of each data set on their respective x
         axis position or not
+    color : list of lists, or tuple of tuples
+        Colors of each distributions. Needs to be at least the same length as
+        the number of data series in X. Can be RGB colors, HEX colors, or valid
+        color names in Python. If None, get_colors('tab10',N=N) will be queried.
     dx_factor, dy_factor : scalars
         Width factor 3D bars in x and y directions. For example, if dy_factor
         is 0.9, there will be a small gap between bars in y direction.
