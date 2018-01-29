@@ -49,12 +49,18 @@ The theory that enables this method is the assumption that the data points with 
         Whether or not to adjust the scales of x and/or y axes to log
     grid_on : <bool>
         Whether or not to show the grids
+    error_bars_on : <bool>
+        Whether or not to show error bars (of y values) of each bin
+    error_shades_on : <bool>
+        Whether or not to show error shades (of y values) of each bin; this
+        argument overrides error_bars_on
     legend_on : <bool>
         Whether or not to show the legend
 
 #### [Returns]
-    x_mean, y_mean : <np.ndarray>
-        Mean values of x and y for each data group.
     fig, ax :
         Figure and axes objects
-
+    x_mean, y_mean : <np.ndarray>
+        Mean values of x and y for each data group (i.e., "bin")
+    y_std : <np.ndarray>
+        Standard deviation of y for each data group (i.e., "bin")

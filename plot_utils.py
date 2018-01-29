@@ -2169,9 +2169,9 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
 #%%============================================================================
 def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                  fig=None, ax=None, figsize=None, dpi=100, show_bins=True,
-                 raw_data_label='raw', mean_data_label='average',
-                 xlabel='x', ylabel='y', logx=False, logy=False, grid_on=True,
-                 show_legend=True):
+                 raw_data_label='raw', mean_data_label='average', xlabel='x',
+                 ylabel='y', logx=False, logy=False, grid_on=True,
+                 error_bars_on=False, error_shades_on=True, legend_on=True):
     '''
     Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
 
@@ -2237,15 +2237,22 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         Whether or not to adjust the scales of x and/or y axes to log
     grid_on : <bool>
         Whether or not to show the grids
+    error_bars_on : <bool>
+        Whether or not to show error bars (of y values) of each bin
+    error_shades_on : <bool>
+        Whether or not to show error shades (of y values) of each bin; this
+        argument overrides error_bars_on
     legend_on : <bool>
         Whether or not to show the legend
 
     Returns
     -------
-    x_mean, y_mean : <np.ndarray>
-        Mean values of x and y for each data group.
     fig, ax :
         Figure and axes objects
+    x_mean, y_mean : <np.ndarray>
+        Mean values of x and y for each data group (i.e., "bin")
+    y_std : <np.ndarray>
+        Standard deviation of y for each data group (i.e., "bin")
     '''
 
     from scipy import stats
@@ -2269,27 +2276,46 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     inds = np.digitize(xdata, bins)
     x_mean = np.zeros(nr-1)
     y_mean = np.zeros(nr-1)
+    y_std  = np.zeros(nr-1)
     for j in range(nr-1):
         xdata_in_bin = xdata[inds == j+1]
         ydata_in_bin = ydata[inds == j+1]
         if len(xdata_in_bin) == 0:  # no point falls into current bin
             x_mean[j] = np.nan  # this is to prevent numpy from throwing...
             y_mean[j] = np.nan  #...confusing warning messages
+            y_std[j]  = np.nan
         else:
             x_mean[j] = np.nanmean(xdata_in_bin)
             if distribution == 'normal':
                 y_mean[j] = np.nanmean(ydata_in_bin)
+                y_std[j] = np.nanstd(ydata_in_bin)
             elif distribution in ['log-normal','lognormal','logn']:
                 s, loc, scale = stats.lognorm.fit(ydata_in_bin, floc=0)
                 estimated_mu = np.log(scale)
                 estimated_sigma = s
                 y_mean[j] = np.exp(estimated_mu + estimated_sigma**2.0/2.0)
+                y_std[j]  = np.sqrt(np.exp(2.*estimated_mu + estimated_sigma**2.) \
+                             * (np.exp(estimated_sigma**2.) - 1) )
 
     if show_fig:
         fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
         ax.scatter(xdata,ydata,c='gray',alpha=0.3,label=raw_data_label,zorder=1)
-        ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
+        if error_shades_on:
+            if error_bars_on:
+                print('***** WARNING: Error shades overriding error bars. *****')
+            ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
+            ax.fill_between(x_mean,y_mean+y_std,y_mean-y_std,label='$\pm$ std',
+                                facecolor='orange',alpha=0.35,zorder=2.5)
+        else:  # error_shades_on False
+            if error_bars_on:
+                mean_data_label = 'avg $\pm$ std'
+                ax.errorbar(x_mean,y_mean,yerr=y_std,ls='-',marker='o',c='orange',
+                            lw=2,elinewidth=1,capsize=2,label=mean_data_label,
+                            zorder=3)
+            else:  # no error bars, nor error shades
+                ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
+
         ax.set_axisbelow(True)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
@@ -2306,11 +2332,11 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                 lab_ = 'bin edges' if k==0 else None  # only label 1st edge
                 ec = get_colors(N=1)[0]
                 ax.plot([edge]*2,ylims,'--',c=ec,lw=1.0,zorder=2,label=lab_)
-        if show_legend:
+        if legend_on:
             ax.legend(loc='best')
 
-        return fig, ax, x_mean, y_mean
+        return fig, ax, x_mean, y_mean, y_std
     else:
-        return None, None, x_mean, y_mean
+        return None, None, x_mean, y_mean, y_std
 
 
