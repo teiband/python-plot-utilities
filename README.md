@@ -193,6 +193,6 @@ I did not built every function of this module entirely from scratch. I documente
 
 ## Copyright and license
 
-(c) 2017, Jian Shi
+(c) 2017-2018, Jian Shi
 
 License: GPL v3.0
