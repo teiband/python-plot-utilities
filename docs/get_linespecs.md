@@ -25,6 +25,12 @@ Returns a list of distinguishable line specifications (color, line style, and li
     {'color': '#1f77b4', 'ls': '-', 'lw': 1}. Each element can then be passed
     as keyword arguments to matplotlib.pyplot.plot() or other similar functions.
 
+#### [Example]
+
+    >>> import plot_utils as pu
+    >>> import matplotlib.pyplot as plt
+    >>> plt.plot([0,1],[0,1],**pu.get_linespecs()[53])
+
 -----------------------------------------
 
 # plot_utils.linespecs_demo
