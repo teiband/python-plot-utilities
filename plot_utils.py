@@ -48,7 +48,7 @@ def process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
 
 #%%============================================================================
 def piechart(target_array, class_names=None, fig=None, ax=None,
-             figsize=(3,3), dpi=100, colors=None, display='percent',#autopct='%1.1f%%',
+             figsize=(3,3), dpi=100, colors=None, display='percent',
              fontsize=None, **piechart_kwargs):
     '''
     Plot a pie chart demonstrating proportions of different categories within
