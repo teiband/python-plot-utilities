@@ -464,6 +464,12 @@ def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
     A list whose every element is a dictionary that looks like this:
     {'color': '#1f77b4', 'ls': '-', 'lw': 1}. Each element can then be passed
     as keyword arguments to matplotlib.pyplot.plot() or other similar functions.
+
+    Example
+    -------
+    >>> import plot_utils as pu
+    >>> import matplotlib.pyplot as plt
+    >>> plt.plot([0,1],[0,1],**pu.get_linespecs()[53])
     '''
 
     import cycler
