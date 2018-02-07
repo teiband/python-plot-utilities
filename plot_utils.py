@@ -48,7 +48,7 @@ def process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
 
 #%%============================================================================
 def piechart(target_array, class_names=None, fig=None, ax=None,
-             figsize=(3,3), dpi=100, colors=None, autopct='%1.1f%%',
+             figsize=(3,3), dpi=100, colors=None, display='percent',#autopct='%1.1f%%',
              fontsize=None, **piechart_kwargs):
     '''
     Plot a pie chart demonstrating proportions of different categories within
@@ -81,9 +81,9 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         of classes. If longer, only the first few colors are used; if shorter,
         colors are wrapped around.
         If None, automatically use the Pastel2 color map (8 colors total).
-    autopct : <str>
-        Format specification for displaying texts of proportions, to be passed
-        directly to matplotlib.pyplot.pie() function as keyword argument.
+    display : ['percent', 'count', 'both', None]
+        An option of what to show on top of each pie slices: percentage of each
+        class, or count of each class, or both percentage and count, or nothing.
     fontsize : scalar or tuple/list of two scalars
         Font size. If scalar, both the class names and the percentages are set
         to the specified size. If tuple of two scalars, the first value sets
@@ -111,7 +111,7 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         print('*****  WARNING: target_array contains NaN''s.  *****')
 
     vals = np.unique(y)  # vals is sorted by np.unique()
-    x = []
+    x = []  # x stores the counts of different categories in y
     for val in vals:
         if pd.isnull(val):
             x.append(np.sum(pd.isnull(y)))  # count number of NaN's in y
@@ -125,8 +125,26 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
     if not class_names:
         class_names = [str(val) for val in vals]
 
+    if display == 'percent':
+        autopct = '%1.1f%%'
+    elif display == 'count':
+        total = np.sum(x)  # https://stackoverflow.com/a/14171272/8892243
+        autopct = lambda p: '{:.0f}'.format(p * total / 100.0)
+    elif display == 'both':
+        def make_autopct(values):  # https://stackoverflow.com/a/6170354/8892243
+            def my_autopct(pct):
+                total = sum(values)
+                val = int(round(pct*total/100.0))
+                return '{p:.1f}%  ({v:d})'.format(p=pct,v=val)
+            return my_autopct
+        autopct = make_autopct(x)
+    elif display == None:
+        autopct = ''
+    else:
+        raise ValueError('Invalid value of "display". Can only be ["percent","count","both",None].')
+
     _,texts,autotexts = ax.pie(x,labels=class_names,colors=colors,
-                                     autopct=autopct,**piechart_kwargs)
+                               autopct=autopct,**piechart_kwargs)
     if isinstance(fontsize,(list,tuple)):
         for t_ in texts: t_.set_fontsize(fontsize[0])
         for t_ in autotexts: t_.set_fontsize(fontsize[1])

@@ -1,7 +1,7 @@
 # plot_utils.piechart
 
 **plot_utils.piechart**(*target_array, class_names=None, fig=None, ax=None,
-             figsize=(3,3), dpi=100, colors=None, autopct='%1.1f%%',
+             figsize=(3,3), dpi=100, colors=None, display='percent',
              fontsize=None, \*\*piechart_kwargs*):
 
 Plot a pie chart demonstrating proportions of different categories within an array.
@@ -32,9 +32,8 @@ Plot a pie chart demonstrating proportions of different categories within an arr
         of classes. If longer, only the first few colors are used; if shorter,
         colors are wrapped around.
         If None, automatically use the Pastel2 color map (8 colors total).
-    autopct : <str>
-        Format specification for displaying texts of proportions, to be passed
-        directly to matplotlib.pyplot.pie() function as keyword argument.
+    display : ['percent', 'count', 'both', None]
+        An option of what to show on top of each pie slices: percentage of each
     fontsize : scalar or tuple/list of two scalars
         Font size. If scalar, both the class names and the percentages are set
         to the specified size. If tuple of two scalars, the first value sets
