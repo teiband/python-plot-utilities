@@ -2152,6 +2152,9 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
     else:
         sys.exit('*****  Error: two_columns must be str list or int list!  *****')
 
+    x = np.array(x)  # convert to numpy array so that x[ind] runs correctly
+    y = np.array(y)
+
     nan_index_in_x = np.where(np.isnan(x))[0]
     nan_index_in_y = np.where(np.isnan(y))[0]
     nan_index = set(nan_index_in_x) | set(nan_index_in_y)
