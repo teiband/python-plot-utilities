@@ -233,6 +233,7 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
 
     from mpl_toolkits.mplot3d import Axes3D
 
+    # --------  Data type checking for X  ------------
     if isinstance(X,np.ndarray):
         if X.ndim <= 1:  # X is a 1D numpy array
             N = 1
@@ -248,6 +249,11 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
     else:  # X is a scalar
         print('*****  X should either be a list or a 2D numpy array.  *****')
         sys.exit()
+
+    # -----------  NaN checking for X  ----------------
+    for j in range(N):
+        if not all(np.isfinite(X[j])):
+            raise ValueError('X[%d] contains non-finite values (not accepted by histogram3d()).' % j)
 
     if data_labels is None:
         data_labels = [[None]] * N
@@ -583,17 +589,16 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
 
     If data_limit is a scalar, return axis_limit according to the DIRECTION.
     '''
-    if isinstance(data_limit,float) or isinstance(data_limit,int):  # is scalar
+    if isinstance(data_limit,(float,int)):  # is scalar
         if direction == 'upper':
             return tick_base_unit * (int(data_limit/tick_base_unit)+1)
         elif direction == 'lower':
             return tick_base_unit * (int(data_limit/tick_base_unit))
         else:
-            print('*****  Length of data_limit should be at least 1.  *****')
+            raise ValueError('Length of data_limit should be at least 1.')
     elif isinstance(data_limit,list):
         if len(data_limit) > 2:
-            print('*****  Length of data_limit should be at most 2.  *****')
-            sys.exit()
+            raise ValueError('Length of data_limit should be at most 2.')
         elif len(list(data_limit)) == 2:
             min_data = min(data_limit)
             max_data = max(data_limit)
@@ -602,22 +607,18 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
             return [min_limit, max_limit]
         elif len(data_limit) == 1:  # such as [2.14]
             return find_axes_lim(data_limit[0],tick_base_unit,direction) # recursion
-    else: # for example, a numpy array...
-        if type(data_limit) == np.ndarray:
-            data_limit = data_limit.flatten()  # convert np.array(2.5) into np.array([2.5])
-            if data_limit.size == 1:
-                return find_axes_lim(data_limit[0],tick_base_unit,direction) # recursion
-            elif data_limit.size == 2:
-                return find_axes_lim(list(data_limit),tick_base_unit,direction) # recursion
-            elif data_limit.size >= 3:
-                print('*****  Length of data_limit should be at most 2.  *****')
-                sys.exit()
-            else:
-                print('*****  Unrecognized data type for data_limit.  *****')
-                sys.exit()
+    elif isinstance(data_limit,np.ndarray):
+        data_limit = data_limit.flatten()  # convert np.array(2.5) into np.array([2.5])
+        if data_limit.size == 1:
+            return find_axes_lim(data_limit[0],tick_base_unit,direction) # recursion
+        elif data_limit.size == 2:
+            return find_axes_lim(list(data_limit),tick_base_unit,direction) # recursion
+        elif data_limit.size >= 3:
+            raise ValueError('Length of data_limit should be at most 2.')
         else:
-            print('*****  Unrecognized data type for data_limit.  *****')
-            sys.exit()
+            raise TypeError('Unrecognized data type for data_limit.')
+    else:
+        raise TypeError('Unrecognized data type for data_limit.')
 
 #%%############################################################################
 def discrete_histogram(x, fig=None, ax=None, color=None, alpha=None,
@@ -774,6 +775,7 @@ def choropleth_map_state(data_per_state, figsize=(10,7),
         I based my modifications partly on some code snippets in this
         stackoverflow thread: https://stackoverflow.com/questions/39742305
     '''
+
     from mpl_toolkits.basemap import Basemap as Basemap
     from matplotlib.colors import rgb2hex, Normalize
     from matplotlib.patches import Polygon
@@ -818,9 +820,12 @@ def choropleth_map_state(data_per_state, figsize=(10,7),
     if shapefile_dir is None:
         shapefile_dir = './shapefiles'
     shp_path_state = os.path.join(shapefile_dir,'usa_states','st99_d00')
-    shp_info = m.readshapefile(shp_path_state,'states',drawbounds=True,
-                               linewidth=0.45,color='gray')
-    shp_info_ = m_.readshapefile(shp_path_state,'states',drawbounds=False)
+    try:
+        shp_info = m.readshapefile(shp_path_state,'states',drawbounds=True,
+                                   linewidth=0.45,color='gray')
+        shp_info_ = m_.readshapefile(shp_path_state,'states',drawbounds=False)
+    except:
+        raise IOError('Shape files not found. Specify the location of the "shapefiles" folder.')
 
     #-------- choose a color for each state based on population density. -------
     colors={}
@@ -1019,17 +1024,23 @@ def choropleth_map_county(data_per_county, figsize=(10,7),
     if shapefile_dir is None:
         shapefile_dir = './shapefiles'
     shp_path_state = os.path.join(shapefile_dir,'usa_states','st99_d00')
-    shp_info = m.readshapefile(shp_path_state,'states',drawbounds=True,
-                               linewidth=0.45,color='gray')
-    shp_info_ = m_.readshapefile(shp_path_state,'states',drawbounds=False)
+    try:
+        shp_info = m.readshapefile(shp_path_state,'states',drawbounds=True,
+                                   linewidth=0.45,color='gray')
+        shp_info_ = m_.readshapefile(shp_path_state,'states',drawbounds=False)
+    except:
+        raise IOError('Shape files not found. Specify the location of the "shapefiles" folder.')
 
     cbc = [0.75]*3  # county boundary color
     cbw = 0.15  # county boundary line width
     shp_path_county = os.path.join(shapefile_dir,'usa_counties','cb_2016_us_county_500k')
-    shp_info_cnty = m.readshapefile(shp_path_county,'counties',drawbounds=True,
-                                    linewidth=cbw,color=cbc)
+    try:
+        shp_info_cnty = m.readshapefile(shp_path_county,'counties',drawbounds=True,
+                                        linewidth=cbw,color=cbc)
 
-    shp_info_cnty_ = m_.readshapefile(shp_path_county,'counties',drawbounds=False)
+        shp_info_cnty_ = m_.readshapefile(shp_path_county,'counties',drawbounds=False)
+    except:
+        raise IOError('Shape files not found. Specify the location of the "shapefiles" folder.')
 
     #-------- choose a color for each county based on unemployment rate -------
     colors={}
@@ -2224,9 +2235,19 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     positive), then y_mean is the expected value of the log-normal distribution,
     while x_mean for any bins are still just the arithmetic mean.
 
-    Note: For log-normal, the expective value of y is:
+    Notes:
+      (1) For log-normal distribution, the expective value of y is:
                     E(Y) = exp(mu + (1/2)*sigma^2)
+          and the variance is:
+                 Var(Y) = [exp(sigma^2) - 1] * exp(2*mu + sigma^2)
           where mu and sigma are the two parameters of the distribution.
+      (2) Knowing E(Y) and Var(Y), mu and sigma can be back-calculated:
+                              ___________________
+             mu = ln[ E(Y) / V 1 + Var(Y)/E^2(Y)  ]
+                      _________________________
+             sigma = V ln[ 1 + Var(Y)/E^2(Y) ]
+
+          (Reference: https://en.wikipedia.org/wiki/Log-normal_distribution)
 
     Parameters
     ----------
