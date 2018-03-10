@@ -1,6 +1,6 @@
 # plot_utils.plot_timeseries
 
-**plot_utils.plot_timeseries**(*time_series, fig=None, ax=None, figsize=(10,3), xlabel='Time', ylabel=None, label=None, color=None, lw=2, ls='-', marker=None, fontsize=12, xgrid_on=True, ygrid_on=True, title=None, dpi=96, month_grid_width=None*):
+**plot_utils.plot_timeseries**(*time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3), xlabel='Time', ylabel=None, label=None, color=None, lw=2, ls='-', marker=None, fontsize=12, xgrid_on=True, ygrid_on=True, title=None, dpi=96, month_grid_width=None*):
 
 Plot time_series, where its index indicates dates (e.g., year, month, date).
 
@@ -10,6 +10,8 @@ You can plot multiple time series by supplying a multi-column pandas Dataframe a
     time_series : <pd.Series> or <pd.DataFrame>
         A pandas Series, with index being date; or a pandas DataFrame, with
         index being date, and each column being a different time series.
+    date_fmt : <str>
+        Date format specifier, e.g., '%Y-%m' or '%d/%m/%y'.
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
@@ -82,7 +84,7 @@ Note that setting keyword arguments such as color or ls ("linestyle") will force
 ---------------------------------------------------------
 # plot_utils.fill_timeseries
 
-**plot_utils.fill_timeseries**(*time_series, upper_bound, lower_bound, fig=None, ax=None, figsize=(10,3), xlabel='Time', ylabel=None, label=None, color=None, lw=3, ls='-', fontsize=12, title=None, dpi=96, xgrid_on=True, ygrid_on=True*):
+**plot_utils.fill_timeseries**(*time_series, upper_bound, lower_bound, date_fmt=None, fig=None, ax=None, figsize=(10,3), xlabel='Time', ylabel=None, label=None, color=None, lw=3, ls='-', fontsize=12, title=None, dpi=96, xgrid_on=True, ygrid_on=True*):
 
 Plot time_series as a line, where its index indicates a date (e.g., year, month, date).
 
@@ -94,6 +96,8 @@ And then plot the upper bound and lower bound as shaded areas beneath the line.
     upper_bound, lower_bound : <pd.Series>
         upper/lower bounds of the time series, must have the same length as
         time_series
+    date_fmt : <str>
+        Date format specifier, e.g., '%Y-%m' or '%d/%m/%y'.
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and

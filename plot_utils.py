@@ -1388,9 +1388,9 @@ def check_all_states(dict1):
     return dict2
 
 #%%============================================================================
-def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
-                    xlabel='Time', ylabel=None, label=None, color=None, lw=2,
-                    ls=None, marker=None, fontsize=12, xgrid_on=True,
+def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3),
+                    dpi=100, xlabel='Time', ylabel=None, label=None, color=None,
+                    lw=2, ls=None, marker=None, fontsize=12, xgrid_on=True,
                     ygrid_on=True, title=None, zorder=None,
                     month_grid_width=None):
     '''
@@ -1406,6 +1406,8 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
     time_series : <pd.Series> or <pd.DataFrame>
         A pandas Series, with index being date; or a pandas DataFrame, with
         index being date, and each column being a different time series.
+    date_fmt : <str>
+        Date format specifier, e.g., '%Y-%m' or '%d/%m/%y'.
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
@@ -1449,7 +1451,7 @@ def plot_timeseries(time_series, fig=None, ax=None, figsize=(10,3), dpi=100,
     ax_size = get_ax_size(fig, ax)
 
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
-    ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
+    ts.index = as_date(ts.index, date_fmt)  # batch-convert index to Timestamp format of pandas
 
     if zorder:
         ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label,zorder=zorder)
@@ -1561,7 +1563,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
     return fig, ax
 
 #%%============================================================================
-def fill_timeseries(time_series, upper_bound, lower_bound,
+def fill_timeseries(time_series, upper_bound, lower_bound, date_fmt=None,
                     fig=None, ax=None, figsize=(10,3), dpi=100,
                     xlabel='Time', ylabel=None, label=None,
                     color=None, lw=3, ls='-', fontsize=12, title=None,
@@ -1579,6 +1581,8 @@ def fill_timeseries(time_series, upper_bound, lower_bound,
     upper_bound, lower_bound : <pd.Series>
         upper/lower bounds of the time series, must have the same length as
         time_series
+    date_fmt : <str>
+        Date format specifier, e.g., '%Y-%m' or '%d/%m/%y'.
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
@@ -1619,7 +1623,7 @@ def fill_timeseries(time_series, upper_bound, lower_bound,
     fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     ts = time_series.copy()  # shorten the name + avoid changing some_time_series
-    ts.index = map(as_date,ts.index)  # batch-convert index to datetime.date format
+    ts.index = as_date(ts.index, date_fmt)  # batch-convert index to Timestamp format of pandas
     lb = lower_bound.copy()
     ub = upper_bound.copy()
 
@@ -1807,9 +1811,9 @@ def format_xlabel(ax,month_width):
     return ax
 
 #%%============================================================================
-def as_date(str_date):
+def as_date(raw_date, date_fmt=None):
     '''
-    Convert string date to datetime array.
+    Converts raw_date to datetime array.
 
     It can handle:
     (A) A list of str, int, or float, such as:
@@ -1826,9 +1830,20 @@ def as_date(str_date):
         [2] 201210.0
     (D) A pandas Series, of length 1 or length larger than 1
 
-    Firstly, this function does some parsing (e.g., determining whether str_date is
-    a list of a single element, or a list of multiple element, or just a single element),
-    and then this function calls str2date_kernel() to do the conversion to a single element.
+    Parameters
+    ----------
+    raw_date : (see above for acceptable formats)
+        The raw date information to be processed
+    date_fmt : <str>
+        The format of each individual date entry, e.g., '%Y-%m-%d' or '%m/%d/%y'.
+        To be passed directly to pd.to_datetime()
+        (https://pandas.pydata.org/pandas-docs/stable/generated/pandas.to_datetime.html)
+
+    Returns
+    -------
+    date_list :
+        A variable with the same structure (list or scaler-like) as raw_date,
+        whose contents have the data type "pandas._libs.tslib.Timestamp".
 
     Reference: https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
     '''
@@ -1838,25 +1853,25 @@ def as_date(str_date):
     else:
         timestamp_type = pd._libs.tslib.Timestamp
 
-    if isinstance(str_date,timestamp_type):  # if already a pandas Timestamp obj
-        date_list = str_date  # return str_date as is
+    if isinstance(raw_date,timestamp_type):  # if already a pandas Timestamp obj
+        date_list = raw_date  # return raw_date as is
     else:
         # -----------  Convert to list for pd.Series or np.ndarray objects  -------
-        if isinstance(str_date,(pd.Series,np.ndarray,pd.Index)):
-            str_date = list(str_date)
+        if isinstance(raw_date,(pd.Series,np.ndarray,pd.Index)):
+            raw_date = list(raw_date)
 
         # ----------  Element-wise checks and conversion  -------------------------
-        if isinstance(str_date,list):   # if input is a list
-            if len(str_date) == 0:  # empty list
+        if isinstance(raw_date,list):   # if input is a list
+            if len(raw_date) == 0:  # empty list
                 date_list = None   # return an empty object
-            elif len(str_date) == 1:  # length of string is 1
-                date_ = str(int(str_date[0]))  # simply unpack it and convert to str int
-                date_list = str2date_kernel(date_)
+            elif len(raw_date) == 1:  # length of string is 1
+                date_ = str(int(raw_date[0]))  # simply unpack it and convert to str int
+                date_list = pd.to_datetime(date_, format=date_fmt)
             else:  # length is larger than 1
-                nr = len(str_date)
+                nr = len(raw_date)
                 date_list = [[None]] * nr
-                for j in range(nr):  # loop every element in str_date
-                    j_th = str_date[j]
+                for j in range(nr):  # loop every element in raw_date
+                    j_th = raw_date[j]
                     if isinstance(j_th,(str,unicode)) and j_th.isdigit():
                         date_ = str(int(j_th))
                     elif isinstance(j_th,(str,unicode)) and not j_th.isdigit():
@@ -1864,23 +1879,23 @@ def as_date(str_date):
                     elif isinstance(j_th,(int,np.integer,np.float)):
                         date_ = str(int(j_th))  # robustness not guarenteed!
                     else:
-                        raise TypeError('Date type of the element(s) in str_date not recognized.')
-                    date_list[j] = pd.to_datetime(date_)  # do conversion element by element
-        elif type(str_date) == dt.date:  # if a datetime.date object
-            date_list = str_date  # no need for conversion
-        elif isinstance(str_date,(int,np.integer,np.float)):  # integer or float
-            date_ = str(int(str_date))
-            date_list = pd.to_datetime(date_)
-        elif isinstance(str_date,(str,unicode)):  # a single string, such as '2015-04'
-            date_ = str_date  # no conversion needed
-            date_list = pd.to_datetime(date_)
+                        raise TypeError('Date type of the element(s) in raw_date not recognized.')
+                    date_list[j] = pd.to_datetime(date_, format=date_fmt)
+        elif type(raw_date) == dt.date:  # if a datetime.date object
+            date_list = raw_date  # no need for conversion
+        elif isinstance(raw_date,(int,np.integer,np.float)):  # integer or float
+            date_ = str(int(raw_date))
+            date_list = pd.to_datetime(date_, format=date_fmt)
+        elif isinstance(raw_date,(str,unicode)):  # a single string, such as '2015-04'
+            date_ = raw_date  # no conversion needed
+            date_list = pd.to_datetime(date_, format=date_fmt)
         else:
-            raise TypeError('Input data type of str_date not recognized.')
-            print('\ntype(str_date) is: %s' % type(str_date))
+            raise TypeError('Input data type of raw_date not recognized.')
+            print('\ntype(raw_date) is: %s' % type(raw_date))
             try:
-                print('Length of str_date is: %s' % len(str_date))
+                print('Length of raw_date is: %s' % len(raw_date))
             except TypeError:
-                print('str_date has no length.')
+                print('raw_date has no length.')
 
     return date_list
 
