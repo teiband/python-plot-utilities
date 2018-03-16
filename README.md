@@ -1,5 +1,4 @@
 # Python plotting utilities: `plot_utils`
-##### Author: Jian Shi
 
 This is a Python module that contains some useful plotting utilities. Current functionalities include:
 
@@ -14,7 +13,8 @@ This is a Python module that contains some useful plotting utilities. Current fu
 + **Pie chart** to visualize proportions, more convenient than matplotlib's `pie()` function [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)]
 + **Time series plotting**, for visualizing single or multiple time series data quickly and elegantly [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 + **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
-
++ **Count missing values**: shows how many missing values are there in each column of the data set [[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
++ **Categorical feature visualization**: shows different proportion or mean values associated with each category [[doc](./docs/categorical_data.md)], [[example](./examples/Categorical_variables_example.ipynb)]
 
 
 ## Gallery
@@ -157,6 +157,38 @@ Plots data and error bounds on the same graph.
 
 ![](./examples/gallery/error_bounds.png)
 
+
+### 10. Count missing values
+
+Summarizes how many missing values are there in each column of the data set.
+
+```python
+>>> import plot_utils as pu
+>>> data = pd.read_csv('./datasets/titanic.csv')
+>>> pu.missing_value_counts(data)
+```
+
+[[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
+
+![](./examples/gallery/missing_values.png)
+
+### 11. Visualize categorical features
+
+Shows different proportion or mean values associated with each category [[doc](./docs/categorical_data.md)], [[example](./examples/Categorical_variables_example.ipynb)]
+
+
+```python
+>>> import plot_utils as pu
+>>> df = pd.read_csv('./datasets/titanic.csv')
+>>> pu.positive_rate(df['Pclass'], df['Survived'], ylabel='Ticket class', xlabel='Survival rate', figsize=(5,2));
+>>> pu.category_means(df['Pclass'], df['Fare'],  ylabel='Ticker price', title='Ticket class');
+```
+
+[[doc](./docs/categorical_data.md)], [[example](./examples/Categorical_variables_example.ipynb)]
+
+![](./examples/gallery/categorical_1.png)
+
+![](./examples/gallery/categorical_2.png)
 
 
 ## Installation
