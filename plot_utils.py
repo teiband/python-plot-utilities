@@ -21,6 +21,9 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 #%%----------------------------------------------------------------------------
+__version__ = '0.3.0'
+
+#%%----------------------------------------------------------------------------
 if sys.version_info.major == 3:  # Python 3
     unicode = str  # define 'unicode' as type name
 
@@ -45,6 +48,354 @@ def process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
         ax = ax  # plot lines on the provided axes handle
 
     return fig, ax
+
+#%%============================================================================
+def category_means(x, y, show_fig=True, fig=None, ax=None, figsize=(3,3), dpi=100,
+                   title=None, ylabel='y value', rot=0, **violinplot_kwargs):
+    '''
+    Summarize the mean values of entries of y corresponding to each distinct
+    category in x, and show a violin plot to visualize it.
+
+    The violin plot will show the distribution of y values corresponding to each
+    category in x.
+
+    Parameters
+    ----------
+    x : <array_like>
+        An vector of categorical values.
+    y : <array_like>
+        The target variable whose values correspond to the values in x. Must
+        have the same length as x.
+    show_fig : <bool>
+        Whether or not to show the figure.
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    title : <str>
+        The title of the violin plot, usually the name of vector x.
+    ylabel : <str>
+        The label for the y axis (i.e., average y values) of the violin plot.
+    rot : <float>
+        The rotation (in degrees) of the x axis labels.
+    **violinplot_kwargs :
+        Keyword arguments to be passed to plt.violinplot().
+        (https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.violinplot.html)
+        Note that this subroutine overrides the default behavior of violinplot:
+        showmeans is overriden to True and showextrema to False.
+
+    Return
+    ------
+    fig, ax :
+        Figure and axes objects
+    mean_values : <dict>
+        A dictionary whose keys are the categories in x, and their corresponding
+        values are the mean values in y.
+
+    '''
+    if not isinstance(x, (pd.Series, np.ndarray, list)):
+        raise TypeError('The input "x" must be pd.Series, np.array, or list.')
+    if not isinstance(y, (pd.Series, np.ndarray, list)):
+        raise TypeError('The input "y" must be pd.Series, np.array, or list.')
+    if len(x) != len(y):
+        raise ValueError('Lengths of x and y must be the same.')
+    if isinstance(x, np.ndarray) and len(x.shape) > 1:
+        raise TypeError('"x" must be a 1D numpy array. Please flatten it.')
+    if isinstance(y, np.ndarray) and len(y.shape) > 1:
+        raise TypeError('"y" must be a 1D numpy array. Please flatten it.')
+
+    if isinstance(x, (list, pd.Series)):
+        x = np.array(x)
+    if isinstance(y, (list, pd.Series)):
+        y = np.array(y)
+
+    if pd.isnull(x).any():
+        raise TypeError('"x" should not contain any None or NaN values.')
+
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
+
+    x_classes = list(np.unique(x))
+    y_values = []
+    mean_values = {}
+    for cat in x_classes:
+        cat_index = np.where(x == cat)[0]
+        y_values.append(list(y[cat_index]))
+        mean_values[cat] = np.nanmean(y[cat_index])
+
+    if 'showextrema' not in violinplot_kwargs:
+        violinplot_kwargs['showextrema'] = False  # override default behavior of violinplot
+    if 'showmeans' not in violinplot_kwargs:
+        violinplot_kwargs['showmeans'] = True
+
+    ax.violinplot(y_values, **violinplot_kwargs)
+
+    ax.grid(ls=':')
+    ax.set_axisbelow(True)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+
+    ax.set_xticks(range(1,len(x_classes)+1))
+
+    ha = 'center' if 0 <= rot < 30 else 'right'
+    ax.set_xticklabels([str(_) for _ in x_classes], rotation=rot, ha=ha)
+
+    return fig, ax, mean_values
+
+#%%============================================================================
+def positive_rate(x, y, show_fig=True, fig=None, ax=None, figsize='auto', dpi=100,
+                  barh=True, top_n=-1, xlabel='Positive rate', ylabel='Categories'):
+    '''
+    Calculate the proportions of the different categories in vector x that fall
+    into class "1" (or "True") in vector y, and optionally show a figure.
+
+    Parameters
+    ----------
+    x : <array_like>
+        An vector of categorical values.
+    y : <array_like>
+        The target variable of two classes. Each value in y correspond to a
+        value in x (at the same index). Must have the same length as x.
+        The second unique value in y will be considered as the positive class
+        (for example, "True" in [True, False, True], or "3" in [1,1,3,3,1]).
+    show_fig : <bool>
+        Whether or not to show the figure.
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars, or 'auto'
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter). If 'auto', the figure size will be
+        automatically determined from the number of distinct categories in x.
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    barh : <bool>
+        Whether or not to show the bars as horizontal (otherwise, vertical).
+    top_n : <int>
+        Only shows top_n categories (ranked by their positive rate) in the
+        figure. Useful when there are too many categories.
+
+    Returns
+    -------
+    fig, ax :
+        Figure and axes objects
+    pos_rate : <pd.Series>
+        The positive rate of each categories in x.
+    '''
+    import collections
+
+    if not isinstance(x, (pd.Series, np.ndarray, list)):
+        raise TypeError('The input "x" must be pd.Series, np.array, or list.')
+    if not isinstance(y, (pd.Series, np.ndarray, list)):
+        raise TypeError('The input "y" must be pd.Series, np.array, or list.')
+    if len(x) != len(y):
+        raise ValueError('Lengths of x and y must be the same.')
+    if len(np.unique(y)) != 2:
+        raise ValueError('y must contain only 2 distinct values.')
+    if isinstance(x, np.ndarray) and len(x.shape) > 1:
+        raise TypeError('"x" must be a 1D numpy array. Please flatten it.')
+    if isinstance(y, np.ndarray) and len(y.shape) > 1:
+        raise TypeError('"y" must be a 1D numpy array. Please flatten it.')
+
+    if isinstance(x, (list, pd.Series)):
+        x = np.array(x)
+    if isinstance(y, (list, pd.Series)):
+        y = np.array(y)
+
+    if pd.isnull(x).any():
+        raise TypeError('"x" should not contain any None or NaN values.')
+    if pd.isnull(y).any():
+        raise TypeError('"y" should not contain any None or NaN values.')
+
+    nr_classes = len(np.unique(x))
+    y_classes = list(np.unique(y))
+    y_pos_index = np.where(y == y_classes[1])[0]
+
+    count_all_classes = collections.Counter(x)
+    count_pos_class = collections.Counter(x[y_pos_index])
+
+    pos_rate = pd.Series(count_pos_class)/pd.Series(count_all_classes)
+    pos_rate = pos_rate.fillna(0.0)  # keys not in count_pos_class show up as NaN
+
+    if show_fig:
+        if figsize == 'auto':
+            if barh:
+                figsize = (5, nr_classes * 0.26)  # 0.26 inch = height for each category
+            else:
+                figsize = (nr_classes * 0.26, 5)
+
+        fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
+        fig, ax = plot_ranking(pos_rate, fig=fig, ax=ax, top_n=top_n, barh=barh,
+                               score_ax_label=xlabel, name_ax_label=ylabel)
+    else:
+        fig, ax = None, None
+
+    return fig, ax, pos_rate
+
+#%%============================================================================
+def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
+                 barh=True, top_n=-1, score_ax_label=None, name_ax_label=None,
+                 grid_on=True):
+    '''
+    Plots rankings as a bar plot (in descending order), such as:
+
+            ^
+            |
+    dolphin |||||||||||||||||||||||||||||||
+            |
+    cat     |||||||||||||||||||||||||
+            |
+    rabbit  ||||||||||||||||
+            |
+    dog     |||||||||||||
+            |
+           -|------------------------------------>  Age of pet
+            0  1  2  3  4  5  6  7  8  9  10  11
+
+    Parameters
+    ----------
+    ranking : <dict> or <pd.Series>
+        The ranking information, for example:
+            {'rabbit': 5, 'cat': 8, 'dog': 4, 'dolphin': 10}
+        It does not need to be sorted externally.
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the graph is plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars, or 'auto'
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter). If 'auto', the figure size will be
+        automatically determined from the number of distinct categories in x.
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    barh : <bool>
+        Whether or not to show the bars as horizontal (otherwise, vertical).
+    top_n : <int>
+        Only shows top_n categories (ranked by their positive rate) in the
+        figure. Useful when there are too many categories.
+    score_ax_label : <str>
+        Label of the score axis (e.g., 'Age of pet').
+    name_ax_label : <str>
+        Label of the category name axis.
+    grid_on : <bool>
+        Whether or not to show grids.
+
+    Returns
+    -------
+    fig, ax :
+        Figure and axes objects
+    '''
+
+    if not isinstance(ranking, (dict, pd.Series)):
+        raise TypeError('"ranking" must be a Python dict or pandas Series.')
+
+    if top_n == -1:
+        nr_classes = len(ranking)
+    elif (top_n >= 1) and (isinstance(top_n,(int,np.integer))):
+        nr_classes = top_n
+    else:
+        raise ValueError('top_n must be -1 or positive integers.')
+
+    if figsize == 'auto':
+        if barh:
+            figsize = (5, nr_classes * 0.26)  # 0.26 inch = height for each category
+        else:
+            figsize = (nr_classes * 0.26, 5)
+
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
+
+    if isinstance(ranking,dict):
+        ranking = pd.Series(ranking)
+
+    if barh == True:
+        kind = 'barh'
+        xlabel, ylabel = score_ax_label, name_ax_label
+    else:
+        kind = 'bar'
+        xlabel, ylabel = name_ax_label, score_ax_label
+
+    if top_n == -1:  # plot all categories
+        ax = ranking.sort_values(ascending=barh).plot(kind=kind,ax=ax)
+    elif (top_n >= 1) and (isinstance(top_n,(int,np.integer))):
+        ax = ranking.sort_values(ascending=barh).iloc[-top_n:].plot(kind=kind,ax=ax)
+    else:
+        raise ValueError('top_n must be -1 or positive integers.')
+    if xlabel: ax.set_xlabel(xlabel)
+    if ylabel: ax.set_ylabel(ylabel)
+    if grid_on == True:
+        ax.grid(ls=':')
+        ax.set_axisbelow(True)
+
+    return fig, ax
+
+#%%============================================================================
+def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=90):
+    '''
+    Visualize the number of missing values in each column of X.
+
+    Parameters
+    ----------
+    X : <pd.DataFrame> or <pd.Series>
+        Input data set whose every row is an observation and every column is
+        a variable.
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the graph is plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of scalars
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter)
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    rot : <float>
+        Rotation (in degrees) of the x axis labels
+
+    Returns
+    -------
+    fig, ax :
+        Figure and axes objects
+    null_counts : <pd.Series>
+        A pandas Series whose every element is the number of missing values
+        corresponding to each column of X.
+    '''
+
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
+
+    if not isinstance(X, (pd.DataFrame, pd.Series)):
+        raise TypeError('X should be pandas DataFrame or Series.')
+
+    if isinstance(X, pd.Series):
+        X = pd.DataFrame(X)
+
+    ncol = X.shape[1]
+    null_counts = X.isnull().sum()  # a pd Series containing number of non-null numbers
+
+    ax.bar(range(ncol), null_counts)
+    ax.set_xticks(range(ncol))
+
+    ha = 'center' if 0 <= rot < 30 else 'right'
+    ax.set_xticklabels(null_counts.index, rotation=rot, ha=ha)
+    plt.ylabel('Number of missing values')
+    plt.grid(ls=':')
+    ax.set_axisbelow(True)
+
+    alpha = null_counts.max()*0.02  # vertical offset for the texts
+
+    for j, col in enumerate(null_counts.index):
+        if null_counts[col] != 0:  # show count of missing values on top of bars
+            plt.text(j, null_counts[col] + alpha, str(null_counts[col]),
+                     ha='center', va='bottom', rotation=90)
+
+    return fig, ax, null_counts
 
 #%%============================================================================
 def piechart(target_array, class_names=None, fig=None, ax=None,
@@ -97,7 +448,7 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
 
     Returns
     -------
-    fig, ax:
+    fig, ax :
         Figure and axes objects
     '''
 
