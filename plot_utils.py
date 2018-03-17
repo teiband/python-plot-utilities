@@ -138,7 +138,8 @@ def category_means(x, y, show_fig=True, fig=None, ax=None, figsize=(3,3), dpi=10
     ax.grid(ls=':')
     ax.set_axisbelow(True)
     ax.set_ylabel(ylabel)
-    ax.set_title(title)
+    if title is not None:
+        ax.set_title(title)
 
     ax.set_xticks(range(1,len(x_classes)+1))
 
