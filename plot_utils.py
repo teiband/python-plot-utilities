@@ -6,7 +6,7 @@ For user guide, check: https://github.com/jsh9/python-plot-utilities
 
 Created on Fri Apr 28 15:37:26 2017
 
-Copyright (c) 2017, Jian Shi
+Copyright (c) 2017-2018, Jian Shi
 License: GPL v3
 """
 
@@ -15,13 +15,14 @@ import sys
 import numpy as np
 import pandas as pd
 import datetime as dt
+from scipy import stats
 import matplotlib as mpl
 import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 #%%----------------------------------------------------------------------------
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 #%%----------------------------------------------------------------------------
 if sys.version_info.major == 3:  # Python 3
@@ -483,7 +484,7 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
     return fig, ax
 
 #%%============================================================================
-def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=90):
+def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=45):
     '''
     Visualize the number of missing values in each column of X.
 
@@ -739,13 +740,11 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
             N = X.shape[0]  # number of separate distribution to be compared
             X = list(X)  # then turn X into a list of numpy arrays (no longer a 2D numpy array)
         else:  # 3D numpy array or above
-            print('*****  If X is a numpy array, it should be a 1D or 2D array.  *****')
-            sys.exit()
+            raise TypeError('If X is a numpy array, it should be a 1D or 2D array.')
     elif len(list(X)) > 1:  # adding list() to X to make sure len() does not throw an error
         N = len(X)  # number of separate distribution to be compared
     else:  # X is a scalar
-        print('*****  X should either be a list or a 2D numpy array.  *****')
-        sys.exit()
+        raise TypeError('X should either be a list or a 2D numpy array.')
 
     # -----------  NaN checking for X  ----------------
     for j in range(N):
@@ -1290,7 +1289,7 @@ def choropleth_map_state(data_per_state, figsize=(10,7),
         elif 'State' in data_per_state.columns:
             data_per_state = data_per_state.set_index('State')
         else:
-            sys.exit('------  Input data format not recognized!   ----------')
+            raise ValueError('Input data format not recognized!')
         data_per_state = data_per_state.iloc[:,0].to_dict()
 
     #  if dict keys are state abbreviations such as "AK", "CA", etc.
@@ -1955,9 +1954,8 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
     else:
         ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label)
     ax.set_label(label)  # set label for legends using argument 'label'
-    ax.set_xlabel(xlabel)
-    if ylabel is not None:
-        ax.set_ylabel(ylabel)
+    if xlabel: ax.set_xlabel(xlabel)
+    if ylabel: ax.set_ylabel(ylabel)
     if month_grid_width == None:  # width of each month in inches
         month_grid_width = float(ax_size[0])/calc_month_interval(ts.index)
     ax = format_xlabel(ax,month_grid_width)
@@ -2128,9 +2126,8 @@ def fill_timeseries(time_series, upper_bound, lower_bound, date_fmt=None,
                     linewidth=0.01,alpha=0.5,interpolate=True)
     ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,label=label)
     ax.set_label(label)  # set label for legends using argument 'label'
-    ax.set_xlabel(xlabel)
-    if ylabel is not None:
-        ax.set_ylabel(ylabel)
+    if xlabel: ax.set_xlabel(xlabel)
+    if ylabel: ax.set_ylabel(ylabel)
     month_grid_width = float(figsize[0])/calc_month_interval(ts.index) # width of each month in inches
     ax = format_xlabel(ax,month_grid_width)
 
@@ -2673,8 +2670,6 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
         Figure and axes objects
     '''
 
-    from scipy import stats
-
     fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if not isinstance(two_columns,list):
@@ -2689,7 +2684,7 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
         x = X.iloc[:,two_columns[0]]
         xlabel = X.columns[two_columns[0]]
     else:
-        sys.exit('*****  Error: two_columns must be str list or int list!  *****')
+        raise TypeError('"two_columns" must be str list or int list.')
 
     if isinstance(two_columns[1],str):
         y = X[two_columns[1]]
@@ -2698,7 +2693,7 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
         y = X.iloc[:,two_columns[1]]
         ylabel = X.columns[two_columns[1]]
     else:
-        sys.exit('*****  Error: two_columns must be str list or int list!  *****')
+        raise TypeError('"two_columns" must be str list or int list.')
 
     x = np.array(x)  # convert to numpy array so that x[ind] runs correctly
     y = np.array(y)
@@ -2710,8 +2705,8 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
     _, _, r_value, _, _ = stats.linregress(x[not_nan_index],y[not_nan_index])
 
     ax.scatter(x,y,alpha=alpha,color=color)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+    if xlabel: ax.set_xlabel(xlabel)
+    if ylabel: ax.set_ylabel(ylabel)
     ax.set_title('$r$ = %.2f' % r_value)
     if logx:
         ax.set_xscale('log')
