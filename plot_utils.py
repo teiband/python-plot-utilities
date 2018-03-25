@@ -2719,9 +2719,10 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
 #%%============================================================================
 def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                  fig=None, ax=None, figsize=None, dpi=100, show_bins=True,
-                 raw_data_label='raw', mean_data_label='average', xlabel='x',
-                 ylabel='y', logx=False, logy=False, grid_on=True,
-                 error_bars_on=False, error_shades_on=True, legend_on=True):
+                 raw_data_label='raw', mean_data_label='average', xlabel=None,
+                 ylabel=None, logx=False, logy=False, grid_on=True,
+                 error_bars_on=False, error_shades_on=True, legend_on=True,
+                 subsamp_thres=None):
     '''
     Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
 
@@ -2768,7 +2769,9 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         numpy arrays.
     bins : <int> or <array_like>
         Number of bins (an integer), or an array representing the actual bin
-        edges. Note that the binning is done according x values.
+        edges. If bin edges, edges are inclusive on the lower bound, e.g.,
+        a value 2 shall fall into the bin [2,3), but not the bin [1,2).
+        Note that the binning is done according x values.
     distribution : <str>
         Specifies which distribution the y values within a bin follow. Use
         'lognormal' if you want to assert all positive y values. Only supports
@@ -2792,7 +2795,10 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         data, respectively, such as "raw data" and "averaged data". Useless
         if show_legend is False.
     xlabel, ylabel : <str>
-        Labels for x and y axes of the plot
+        Label for the x axis of the plot. If None and xdata is a panda Series,
+        use xdata's 'name' attribute as xlabel.
+    ylabel : <str>
+        Similar to xlabel.
     logx, logy : <bool>
         Whether or not to adjust the scales of x and/or y axes to log
     grid_on : <bool>
@@ -2815,8 +2821,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         Standard deviation of y for each data group (i.e., "bin")
     '''
 
-    from scipy import stats
-
+    #------------Pre-process "bins"--------------------------------------------
     if isinstance(bins,(int,np.integer)):  # if user specifies number of bins
         if bins <= 0:
             raise ValueError('"bins" must be a positive integer.')
@@ -2833,33 +2838,62 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     else:
         raise TypeError('"bins" must be either an integer or an array.')
 
+    #-----------Pre-process xlabel and ylabel----------------------------------
+    if not xlabel and isinstance(xdata, pd.Series):  # xdata has 'name' attr
+        xlabel = xdata.name
+    if not ylabel and isinstance(ydata, pd.Series):  # ydata has 'name' attr
+        ylabel = ydata.name
+
+    #-----------Group data into bins-------------------------------------------
     inds = np.digitize(xdata, bins)
     x_mean = np.zeros(nr-1)
     y_mean = np.zeros(nr-1)
     y_std  = np.zeros(nr-1)
-    for j in range(nr-1):
-        xdata_in_bin = xdata[inds == j+1]
-        ydata_in_bin = ydata[inds == j+1]
-        if len(xdata_in_bin) == 0:  # no point falls into current bin
+    x_subs = []  # subsampled x data (for faster scatter plots)
+    y_subs = []
+    for j in range(nr-1):  # loop over every bin
+        x_in_bin = xdata[inds == j+1]
+        y_in_bin = ydata[inds == j+1]
+
+        #------------Calculate mean and std------------------------------------
+        if len(x_in_bin) == 0:  # no point falls into current bin
             x_mean[j] = np.nan  # this is to prevent numpy from throwing...
             y_mean[j] = np.nan  #...confusing warning messages
             y_std[j]  = np.nan
         else:
-            x_mean[j] = np.nanmean(xdata_in_bin)
+            x_mean[j] = np.nanmean(x_in_bin)
             if distribution == 'normal':
-                y_mean[j] = np.nanmean(ydata_in_bin)
-                y_std[j] = np.nanstd(ydata_in_bin)
+                y_mean[j] = np.nanmean(y_in_bin)
+                y_std[j] = np.nanstd(y_in_bin)
             elif distribution in ['log-normal','lognormal','logn']:
-                s, loc, scale = stats.lognorm.fit(ydata_in_bin, floc=0)
+                s, loc, scale = stats.lognorm.fit(y_in_bin, floc=0)
                 estimated_mu = np.log(scale)
                 estimated_sigma = s
                 y_mean[j] = np.exp(estimated_mu + estimated_sigma**2.0/2.0)
                 y_std[j]  = np.sqrt(np.exp(2.*estimated_mu + estimated_sigma**2.) \
                              * (np.exp(estimated_sigma**2.) - 1) )
+            else:
+                raise ValueError('Invalid "distribution" value.')
 
+        #------------Pick subsets of data, for faster plotting-----------------
+        #------------Note that this does not affect mean and std---------------
+        if subsamp_thres is not None and show_fig:
+            if not isinstance(subsamp_thres, (int, np.integer)) or subsamp_thres <= 0:
+                raise TypeError('subsamp_thres must be a positive integer or None.')
+            if len(x_in_bin) > subsamp_thres:
+                x_subs.extend(np.random.choice(x_in_bin,subsamp_thres,replace=False))
+                y_subs.extend(np.random.choice(y_in_bin,subsamp_thres,replace=False))
+            else:
+                x_subs.extend(x_in_bin)
+                y_subs.extend(y_in_bin)
+
+    #-------------Plot data on figure------------------------------------------
     if show_fig:
         fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
+        if subsamp_thres:
+            xdata = x_subs
+            ydata = y_subs
         ax.scatter(xdata,ydata,c='gray',alpha=0.3,label=raw_data_label,zorder=1)
         if error_shades_on:
             if error_bars_on:
@@ -2877,8 +2911,8 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                 ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
 
         ax.set_axisbelow(True)
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        if xlabel: ax.set_xlabel(xlabel)
+        if ylabel: ax.set_ylabel(ylabel)
         if logx:
             ax.set_xscale('log')
         if logy:
@@ -2898,5 +2932,4 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         return fig, ax, x_mean, y_mean, y_std
     else:
         return None, None, x_mean, y_mean, y_std
-
 
