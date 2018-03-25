@@ -89,4 +89,51 @@ into class "1" (or "True") in vector y, and optionally show a figure.
     pos_rate : <pd.Series>
         The positive rate of each categories in x.
 
+-----------------------------------------
+
+# plot_utils.contingency_table
+
+**plot_utils.contingency_table**(*array_horizontal, array_vertical, fig=None, ax=None, figsize='auto', dpi=100, color_map='auto', relative_color=True, show_stats=True*):
+
+Calculate and visualize the contingency table from two categorical arrays.
+Also perform a Pearson's chi-squared test to evaluate whether the two arrays
+are independent.
+
+#### [Parameters]
+    array_horizontal : <array_like>
+        Array to show as the horizontal margin in the contigency table (i.e.,
+        its categories are the column headers)
+    array_vertical : <array_like>
+        Array to show as the vertical margin in the contigency table (i.e.,
+        its categories are the row names)
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars, or 'auto'
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter). If 'auto', the figure size will be
+        automatically determined from the number of distinct categories in x.
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    color_map : <str> or <matplotlib.colors.Colormap>
+        The color scheme specifications. Valid names are listed in
+        https://matplotlib.org/users/colormaps.html.
+        If relative_color is True, use diverging color maps (e.g., PiYG, PRGn,
+        BrBG, PuOr, RdGy, RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr,
+        seismic). Otherwise, use sequential color maps (e.g., viridis, jet).
+    relative_color : <bool>
+        Whether to show the contingency table as the original "observed
+        frequency", or the relative difference (i.e., (obs. - exp.)/exp. ).
+    show_stats : <bool>
+        Whether or not to show the statistical test results (chi2 statistics
+        and p-value) on the figure.
+
+
+#### [Returns]
+    fig, ax :
+        Figure and axes objects
+    chi2_results : <tuple>
+        A tuple in the order of (chi2, p_value, degree_of_freedom)
 
