@@ -201,9 +201,10 @@ Just download this repository, and you can put `plot_utils.py` anywhere within y
 
 ## Dependencies
 
-+ Python 2.7 or 3.5 or 3.6
-+ matplotlib 1.5.0+, or 2.0.0+ (Version 2.1.0 is strongly recommended.)
++ Python 2.7 or 3.5+
++ matplotlib 1.5.0+, or 2.0.0+ (Version 2.1.0+ is strongly recommended.)
 + numpy: 1.11.0+
++ scipy: 0.19.0+
 + pandas: 0.20.0+
 + matplotlib/basemap: 1.0.7 (only if you want to plot the two choropleth maps)
 
