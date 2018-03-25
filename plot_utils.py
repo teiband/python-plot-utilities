@@ -235,10 +235,117 @@ def positive_rate(x, y, show_fig=True, fig=None, ax=None, figsize='auto', dpi=10
         fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
         fig, ax = plot_ranking(pos_rate, fig=fig, ax=ax, top_n=top_n, barh=barh,
                                score_ax_label=xlabel, name_ax_label=ylabel)
-    else:
-        fig, ax = None, None
+#%%============================================================================
+def contingency_table(array_horizontal, array_vertical,
+                      fig=None, ax=None, figsize='auto', dpi=100,
+                      color_map='auto', relative_color=True, show_stats=True):
 
-    return fig, ax, pos_rate
+    '''
+    Calculate and visualize the contingency table from two categorical arrays.
+    Also perform a Pearson's chi-squared test to evaluate whether the two arrays
+    are independent.
+
+    Parameters
+    ----------
+    array_horizontal : <array_like>
+        Array to show as the horizontal margin in the contigency table (i.e.,
+        its categories are the column headers)
+    array_vertical : <array_like>
+        Array to show as the vertical margin in the contigency table (i.e.,
+        its categories are the row names)
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the histograms are plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars, or 'auto'
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter). If 'auto', the figure size will be
+        automatically determined from the number of distinct categories in x.
+    dpi : scalar
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    color_map : <str> or <matplotlib.colors.Colormap>
+        The color scheme specifications. Valid names are listed in
+        https://matplotlib.org/users/colormaps.html.
+        If relative_color is True, use diverging color maps (e.g., PiYG, PRGn,
+        BrBG, PuOr, RdGy, RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr,
+        seismic). Otherwise, use sequential color maps (e.g., viridis, jet).
+    relative_color : <bool>
+        Whether to show the contingency table as the original "observed
+        frequency", or the relative difference (i.e., (obs. - exp.)/exp. ).
+    show_stats : <bool>
+        Whether or not to show the statistical test results (chi2 statistics
+        and p-value) on the figure.
+
+    Returns
+    -------
+    fig, ax :
+        Figure and axes objects
+    chi2_results : <tuple>
+        A tuple in the order of (chi2, p_value, degree_of_freedom)
+    '''
+
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    x = array_horizontal
+    y = array_vertical
+
+    if not isinstance(x, (pd.Series, np.ndarray, list)):
+        raise TypeError('The input "x" must be pd.Series, np.array, or list.')
+    if not isinstance(y, (pd.Series, np.ndarray, list)):
+        raise TypeError('The input "y" must be pd.Series, np.array, or list.')
+    if len(x) != len(y):
+        raise ValueError('Lengths of x and y must be the same.')
+    if isinstance(x, np.ndarray) and len(x.shape) > 1:
+        raise TypeError('"x" must be a 1D numpy array. Please flatten it.')
+    if isinstance(y, np.ndarray) and len(y.shape) > 1:
+        raise TypeError('"y" must be a 1D numpy array. Please flatten it.')
+
+    if isinstance(x, (list, np.ndarray)):
+        x = pd.Series(x)
+    if isinstance(y, (list, np.ndarray)):
+        y = pd.Series(y)
+
+    observed = pd.crosstab(y, x)
+    chi2, p_val, dof, expected = stats.chi2_contingency(observed)
+    expected = pd.DataFrame(expected, index=observed.index, columns=observed.columns)
+    diff = (observed - expected) / expected
+
+    if figsize == 'auto':
+        figsize = observed.shape
+
+    fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
+
+    if relative_color:
+        table = diff
+    else:
+        table = observed
+
+    if color_map == 'auto':
+        color_map = 'RdBu_r' if relative_color else 'viridis'
+
+    im = ax.matshow(table, cmap=color_map)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = fig.colorbar(im, cax=cax)  # 'cb' is a Colorbar instance
+    if relative_color:
+        cb.set_label('(O-E)/E')
+    else:
+        cb.set_label('observed freq.')
+
+    ax.set_xticks(range(table.shape[1]))
+    ax.set_yticks(range(table.shape[0]))
+    ax.set_xticklabels(table.columns)
+    ax.set_yticklabels(table.index)
+
+    if show_stats:
+        ax.annotate('chi^2=%.2f, p_val=%.2g' % (chi2, p_val), ha='center',
+                    xy=(0.5, -0.09), xycoords='axes fraction', va='top')
+
+    tables = (observed, expected, diff)
+    chi2_results = (chi2, p_val, dof)
+
+    return fig, ax, tables, chi2_results
 
 #%%============================================================================
 def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
