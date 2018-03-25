@@ -2525,9 +2525,9 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
     return fig, ax
 
 #%%============================================================================
-def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None,
-                     figsize=(6,6), dpi=100, variable_names=None,
-                     scatter_plots=False, thres=0.7, ncols_scatter_plots=3):
+def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6),
+                     dpi=100, variable_names=None, rot=45, scatter_plots=False,
+                     thres=0.7, ncols_scatter_plots=3):
     '''
     Plot correlation matrix of a dataset X, whose columns are different
     variables (or a sample of a certain random variable).
@@ -2537,9 +2537,9 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None,
     X : <np.ndarray> or <pd.DataFrame>
         The data set.
     color_map : <str> or <matplotlib.colors.Colormap>
-        The color scheme to show high, low, negative high correlations. Legit
+        The color scheme to show high, low, negative high correlations. Valid
         names are listed in https://matplotlib.org/users/colormaps.html. Using
-        diverging color maps are recommended: PiYG, PRGn, BrBG, PuOr, RdGy,
+        diverging color maps is recommended: PiYG, PRGn, BrBG, PuOr, RdGy,
         RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr, seismic
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
@@ -2557,6 +2557,8 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None,
         X is a numpy array, and this argument is not provided, then column
         indices are used. The length of variable_names should match the number
         of columns in X; if not, a warning will be thrown (but not error).
+    rot : <float> or 'vertical' or 'horizontal'
+        The rotation of the x axis labels.
     scatter_plots : bool
         Whether or not to show the variable pairs with high correlation.
         Variable pairs whose absolute value of correlation is higher than thres
@@ -2575,30 +2577,35 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None,
         Figure and axes objects
     '''
 
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
     fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if isinstance(X,np.ndarray):
-        X = pd.DataFrame(X,copy=True)
+        X = pd.DataFrame(X, copy=True)
 
     correlations = X.corr()
     variable_list = list(correlations.columns)
     nr = len(variable_list)
 
-    cax = ax.matshow(correlations, vmin=-1, vmax=1, cmap=color_map)
-    fig.colorbar(cax)
+    im = ax.matshow(correlations, vmin=-1, vmax=1, cmap=color_map)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = fig.colorbar(im, cax=cax)  # 'cb' is a Colorbar instance
+    cb.set_label("Pearson's correlation")
+
     ticks = np.arange(0,correlations.shape[1],1)
     ax.set_xticks(ticks)
     ax.set_yticks(ticks)
-    if variable_names is None:# and isinstance(X,pd.DataFrame):
+    if variable_names is None:
         variable_names = variable_list
 
-    if variable_names is not None:
-        if len(variable_names) != len(variable_list):
-            print('*****  Warning: feature_names may not be valid!  *****')
+    if len(variable_names) != len(variable_list):
+        print('*****  Warning: feature_names may not be valid!  *****')
 
-        ax.set_xticklabels(variable_names)
-        ax.set_yticklabels(variable_names)
-        plt.xticks(rotation=90)
+    ha = 'center' if 0 <= rot < 30 else 'left'
+    ax.set_xticklabels(variable_names, rotation=rot, ha=ha)
+    ax.set_yticklabels(variable_names)
 
     if scatter_plots == True:
         iu = np.triu_indices(nr)  # indices of upper-triangle elements
