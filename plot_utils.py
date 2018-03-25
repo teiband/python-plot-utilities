@@ -2812,6 +2812,12 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         argument overrides error_bars_on
     legend_on : <bool>
         Whether or not to show the legend
+    subsamp_thres : <int>
+        A positive integer that defines the number of data points in each bin
+        to show in the scatter plot. The smaller this number, the faster the
+        plotting process. If larger than the number of data points in a bin,
+        then all data points from that bin are plotted. If None, then all data
+        points from all bins are plotted.
 
     Returns
     -------
