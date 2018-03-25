@@ -1,13 +1,13 @@
 # plot_utils.category_means
 
-**plot_utils.category_means**(x, y, show_fig=True, fig=None, ax=None, figsize=(3,3),
-                  dpi=100, title=None, ylabel='y value', rot=0, **violinplot_kwargs):
+**plot_utils.category_means**(x, y, show_fig=True, fig=None, ax=None, figsize=(3,3), dpi=100, title=None, xlabel=None, ylabel=None, rot=0, show_stats=True, **violinplot_kwargs):
 
 Summarize the mean values of entries of y corresponding to each distinct
-category in x, and show a violin plot to visualize it.
+category in x, and show a violin plot to visualize it. The violin plot will
+show the distribution of y values corresponding to each category in x.
 
-The violin plot will show the distribution of y values corresponding to each
-category in x.
+Also, a one-way ANOVA test (H0: different categories in x yield same
+average y values) is performed, and F statistics and p-value are returned.
 
 #### [Parameters]
     x : <array_like>
@@ -29,10 +29,17 @@ category in x.
         this parameter)
     title : <str>
         The title of the violin plot, usually the name of vector x.
+    xlabel : <str>
+        The label for the x axis (i.e., categories) of the violin plot. If None
+        and x is a pandas Series, use x's 'name' attribute as xlabel.
     ylabel : <str>
         The label for the y axis (i.e., average y values) of the violin plot.
+        If None and y is a pandas Series, use y's 'name' attribute as ylabel.
     rot : <float>
         The rotation (in degrees) of the x axis labels.
+    show_stats : <bool>
+        Whether or not to show the statistical test results (F statistics
+        and p-value) on the figure.
     **violinplot_kwargs :
         Keyword arguments to be passed to plt.violinplot().
         (https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.violinplot.html)
@@ -45,16 +52,23 @@ category in x.
     mean_values : <dict>
         A dictionary whose keys are the categories in x, and their corresponding
         values are the mean values in y.
+    F_stat : <float>
+        The computed F-value of the one-way ANOVA test.
+    p_value : <float>
+        The associated p-value from the F-distribution.
 
 -----------------------------------------
 
 # plot_utils.positive_rate
 
-**plot_utils.positive_rate**(x, y, show_fig=True, fig=None, ax=None, figsize='auto', dpi=100,
-                  barh=True, top_n=-1, xlabel='Positive rate', ylabel='Categories'):
+**plot_utils.positive_rate**(*x, y, show_fig=True, fig=None, ax=None, figsize='auto', dpi=100, barh=True, top_n=-1, xlabel='Positive rate', ylabel='Categories', show_stats=True*):
 
 Calculate the proportions of the different categories in vector x that fall
 into class "1" (or "True") in vector y, and optionally show a figure.
+
+Also, a Pearson's chi-squared test is performed to test the independence
+between x and y. The chi-squared statistics, p-value, and degree-of-freedom
+are returned.
 
 #### [Parameters]
     x : <array_like>
@@ -82,6 +96,11 @@ into class "1" (or "True") in vector y, and optionally show a figure.
     top_n : <int>
         Only shows top_n categories (ranked by their positive rate) in the
         figure. Useful when there are too many categories.
+    show_stats : <bool>
+        Whether or not to show the statistical test results (chi2 statistics
+        and p-value) on the figure.
+    chi2_results : <tuple>
+        A tuple in the order of (chi2, p_value, degree_of_freedom)
         
 #### [Returns]
     fig, ax :

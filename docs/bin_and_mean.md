@@ -1,6 +1,6 @@
 # plot_utils.bin_and_mean
 
-**plot_utils.bin_and_mean**(*xdata, ydata, bins=10, distribution='normal', show_fig=True, fig=None, ax=None, figsize=(4,4), dpi=100, show_bins=True, raw_data_label='raw', mean_data_label='average', xlabel='x', ylabel='y', logx=False, logy=False, grid_on=True, show_legend=True*):
+**plot_utils.bin_and_mean**(*xdata, ydata, bins=10, distribution='normal', show_fig=True, fig=None, ax=None, figsize=None, dpi=100, show_bins=True, raw_data_label='raw', mean_data_label='average', xlabel=None, ylabel=None, logx=False, logy=False, grid_on=True, error_bars_on=False, error_shades_on=True, legend_on=True, subsamp_thres=None*):
 
 Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
 
@@ -20,7 +20,9 @@ The theory that enables this method is the assumption that the data points with 
         numpy arrays.
     bins : <int> or <array_like>
         Number of bins (an integer), or an array representing the actual bin
-        edges. Note that the binning is done according x values.
+        edges. If bin edges, edges are inclusive on the lower bound, e.g.,
+        a value 2 shall fall into the bin [2,3), but not the bin [1,2).
+        Note that the binning is done according x values.
     distribution : <str>
         Specifies which distribution the y values within a bin follow. Use
         'lognormal' if you want to assert all positive y values. Only supports
@@ -44,7 +46,10 @@ The theory that enables this method is the assumption that the data points with 
         data, respectively, such as "raw data" and "averaged data". Useless
         if show_legend is False.
     xlabel, ylabel : <str>
-        Labels for x and y axes of the plot
+        Label for the x axis of the plot. If None and xdata is a panda Series,
+        use xdata's 'name' attribute as xlabel.
+    ylabel : <str>
+        Similar to xlabel.
     logx, logy : <bool>
         Whether or not to adjust the scales of x and/or y axes to log
     grid_on : <bool>
