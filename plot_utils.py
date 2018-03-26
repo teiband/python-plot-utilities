@@ -2721,9 +2721,9 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
 #%%============================================================================
 def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                  fig=None, ax=None, figsize=None, dpi=100, show_bins=True,
-                 raw_data_label='raw', mean_data_label='average', xlabel=None,
-                 ylabel=None, logx=False, logy=False, grid_on=True,
-                 error_bars_on=False, error_shades_on=True, legend_on=True,
+                 raw_data_label='raw data', mean_data_label='average',
+                 xlabel=None, ylabel=None, logx=False, logy=False, grid_on=True,
+                 error_bounds=True, err_bound_type='shade', legend_on=True,
                  subsamp_thres=None):
     '''
     Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
@@ -2802,14 +2802,14 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     ylabel : <str>
         Similar to xlabel.
     logx, logy : <bool>
-        Whether or not to adjust the scales of x and/or y axes to log
+        Whether or not to adjust the scales of x and/or y axes to logarithmic
     grid_on : <bool>
         Whether or not to show the grids
-    error_bars_on : <bool>
-        Whether or not to show error bars (of y values) of each bin
-    error_shades_on : <bool>
-        Whether or not to show error shades (of y values) of each bin; this
-        argument overrides error_bars_on
+    error_bounds : <bool>
+        Whether or not to show error bounds of each bin
+    err_bound_type : ['shade', 'bar']
+        Type of error bound: shaded area or error bars. It has no effects if
+        error_bounds is set to False.
     legend_on : <bool>
         Whether or not to show the legend
     subsamp_thres : <int>
@@ -2899,24 +2899,22 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     if show_fig:
         fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
-        if subsamp_thres:
-            xdata = x_subs
-            ydata = y_subs
+        if subsamp_thres: xdata, ydata = x_subs, y_subs
         ax.scatter(xdata,ydata,c='gray',alpha=0.3,label=raw_data_label,zorder=1)
-        if error_shades_on:
-            if error_bars_on:
-                print('***** WARNING: Error shades overriding error bars. *****')
-            ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
-            ax.fill_between(x_mean,y_mean+y_std,y_mean-y_std,label='$\pm$ std',
+        if error_bounds:
+            if err_bound_type == 'shade':
+                ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
+                ax.fill_between(x_mean,y_mean+y_std,y_mean-y_std,label='$\pm$ std',
                                 facecolor='orange',alpha=0.35,zorder=2.5)
-        else:  # error_shades_on False
-            if error_bars_on:
-                mean_data_label = 'avg $\pm$ std'
+            elif err_bound_type == 'bar':
+                mean_data_label += '$\pm$ std'
                 ax.errorbar(x_mean,y_mean,yerr=y_std,ls='-',marker='o',c='orange',
                             lw=2,elinewidth=1,capsize=2,label=mean_data_label,
                             zorder=3)
-            else:  # no error bars, nor error shades
-                ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
+            else:
+                raise ValueError('Valid "err_bound_type" name: ["bound", "bar"]')
+        else:
+            ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
 
         ax.set_axisbelow(True)
         if xlabel: ax.set_xlabel(xlabel)
