@@ -291,9 +291,10 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
     return fig, ax, pos_rate, (chi2, p_val, dof)
 
 #%%============================================================================
-def contingency_table(array_horizontal, array_vertical,
-                      fig=None, ax=None, figsize='auto', dpi=100,
-                      color_map='auto', relative_color=True, show_stats=True):
+def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
+                      figsize='auto', dpi=100, color_map='auto', xlabel=None,
+                      ylabel=None, dropna=False, rot=45, normalize=True,
+                      symm_cbar=True, show_stats=True):
 
     '''
     Calculate and visualize the contingency table from two categorical arrays.
@@ -325,13 +326,26 @@ def contingency_table(array_horizontal, array_vertical,
         If relative_color is True, use diverging color maps (e.g., PiYG, PRGn,
         BrBG, PuOr, RdGy, RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr,
         seismic). Otherwise, use sequential color maps (e.g., viridis, jet).
-    relative_color : <bool>
-        Whether to show the contingency table as the original "observed
-        frequency", or the relative difference (i.e., (obs. - exp.)/exp. ).
+    xlabel : <str>
+        The label for the horizontal axis. If None and x is a pandas Series,
+        use x's 'name' attribute as xlabel.
+    ylabel : <str>
+        The label for the vertical axis. If None and y is a pandas Series, use
+        y's 'name' attribute as ylabel.
     dropna : <bool>
         If True, ignore entries (in both arrays) where there are missing values
         in at least one array. If False, the missing values are treated as a
         new category, "N/A".
+    rot : <float> or 'vertical' or 'horizontal'
+        The rotation of the x axis labels.
+    normalize : <bool>
+        If True, plot the contingency table as the relative difference between
+        the observed and the expected (i.e., (obs. - exp.)/exp. ). If False,
+        plot the original "observed frequency".
+    symm_cbar : <bool>
+        If True, the limits of the color bar are symmetric. Otherwise, the
+        limits are the natural minimum/maximum of the table to be plotted.
+        It has no effect if "normalize" is set to False.
     show_stats : <bool>
         Whether or not to show the statistical test results (chi2 statistics
         and p-value) on the figure.
@@ -380,27 +394,44 @@ def contingency_table(array_horizontal, array_vertical,
 
     fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
-    if relative_color:
-        table = diff
-    else:
-        table = observed
+    table = diff if normalize else observed
 
     if color_map == 'auto':
-        color_map = 'RdBu_r' if relative_color else 'viridis'
+        color_map = 'RdBu_r' if normalize else 'viridis'
 
-    im = ax.matshow(table, cmap=color_map)
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cax = divider.append_axes("right", size="8%", pad=0.08)
+
+    if normalize:
+        if symm_cbar:
+            peak = max(abs(table.min().min()), abs(table.max().max()))
+            norm = MidpointNormalize(midpoint=0.0, vmin=-peak, vmax=peak)
+        else:  # limits of color bar are the natural minimum/maximum of "table"
+            norm = MidpointNormalize(midpoint=0.0, vmin=table.min().min(),
+                                     vmax=table.max().max())
+    else:
+        norm = None  # no need to set midpoint of color bar
+
+    im = ax.matshow(table, cmap=color_map, norm=norm)
     cb = fig.colorbar(im, cax=cax)  # 'cb' is a Colorbar instance
-    if relative_color:
+    if normalize:
         cb.set_label('(O-E)/E')
     else:
         cb.set_label('observed freq.')
 
     ax.set_xticks(range(table.shape[1]))
     ax.set_yticks(range(table.shape[0]))
-    ax.set_xticklabels(table.columns)
+
+    ha = 'center' if (0 <= rot < 30 or rot == 90) else 'left'
+    ax.set_xticklabels(table.columns, rotation=rot, ha=ha)
     ax.set_yticklabels(table.index)
+
+    if xlabel:
+        ax.xaxis.set_label_position('top')
+        ax.set_xlabel(xlabel)
+    if ylabel:
+        ax.yaxis.set_label_position('left')
+        ax.set_ylabel(ylabel)
 
     if show_stats:
         ax.annotate('chi^2=%.2f, p_val=%.2g' % (chi2, p_val), ha='center',
