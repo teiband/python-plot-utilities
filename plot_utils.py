@@ -167,8 +167,8 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
     if ylabel: ax.set_ylabel(ylabel)
     ax.set_xticks(range(1,len(x_classes_copy)+1))
 
-    ha = 'center' if 0 <= rot < 30 else 'right'
-    ax.set_xticklabels([str(_) for _ in x_classes], rotation=rot, ha=ha)
+    ha = 'center' if (0 <= rot < 30 or rot == 90) else 'right'
+    ax.set_xticklabels([str(_) for _ in x_classes_copy], rotation=rot, ha=ha)
 
     if show_stats:
         ax.annotate('F=%.2f, p_val=%.2g' % (F_stat, p_value),
@@ -585,7 +585,7 @@ def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=45):
     ax.bar(range(ncol), null_counts)
     ax.set_xticks(range(ncol))
 
-    ha = 'center' if 0 <= rot < 30 else 'right'
+    ha = 'center' if (0 <= rot < 30 or rot == 90) else 'right'
     ax.set_xticklabels(null_counts.index, rotation=rot, ha=ha)
     plt.ylabel('Number of missing values')
     plt.grid(ls=':')
@@ -618,7 +618,8 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         target_array. For example, if target_array has 0 and 1 then class_names
         should be ['0', '1']; and if target_array has "pos" and "neg", then
         class_names should be ['neg','pos'] (i.e., alphabetical).
-        If None, values of the categories will be used as names.
+        If None, values of the categories will be used as names. If [], then
+        no class names are displayed.
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
@@ -676,8 +677,10 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         colors_4 = mpl.cm.Pastel2(range(8))  # R,G,B,A values ("8" means Pastel2 has maximum 8 colors)
         colors = [list(_)[:3] for _ in colors_4]  # remove the fourth value
 
-    if not class_names:
+    if class_names is None:
         class_names = [str(val) for val in vals]
+    if class_names == []:
+        class_names = None
 
     if display == 'percent':
         autopct = '%1.1f%%'
@@ -2696,7 +2699,7 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6),
     if len(variable_names) != len(variable_list):
         print('*****  Warning: feature_names may not be valid!  *****')
 
-    ha = 'center' if 0 <= rot < 30 else 'left'
+    ha = 'center' if (0 <= rot < 30 or rot == 90) else 'left'
     ax.set_xticklabels(variable_names, rotation=rot, ha=ha)
     ax.set_yticklabels(variable_names)
 
