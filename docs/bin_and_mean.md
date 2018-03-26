@@ -1,6 +1,6 @@
 # plot_utils.bin_and_mean
 
-**plot_utils.bin_and_mean**(*xdata, ydata, bins=10, distribution='normal', show_fig=True, fig=None, ax=None, figsize=None, dpi=100, show_bins=True, raw_data_label='raw', mean_data_label='average', xlabel=None, ylabel=None, logx=False, logy=False, grid_on=True, error_bars_on=False, error_shades_on=True, legend_on=True, subsamp_thres=None*):
+**plot_utils.bin_and_mean**(*xdata, ydata, bins=10, distribution='normal', show_fig=True, fig=None, ax=None, figsize=None, dpi=100, show_bins=True, raw_data_label='raw', mean_data_label='average', xlabel=None, ylabel=None, logx=False, logy=False, grid_on=True, error_bounds=True, err_bound_type='shade', legend_on=True, subsamp_thres=None*):
 
 Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
 
@@ -54,11 +54,11 @@ The theory that enables this method is the assumption that the data points with 
         Whether or not to adjust the scales of x and/or y axes to log
     grid_on : <bool>
         Whether or not to show the grids
-    error_bars_on : <bool>
-        Whether or not to show error bars (of y values) of each bin
-    error_shades_on : <bool>
-        Whether or not to show error shades (of y values) of each bin; this
-        argument overrides error_bars_on
+    error_bounds : <bool>
+        Whether or not to show error bounds of each bin
+    err_bound_type : ['shade', 'bar']
+        Type of error bound: shaded area or error bars. It has no effects if
+        error_bounds is set to False.
     legend_on : <bool>
         Whether or not to show the legend
     subsamp_thres : <int>
