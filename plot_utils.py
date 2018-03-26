@@ -1117,8 +1117,9 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
         raise TypeError('Unrecognized data type for data_limit.')
 
 #%%############################################################################
-def discrete_histogram(x, fig=None, ax=None, color=None, alpha=None,
-                       rot=0, logy=False, title='', figsize=(5,3), dpi=100):
+def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
+                       alpha=None, rot=0, logy=False, title=None, xlabel=None,
+                       ylabel='Number of occurrences', show_xticklabel=True):
     '''
     Plot a discrete histogram based on "x", such as below:
 
@@ -1136,29 +1137,50 @@ def discrete_histogram(x, fig=None, ax=None, color=None, alpha=None,
        -|--------------------------------------->  x
               x1     x2     x3     x4    ...
 
-    In the figure, N is the number of values where x = x1, x2, x3, or x4.
+    In the figure, N is the number of occurences for x1, x2, x3, x4, etc.
     And x1, x2, x3, x4, etc. are the discrete values within x.
 
     Parameters
     ----------
-    x : <array_like>
+    x : <array_like> or <dict>
         Data to be visualized.
+        If x is an array (list, numpy arrary), the content of x is analyzed and
+        counts of x's values are plotted.
+        If x is a Python dict, then x's keys are treated as discrete values and
+        x's values are treated as counts. (plot_ranking() does similar tasks.)
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the histograms are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars, or 'auto'
+        Size (width, height) of figure in inches. (fig object passed via "fig"
+        will over override this parameter). If 'auto', the figure size will be
+        automatically determined from the number of distinct categories in x.
+    dpi : <float> or <int>
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
     color : <str> or <list>
         Color of bar. If not specified, the default color (muted blue)
         is used.
-    alpha : scalar
+    alpha : <float>
         Opacity of bar. If not specified, the default value (1.0) is used.
-    rot : scalar
+    rot : <float> or <int>
         Rotation angle (degrees) of x axis label. Default = 0 (upright label)
+    logy : <bool>
+        Whether or not to use log scale for y
+    title, xlabel, ylabel : <str>
+        The title, x label, and y label
+    show_xticklabel : <bool>
+        Whether or not to show the x tick labels (the names of the classes)
 
     Returns
     -------
     fig, ax :
         Figure and axes objects
+    value_count : <pd.Series>
+        The counts of each discrete values within x (if x is an array) with
+        each values sorted in ascending order, or the pandas Series generated
+        from a dict (if x is a dict).
 
     Reference
     ---------
@@ -1168,17 +1190,35 @@ def discrete_histogram(x, fig=None, ax=None, color=None, alpha=None,
 
     fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
-    X = pd.Series(x)  # convert x into series
-    value_count = X.value_counts().sort_index()  # count distinct values and sort
-    ax = value_count.plot.bar(color=color,alpha=alpha,ax=ax,rot=rot)#,logy=logy,ylim=(1,10000))
-    ax.set_ylabel('Number of occurrences')
-    if np.abs(rot) > 0:
-        ax.set_xticklabels(value_count.index,rotation=rot,ha='right')
+    if not isinstance(x, (list, pd.Series, np.ndarray, dict)):
+        raise TypeError('"x" should be a list, pd.Series, np.ndarray, or dict.')
+
+    if isinstance(x, dict):
+        value_count = pd.Series(x, name='counts').sort_index()
+    else:
+        X = pd.Series(x)  # convert x into series
+        value_count = X.value_counts().sort_index()  # count distinct values and sort
+        name = 'counts' if value_count.name is None else value_count.name + '_counts'
+        value_count.rename(name, inplace=True)
+
+    if color is None:
+        ax = value_count.plot.bar(alpha=alpha,ax=ax,rot=rot)
+    else:
+        ax = value_count.plot.bar(color=color,alpha=alpha,ax=ax,rot=rot)
+
+    if xlabel: ax.set_xlabel(xlabel)
+    if ylabel: ax.set_ylabel(ylabel)
+
+    if show_xticklabel:
+        ha = 'center' if (0 <= rot < 30 or rot == 90) else 'right'
+        ax.set_xticklabels(value_count.index,rotation=rot,ha=ha)
+    else:
+        ax.set_xticklabels([])
     if logy:   # http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.yscale
         ax.set_yscale('log', nonposy='clip')  # https://stackoverflow.com/a/17952890
-    ax.set_title(title)
+    if title: ax.set_title(title)
 
-    return fig, ax
+    return fig, ax, value_count
 
 #%%############################################################################
 from matplotlib.ticker import ScalarFormatter
