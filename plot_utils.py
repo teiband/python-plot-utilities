@@ -51,9 +51,9 @@ def process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
     return fig, ax
 
 #%%============================================================================
-def category_means(x, y, fig=None, ax=None, figsize=(3,3),
-                   dpi=100, title=None, xlabel=None, ylabel=None, rot=0,
-                   show_stats=True, **violinplot_kwargs):
+def category_means(categorical_array, continuous_array, fig=None, ax=None,
+                   figsize=(3,3), dpi=100, title=None, xlabel=None, ylabel=None,
+                   rot=0, dropna=False, show_stats=True, **violinplot_kwargs):
     '''
     Summarize the mean values of entries of y corresponding to each distinct
     category in x, and show a violin plot to visualize it. The violin plot will
@@ -64,9 +64,9 @@ def category_means(x, y, fig=None, ax=None, figsize=(3,3),
 
     Parameters
     ----------
-    x : <array_like>
+    categorical_array : <array_like>
         An vector of categorical values.
-    y : <array_like>
+    continuous_array : <array_like>
         The target variable whose values correspond to the values in x. Must
         have the same length as x. It is natural that y contains continuous
         values, but if y contains categorical values (expressed as integers,
@@ -113,35 +113,43 @@ def category_means(x, y, fig=None, ax=None, figsize=(3,3),
         p-value from the F-distribution.
     '''
 
+    x = categorical_array
+    y = continuous_array
+
     if not isinstance(x, (pd.Series, np.ndarray, list)):
-        raise TypeError('The input "x" must be pd.Series, np.array, or list.')
+        raise TypeError('"categorical_array" must be pd.Series, np.array, or list.')
     if not isinstance(y, (pd.Series, np.ndarray, list)):
-        raise TypeError('The input "y" must be pd.Series, np.array, or list.')
+        raise TypeError('"continuous_array" must be pd.Series, np.array, or list.')
     if len(x) != len(y):
         raise ValueError('Lengths of x and y must be the same.')
     if isinstance(x, np.ndarray) and len(x.shape) > 1:
-        raise TypeError('"x" must be a 1D numpy array. Please flatten it.')
+        raise TypeError('"categorical_array" must be a 1D numpy array. Please flatten it.')
     if isinstance(y, np.ndarray) and len(y.shape) > 1:
-        raise TypeError('"y" must be a 1D numpy array. Please flatten it.')
+        raise TypeError('"continuous_array" must be a 1D numpy array. Please flatten it.')
 
     if not xlabel and isinstance(x, pd.Series): xlabel = x.name
     if not ylabel and isinstance(y, pd.Series): ylabel = y.name
 
-    if isinstance(x, (list, pd.Series)): x = np.array(x)
-    if isinstance(y, (list, pd.Series)): y = np.array(y)
+    if isinstance(x, (list, np.ndarray)): x = pd.Series(x)
+    if isinstance(y, (list, np.ndarray)): y = pd.Series(y)
 
-    if pd.isnull(x).any():
-        raise TypeError('"x" should not contain any None or NaN values.')
+    if not dropna: x = x.fillna('N/A')  # input arrays are unchanged
 
     fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
-    x_classes = list(np.unique(x))
+    x_classes = x.unique()
+    x_classes_copy = list(x_classes.copy())
     y_values = []  # each element in y_values represent the values of a category
     mean_values = {}  # each entry in the dict corresponds to a category
     for cat in x_classes:
-        cat_index = np.where(x == cat)[0]
-        y_values.append(list(y[cat_index]))
-        mean_values[cat] = np.nanmean(y[cat_index])
+        cat_index = (x == cat)
+        y_cat = y[cat_index]
+        mean_values[cat] = y_cat.mean(skipna=True)
+        if not y_cat.isnull().all():
+            y_values.append(list(y_cat[np.isfinite(y_cat)]))  # convert to list to avoid 'reshape' deprecation warning
+        else:  # all the y values in the current category is NaN
+            print('*****WARNING: category %s contains only NaN values.*****' % str(cat))
+            x_classes_copy.remove(cat)
 
     F_stat, p_value = stats.f_oneway(*y_values)  # pass every group into f_oneway()
 
@@ -157,7 +165,7 @@ def category_means(x, y, fig=None, ax=None, figsize=(3,3),
 
     if xlabel: ax.set_xlabel(xlabel)
     if ylabel: ax.set_ylabel(ylabel)
-    ax.set_xticks(range(1,len(x_classes)+1))
+    ax.set_xticks(range(1,len(x_classes_copy)+1))
 
     ha = 'center' if 0 <= rot < 30 else 'right'
     ax.set_xticklabels([str(_) for _ in x_classes], rotation=rot, ha=ha)
@@ -171,9 +179,9 @@ def category_means(x, y, fig=None, ax=None, figsize=(3,3),
     return fig, ax, mean_values, (F_stat, p_value)
 
 #%%============================================================================
-def positive_rate(x, y, fig=None, ax=None, figsize='auto', dpi=100, barh=True,
-                  top_n=-1, xlabel='Positive rate', ylabel='Categories',
-                  show_stats=True):
+def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
+                  figsize='auto', dpi=100, barh=True, top_n=-1, dropna=False,
+                  xlabel='Positive rate', ylabel='Categories', show_stats=True):
     '''
     Calculate the proportions of the different categories in vector x that fall
     into class "1" (or "True") in vector y, and optionally show a figure.
@@ -184,11 +192,11 @@ def positive_rate(x, y, fig=None, ax=None, figsize='auto', dpi=100, barh=True,
 
     Parameters
     ----------
-    x : <array_like>
-        An vector of categorical values.
-    y : <array_like>
-        The target variable of two classes. Each value in y correspond to a
-        value in x (at the same index). Must have the same length as x.
+    categorical_array : <array_like>
+        An vector of categorical values
+    two_class_array : <array_like>
+        The target variable containing two classes. Each value in y correspond
+        to a value in x (at the same index). Must have the same length as x.
         The second unique value in y will be considered as the positive class
         (for example, "True" in [True, False, True], or "3" in [1,1,3,3,1]).
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
@@ -207,6 +215,10 @@ def positive_rate(x, y, fig=None, ax=None, figsize='auto', dpi=100, barh=True,
     top_n : <int>
         Only shows top_n categories (ranked by their positive rate) in the
         figure. Useful when there are too many categories.
+    dropna : <bool>
+        If True, ignore entries (in both arrays) where there are missing values
+        in at least one array. If False, the missing values are treated as a
+        new category, "N/A".
     show_stats : <bool>
         Whether or not to show the statistical test results (chi2 statistics
         and p-value) on the figure.
@@ -222,32 +234,36 @@ def positive_rate(x, y, fig=None, ax=None, figsize='auto', dpi=100, barh=True,
     '''
     import collections
 
-    if not isinstance(x, (pd.Series, np.ndarray, list)):
-        raise TypeError('The input "x" must be pd.Series, np.array, or list.')
-    if not isinstance(y, (pd.Series, np.ndarray, list)):
-        raise TypeError('The input "y" must be pd.Series, np.array, or list.')
+    x = categorical_array
+    y = two_classes_array
+
+    if not isinstance(categorical_array, (pd.Series, np.ndarray, list)):
+        raise TypeError('"categorical_array" must be pd.Series, np.array, or list.')
+    if not isinstance(two_classes_array, (pd.Series, np.ndarray, list)):
+        raise TypeError('"two_classes_array" must be pd.Series, np.array, or list.')
     if len(x) != len(y):
-        raise ValueError('Lengths of x and y must be the same.')
-    if len(np.unique(y)) != 2:
-        raise ValueError('y must contain only 2 distinct values.')
+        raise ValueError('Lengths of the two arrays must be the same.')
     if isinstance(x, np.ndarray) and len(x.shape) > 1:
-        raise TypeError('"x" must be a 1D numpy array. Please flatten it.')
+        raise TypeError('"categorical_array" must be a 1D numpy array. Please flatten it.')
     if isinstance(y, np.ndarray) and len(y.shape) > 1:
-        raise TypeError('"y" must be a 1D numpy array. Please flatten it.')
+        raise TypeError('"two_classes_array" must be a 1D numpy array. Please flatten it.')
 
-    if isinstance(x, (list, pd.Series)):
-        x = np.array(x)
-    if isinstance(y, (list, pd.Series)):
-        y = np.array(y)
+    if isinstance(x, (list, np.ndarray)): x = pd.Series(x)
+    if isinstance(y, (list, np.ndarray)): y = pd.Series(y)
 
-    if pd.isnull(x).any():
-        raise TypeError('"x" should not contain any None or NaN values.')
-    if pd.isnull(y).any():
-        raise TypeError('"y" should not contain any None or NaN values.')
+    if dropna:
+        x = x[pd.notnull(x) & pd.notnull(y)]  # input arrays are not changed
+        y = y[pd.notnull(x) & pd.notnull(y)]
+    else:
+        x = x.fillna('N/A')  # input arrays are not changed
+        y = y.fillna('N/A')
 
-    nr_classes = len(np.unique(x))
-    y_classes = list(np.unique(y))
-    y_pos_index = np.where(y == y_classes[1])[0]
+    if len(np.unique(y)) != 2:
+        raise ValueError('"two_classes_array" should have only two unique values.')
+
+    nr_classes = len(x.unique())  # this is not sorted
+    y_classes = list(np.unique(y))  # use numpy's unique() to get sorted classes
+    y_pos_index = (y == y_classes[1])  # treat the last class as the positive class
 
     count_all_classes = collections.Counter(x)
     count_pos_class = collections.Counter(x[y_pos_index])
@@ -312,6 +328,10 @@ def contingency_table(array_horizontal, array_vertical,
     relative_color : <bool>
         Whether to show the contingency table as the original "observed
         frequency", or the relative difference (i.e., (obs. - exp.)/exp. ).
+    dropna : <bool>
+        If True, ignore entries (in both arrays) where there are missing values
+        in at least one array. If False, the missing values are treated as a
+        new category, "N/A".
     show_stats : <bool>
         Whether or not to show the statistical test results (chi2 statistics
         and p-value) on the figure.
@@ -340,10 +360,15 @@ def contingency_table(array_horizontal, array_vertical,
     if isinstance(y, np.ndarray) and len(y.shape) > 1:
         raise TypeError('"y" must be a 1D numpy array. Please flatten it.')
 
-    if isinstance(x, (list, np.ndarray)):
-        x = pd.Series(x)
-    if isinstance(y, (list, np.ndarray)):
-        y = pd.Series(y)
+    if xlabel is None and isinstance(x, pd.Series): xlabel = x.name
+    if ylabel is None and isinstance(y, pd.Series): ylabel = y.name
+
+    if isinstance(x, (list, np.ndarray)): x = pd.Series(x)
+    if isinstance(y, (list, np.ndarray)): y = pd.Series(y)
+
+    if not dropna:  # keep missing values: replace them with actual string "N/A"
+        x = x.fillna('N/A')  # this is to avoid changing the input arrays
+        y = y.fillna('N/A')
 
     observed = pd.crosstab(y, x)
     chi2, p_val, dof, expected = stats.chi2_contingency(observed)
