@@ -291,6 +291,34 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
     return fig, ax, pos_rate, (chi2, p_val, dof)
 
 #%%============================================================================
+def crosstab_to_arrays(cross_tab):
+    '''
+    Helper function. Convert a contingency table to two arrays, which is the
+    reversed operation of pandas.crosstab().
+    '''
+    import itertools
+
+    if isinstance(cross_tab, (list,pd.Series)):
+        raise TypeError('Please pass a 2D data structure.')
+    if isinstance(cross_tab,(np.ndarray,pd.DataFrame)) and min(cross_tab.shape)==1:
+        raise TypeError('Please pass a 2D data structure.')
+
+    if isinstance(cross_tab, np.ndarray): cross_tab = pd.DataFrame(cross_tab)
+
+    factor_1 = list(cross_tab.columns)
+    factor_2 = list(cross_tab.index)
+
+    combinations = itertools.product(factor_1, factor_2)
+    result = []
+    for fact_1 ,fact_2 in combinations:
+        lst = [[fact_2, fact_1]] * cross_tab.loc[fact_2,fact_1]
+        result.extend(lst)
+
+    x, y = list(zip(*result))
+
+    return list(x), list(y)  # convert tuple into list
+
+#%%============================================================================
 def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
                       figsize='auto', dpi=100, color_map='auto', xlabel=None,
                       ylabel=None, dropna=False, rot=45, normalize=True,
@@ -356,6 +384,8 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         Figure and axes objects
     chi2_results : <tuple>
         A tuple in the order of (chi2, p_value, degree_of_freedom)
+    correlation_metrics : <tuple>
+        A tuple in the order of (phi coef., coeff. of contingency, Cramer's V)
     '''
 
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -433,14 +463,23 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         ax.yaxis.set_label_position('left')
         ax.set_ylabel(ylabel)
 
-    if show_stats:
-        ax.annotate('chi^2=%.2f, p_val=%.2g' % (chi2, p_val), ha='center',
-                    xy=(0.5, -0.09), xycoords='axes fraction', va='top')
 
     tables = (observed, expected, diff)
     chi2_results = (chi2, p_val, dof)
 
-    return fig, ax, tables, chi2_results
+    phi = np.sqrt(chi2 / len(x))  # https://en.wikipedia.org/wiki/Phi_coefficient
+    cc = np.sqrt(chi2 / (chi2 + len(x)))  # http://www.statisticshowto.com/contingency-coefficient/
+    R, C = table.shape
+    V = np.sqrt(phi**2. / min(C-1, R-1))  # https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    correlation_metrics = (phi, cc, V)
+
+    if show_stats:
+        ax.annotate('$\chi^2$=%.2f, p_val=%.2g\n'
+                    '$\phi$=%.2g, CoC=%.2g, V=%.2g' % (chi2, p_val, phi, cc, V),
+                    ha='center', xy=(0.5, -0.09), xycoords='axes fraction',
+                    va='top')
+
+    return fig, ax, tables, chi2_results, correlation_metrics
 
 #%%============================================================================
 def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
