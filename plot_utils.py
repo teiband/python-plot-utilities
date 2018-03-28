@@ -414,7 +414,7 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         x = x.fillna('N/A')  # this is to avoid changing the input arrays
         y = y.fillna('N/A')
 
-    observed = pd.crosstab(y, x)
+    observed = pd.crosstab(np.array(y), x)  # use at least one numpy array to avoid possible index matching errors
     chi2, p_val, dof, expected = stats.chi2_contingency(observed)
     expected = pd.DataFrame(expected, index=observed.index, columns=observed.columns)
     diff = (observed - expected) / expected
@@ -445,7 +445,7 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
     im = ax.matshow(table, cmap=color_map, norm=norm)
     cb = fig.colorbar(im, cax=cax)  # 'cb' is a Colorbar instance
     if normalize:
-        cb.set_label('(O-E)/E')
+        cb.set_label('(Obs$-$Exp)/Exp')
     else:
         cb.set_label('observed freq.')
 
