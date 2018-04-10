@@ -640,8 +640,8 @@ def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=45):
     return fig, ax, null_counts
 
 #%%============================================================================
-def piechart(target_array, class_names=None, fig=None, ax=None,
-             figsize=(3,3), dpi=100, colors=None, display='percent',
+def piechart(target_array, class_names=None, fig=None, ax=None, figsize=(3,3),
+             dpi=100, colors=None, display='percent', title=None,
              fontsize=None, **piechart_kwargs):
     '''
     Plot a pie chart demonstrating proportions of different categories within
@@ -678,6 +678,8 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
     display : ['percent', 'count', 'both', None]
         An option of what to show on top of each pie slices: percentage of each
         class, or count of each class, or both percentage and count, or nothing.
+    title : <str> or None
+        The text to be shown on the top of the pie chart
     fontsize : scalar or tuple/list of two scalars
         Font size. If scalar, both the class names and the percentages are set
         to the specified size. If tuple of two scalars, the first value sets
@@ -749,6 +751,8 @@ def piechart(target_array, class_names=None, fig=None, ax=None,
         for t_ in autotexts: t_.set_fontsize(fontsize)
 
     ax.axis('equal')
+
+    if title: ax.set_title(title)
 
     return fig, ax
 
