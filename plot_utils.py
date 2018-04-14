@@ -388,6 +388,7 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         A tuple in the order of (phi coef., coeff. of contingency, Cramer's V)
     '''
 
+    import itertools
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     x = array_horizontal
@@ -425,6 +426,9 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
     fig, ax = process_fig_ax_objects(fig, ax, figsize, dpi)
 
     table = diff if normalize else observed
+    peak = max(abs(table.min().min()), abs(table.max().max()))
+    max_val = table.max().max()
+    min_val = table.min().min()
 
     if color_map == 'auto':
         color_map = 'RdBu_r' if normalize else 'viridis'
@@ -434,11 +438,9 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
 
     if normalize:
         if symm_cbar:
-            peak = max(abs(table.min().min()), abs(table.max().max()))
             norm = MidpointNormalize(midpoint=0.0, vmin=-peak, vmax=peak)
         else:  # limits of color bar are the natural minimum/maximum of "table"
-            norm = MidpointNormalize(midpoint=0.0, vmin=table.min().min(),
-                                     vmax=table.max().max())
+            norm = MidpointNormalize(midpoint=0.0, vmin=min_val, vmax=max_val)
     else:
         norm = None  # no need to set midpoint of color bar
 
@@ -456,13 +458,27 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
     ax.set_xticklabels(table.columns, rotation=rot, ha=ha)
     ax.set_yticklabels(table.index)
 
+    fmt = '.2f' if normalize else 'd'
+
+    if normalize:
+        text_color = lambda x: 'white' if abs(x) > peak/2.0 else 'black'
+    else:
+        lo_3 = min_val + (max_val - min_val)/3.0  # lower-third boundary
+        up_3 = max_val - (max_val - min_val)/3.0  # upper-third boundary
+        text_color = lambda x: 'k' if x > up_3 else ('y' if x > lo_3 else 'w')
+
+    for i, j in itertools.product(range(table.shape[0]), range(table.shape[1])):
+        ax.text(j, i, format(table.iloc[i, j], fmt),
+                 ha="center", va='center', fontsize=9,
+                 color=text_color(table.iloc[i, j]))
+        pass
+
     if xlabel:
         ax.xaxis.set_label_position('top')
         ax.set_xlabel(xlabel)
     if ylabel:
         ax.yaxis.set_label_position('left')
         ax.set_ylabel(ylabel)
-
 
     tables = (observed, expected, diff)
     chi2_results = (chi2, p_val, dof)
