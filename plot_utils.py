@@ -190,7 +190,7 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
 
 #%%============================================================================
 def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
-                  figsize='auto', dpi=100, barh=True, top_n=-1, dropna=False,
+                  figsize=None, dpi=100, barh=True, top_n=-1, dropna=False,
                   xlabel=None, ylabel=None, show_stats=True):
     '''
     Calculate the proportions of the different categories in vector x that fall
@@ -213,7 +213,7 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
         Figure and axes objects.
         If provided, the histograms are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars, or 'auto'
+    figsize : tuple of two scalars, or None
         Size (width, height) of figure in inches. (fig object passed via "fig"
         will over override this parameter). If 'auto', the figure size will be
         automatically determined from the number of distinct categories in x.
@@ -240,7 +240,7 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
     fig, ax :
         Figure and axes objects
     pos_rate : <pd.Series>
-        The positive rate of each categories in x.
+        The positive rate of each categories in x
     chi2_results : <tuple>
         A tuple in the order of (chi2, p_value, degree_of_freedom)
     '''
@@ -286,7 +286,7 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
     observed = pd.crosstab(y, x)
     chi2, p_val, dof, expected = stats.chi2_contingency(observed)
 
-    if figsize == 'auto':
+    if not figsize:
         if barh:
             figsize = (5, nr_classes * 0.26)  # 0.26 inch = height for each category
         else:
