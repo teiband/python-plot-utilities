@@ -1405,7 +1405,7 @@ class FixedOrderFormatter(ScalarFormatter):
         self.orderOfMagnitude = self._order_of_mag
 
 #%%############################################################################
-def choropleth_map_state(data_per_state, figsize=(10,7),
+def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
                          dpi=100, vmin=None, vmax=None, map_title='USA map',
                          unit='', cmap='OrRd', fontsize=14, cmap_midpoint=None,
                          shapefile_dir=None):
@@ -1482,6 +1482,7 @@ def choropleth_map_state(data_per_state, figsize=(10,7),
     from matplotlib.colors import rgb2hex, Normalize
     from matplotlib.patches import Polygon
     from matplotlib.colorbar import ColorbarBase
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     if isinstance(data_per_state, pd.Series):
         data_per_state = data_per_state.to_dict()  # convert to dict
@@ -1515,7 +1516,7 @@ def choropleth_map_state(data_per_state, figsize=(10,7),
 
     data_per_state = _check_all_states(data_per_state)  # see function definition of _check_all_states()
 
-    fig, ax = _process_fig_ax_objects(None, None, figsize, dpi)
+    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     # Lambert Conformal map of lower 48 states.
     m = Basemap(llcrnrlon=-119,llcrnrlat=20,urcrnrlon=-64,urcrnrlat=49,
@@ -1617,8 +1618,9 @@ def choropleth_map_state(data_per_state, figsize=(10,7),
     else:
         norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=cmap_midpoint)
 
-    ax_c = fig.add_axes([0.92, 0.1, 0.03, 0.8])
-    cb = ColorbarBase(ax_c,cmap=cmap,norm=norm,orientation='vertical',label=unit)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="3%", pad=0.08)
+    cb = ColorbarBase(cax,cmap=cmap,norm=norm,orientation='vertical',label=unit)
 
     mpl_version = mpl.__version__.split('.')
     if float(mpl_version[0] + '.' + mpl_version[0]) >= 2.1: # version > 2.1.0
@@ -1633,7 +1635,7 @@ def choropleth_map_state(data_per_state, figsize=(10,7),
     return fig, ax  # return figure and axes handles
 
 #%%############################################################################
-def choropleth_map_county(data_per_county, figsize=(10,7),
+def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
                           dpi=100, vmin=None, vmax=None, unit='', cmap='OrRd',
                           map_title='USA county map', fontsize=14,
                           cmap_midpoint=None, shapefile_dir=None):
@@ -1710,6 +1712,7 @@ def choropleth_map_county(data_per_county, figsize=(10,7),
     from matplotlib.colors import rgb2hex, Normalize
     from matplotlib.patches import Polygon
     from matplotlib.colorbar import ColorbarBase
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     if isinstance(data_per_county, pd.Series):
         data_per_county = data_per_county.to_dict()  # convert to dict
@@ -1729,7 +1732,7 @@ def choropleth_map_county(data_per_county, figsize=(10,7),
     else:
         raise TypeError('data_per_county should be pd.Series, pd.DataFrame, or dict.')
 
-    fig, ax = _process_fig_ax_objects(None, None, figsize, dpi)
+    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     # Lambert Conformal map of lower 48 states.
     m = Basemap(llcrnrlon=-119,llcrnrlat=20,urcrnrlon=-64,urcrnrlat=49,
@@ -1848,8 +1851,9 @@ def choropleth_map_county(data_per_county, figsize=(10,7),
     else:
         norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=cmap_midpoint)
 
-    ax_c = fig.add_axes([0.92, 0.1, 0.03, 0.8])
-    cb = ColorbarBase(ax_c,cmap=cmap,norm=norm,orientation='vertical',label=unit)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="3%", pad=0.08)
+    cb = ColorbarBase(cax,cmap=cmap,norm=norm,orientation='vertical',label=unit)
 
     mpl_version = mpl.__version__.split('.')
     if float(mpl_version[0] + '.' + mpl_version[0]) >= 2.1: # version > 2.1.0
