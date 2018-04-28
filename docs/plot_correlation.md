@@ -1,6 +1,6 @@
 # plot_utils.plot_correlation
 
-**plot_utils.plot_correlation**(*X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6), dpi=100, variable_names=None, scatter_plots=False, thres=0.7, ncols_scatter_plots=3*):
+**plot_utils.plot_correlation**(*X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6), dpi=100, variable_names=None, scatter_plots=False*):
 
 Plot correlation matrix of a dataset X, whose columns are different variables (or a sample of a certain random variable).
 
@@ -29,14 +29,7 @@ Plot correlation matrix of a dataset X, whose columns are different variables (o
         indices are used. The length of variable_names should match the number
         of columns in X; if not, a warning will be thrown (but not error).
     scatter_plots : bool
-        Whether or not to show the variable pairs with high correlation.
-        Variable pairs whose absolute value of correlation is higher than thres
-        will be plotted as scatter plots.
-    thres : scalar between 0 and 1
-        Threshold of correlation (absolute value). Variable pairs whose absolute
-        correlation is higher than thres will be plotted as scatter plots.
-    ncols_scatter_plots : <int>
-        How many subplots within the scatter plots to show on one row.
+        Whether or not to show the scatter plots of pairs of variables.
 
 #### [Returns]
     correlations : <pd.DataFrame>

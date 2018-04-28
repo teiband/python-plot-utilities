@@ -1,8 +1,6 @@
 # plot_utils.piechart
 
-**plot_utils.piechart**(*target_array, class_names=None, fig=None, ax=None,
-             figsize=(3,3), dpi=100, colors=None, display='percent',
-             fontsize=None, \*\*piechart_kwargs*):
+**plot_utils.piechart**(*target_array, class_names=None, fig=None, ax=None, figsize=(3,3), dpi=100, colors=None, display='percent', title=None, fontsize=None, \*\*piechart_kwargs*):
 
 Plot a pie chart demonstrating proportions of different categories within an array.
 
@@ -15,7 +13,8 @@ Plot a pie chart demonstrating proportions of different categories within an arr
         target_array. For example, if target_array has 0 and 1 then class_names
         should be ['0', '1']; and if target_array has "pos" and "neg", then
         class_names should be ['neg','pos'] (i.e., alphabetical).
-        If None, values of the categories will be used as names.
+        If None, values of the categories will be used as names. If [], then
+        no class names are displayed.
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
@@ -34,6 +33,9 @@ Plot a pie chart demonstrating proportions of different categories within an arr
         If None, automatically use the Pastel2 color map (8 colors total).
     display : ['percent', 'count', 'both', None]
         An option of what to show on top of each pie slices: percentage of each
+        class, or count of each class, or both percentage and count, or nothing.
+    title : <str> or None
+        The text to be shown on the top of the pie chart
     fontsize : scalar or tuple/list of two scalars
         Font size. If scalar, both the class names and the percentages are set
         to the specified size. If tuple of two scalars, the first value sets

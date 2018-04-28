@@ -91,7 +91,7 @@ Plot time_series as a line, where its index indicates a date (e.g., year, month,
 And then plot the upper bound and lower bound as shaded areas beneath the line.
 
 #### [Parameters]
-    time_series : <pd.Series> or <pd.DataFrame>
+    time_series : <pd.Series>
         a pandas Series, with index being date
     upper_bound, lower_bound : <pd.Series>
         upper/lower bounds of the time series, must have the same length as
