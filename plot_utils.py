@@ -3173,3 +3173,161 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     else:
         return None, None, x_mean, y_mean, y_std
 
+#%%============================================================================
+def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
+                showmeans=True, showextrema=False, showmedians=False, vert=False,
+                data_names=[], rot=45, name_ax_label=None, data_ax_label=None):
+    '''
+    Generates violin plots for a each data set within X. (X contains one more
+    set of data points.)
+
+    Parameters
+    ----------
+    X : <pd.DataFrame>, <pd.Series>, <np.ndarray>, or <dict>
+        The data to be visualized.
+
+        - pd.DataFrame: each column contains a set of data
+        - pd.Series: contains only one set of data
+        - np.ndarray:
+            + 1D numpy array: only one set of data
+            + 2D numpy array: each column contains a set of data
+            + higher dimensional numpy array: not allowed
+        - dict: each key-value pair is one set of data
+
+        Note that the NaN values in the data are implicitly excluded.
+
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the graph is plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars
+        Size (width, height) of figure in inches. If None, it will be determined
+        by how many sets of data are there in X (each set takes up 0.5 inches.)
+        (fig object passed via "fig" will over override this parameter)
+    dpi : <float>
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    nan_warning : <bool>
+        Whether to show a warning if there are NaN values in the data.
+    showmeans, showextrema, showmedians : <bool>
+        Whether or not to show the mean value, extrema, or median value on top
+        of the violins.
+    vert : <bool>
+        Whether to show the violins as vertical
+    data_names : <list<str>>
+        The names of each data set, to be shown as the axis tick label of each
+        data set. If [] or None, it will be determined automatically: if X is a
+            - np.ndarray: data_names = ['data_0', 'data_1', 'data_2', ...]
+            - pd.Series: data_names = X.name
+            - pd.DataFrame: data_names = list(X.columns)
+            - dict: data_names = list(X.keys())
+    rot : <float>
+        The rotation (in degrees) of the data_names when shown as the tick
+        labels. If vert is False, rot has no effect.
+    name_ax_label, data_ax_label : <str>
+        The labels of the name axis and the data axis.
+        If vert is True, then the name axis is the x axis, otherwise, y axis.
+
+    Returns
+    -------
+    fig, ax :
+        Figure and axes objects
+    '''
+
+    if not isinstance(X, (pd.DataFrame, pd.Series, np.ndarray, dict)):
+        raise TypeError('X must be pd.DataFrame, pd.Series, np.ndarray, or dict.')
+
+    if not isinstance(data_names, (list, type(None))):
+        raise TypeError('data_names must be a list of names, empty list, or None.')
+
+    if nan_warning and isinstance(X, (pd.DataFrame, pd.Series)) and X.isnull().any().any():
+        print('WARNING in violin_plot(): X contains NaN values.')
+
+    if nan_warning and isinstance(X, np.ndarray) and np.isnan(X).any():
+        print('WARNING in violin_plot(): X contains NaN values.')
+
+    if isinstance(X, pd.Series):
+        ncol = 1
+        data = X.dropna().as_matrix()
+    elif isinstance(X, pd.DataFrame):
+        ncol = X.shape[1]
+        data = []
+        for j in range(ncol):
+            data.append(X.iloc[:,j].dropna().as_matrix())
+    elif isinstance(X, np.ndarray):
+        if X.ndim == 1:  # 1D numpy array
+            ncol = 1
+            data = X[np.isfinite(X)].copy()
+        elif X.ndim == 2:  # 2D numpy array
+            ncol = X.shape[1]
+            data = []
+            for j in range(ncol):  # go through every column
+                x = X[:,j]
+                data.append(x[np.isfinite(x)])  # remove NaN values
+        else:
+            raise DimensionError('X should be a 1D or 2D numpy array.')
+    else:  # dict
+        ncol = len(X)
+        data = []
+        for key in X:
+            x = X[key]
+            if isinstance(x, pd.Series):
+                x_ = x.as_matrix()
+            elif isinstance(x, np.ndarray) and x.ndim == 1:
+                x_ = x.copy()
+            elif isinstance(x, list):
+                x_ = np.array(x)
+            else:
+                raise TypeError('Unknown data type in X[%d]. Should be either '
+                                'pd.Series, 1D numpy array, or a list.' % key)
+            if nan_warning and np.isnan(x_).any():
+                print('WARNING in violin_plot(): X[%d] contains NaN values.' % key)
+            data.append(x_[np.isfinite(x_)])
+
+    if not figsize:
+        l1 = max(3, 0.5 * ncol)
+        l2 = 3.5
+        figsize = (l1, l2) if vert else (l2, l1)
+
+    if not data_names:  # [] or None
+        if isinstance(X, pd.Series):
+            data_names = [X.name]
+        elif isinstance(X, pd.DataFrame):
+            data_names = list(X.columns)
+        elif isinstance(X, dict):
+            data_names = list(X.keys())
+        else:  # numpy array
+            data_names = ['data_'+str(_) for _ in range(ncol)]
+
+    if len(data_names) != ncol:
+        raise LengthError('Length of data_names must equal the number of datasets.')
+
+    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
+    ax.violinplot(data, vert=vert, showmeans=showmeans, showextrema=showextrema,
+                  showmedians=showmedians)
+    ax.grid(ls=':')
+    ax.set_axisbelow(True)
+
+    if vert:
+        ax.xaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
+        ax.set_xticks(np.arange(ncol) + 1)
+        ha = 'center' if (0 <= rot < 30 or rot == 90) else 'right'
+        ax.set_xticklabels(data_names, rotation=rot, ha=ha)
+    else:
+        ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
+        ax.set_yticks(np.arange(ncol) + 1)
+        ax.set_yticklabels(data_names)
+
+    if data_ax_label:
+        if not vert:
+            ax.set_xlabel(data_ax_label)
+        else:
+            ax.set_ylabel(data_ax_label)
+    if name_ax_label:
+        if not vert:
+            ax.set_ylabel(name_ax_label)
+        else:
+            ax.set_xlabel(name_ax_label)
+
+    return fig, ax
+
