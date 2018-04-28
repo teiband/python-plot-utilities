@@ -1,94 +1,203 @@
 # Python plotting utilities: `plot_utils`
 
-This is a Python module that contains some useful plotting utilities. Current functionalities include:
+This is a Python module that contains some useful data visualization tools.
 
-+ **3D histograms**: visualizing multiple distributions easily and elegantly [[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
-+ **Discrete histogram**, suitable for visualizing categorical values [[doc](./docs/discrete_histogram.md)], [[example](./examples/Discrete_histogram_example.ipynb)]
-+ **Choropleth map** (aka "heat map") of the United States, on both state and county level [[doc](./docs/choropleth_map.md)], [[example](./examples/Choropleth_map_example.ipynb)]
-+ **Correlation matrix** (aka "covariance matrix") of a dataset [[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
-  + and the one-to-one **scatter plots** for the variables within the dataset [[doc](./docs/scatter_plots_two_cols.md)]
-+ **"Bin-and-mean" plot**, a good way to uncover the dependency between two variables [[doc](./docs/bin_and_mean.md)], [[example](./examples/Bin-and-mean_example.ipynb)]
-+ A **get_colors()** function that conveniently queries different qualitative color palettes [[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
-    + and a **get_linespecs()** function that generates distinct color/linestyle/linewidth combinations for plotting many lines [[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
-+ **Pie chart** to visualize proportions, more convenient than matplotlib's `pie()` function [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)]
-+ **Time series plotting**, for visualizing single or multiple time series data quickly and elegantly [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
+Current functionalities include:
+
+#### 1. Visualizing one column of data
+
+- **Pie chart**: proportions of distinct values in an array, more convenient than matplotlib's `pie()` function [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)]
+- **Discrete histogram**: counts of distinct values in an array [[doc](./docs/discrete_histogram.md)], [[example](./examples/Discrete_histogram_example.ipynb)]
+
+#### 2. Visualizing two columns of data ([[doc](./docs/two_columns.md)], [[example](./examples/Two_columns_of_data_example.ipynb)])
+
+- **"Bin-and-mean" plot**: for two continuous variables
+- **Category mean**: for a categorical variable and a continuous variable
+- **Positive rate**: for a categorical variable and a binary categorical variable
+- **Contingency table**: for two categorical variables
+
+#### 3. Visualizing multiple columns of data
+
++ **3D histograms**: distributions of multiple variables [[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
++ **Violin plot**: distribution of multiple variables 
++ **Correlation matrix**: correlation between each columns of a dataset [[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
+    - and the one-to-one **scatter plots** for the variables within the dataset [[doc](./docs/scatter_plots_two_cols.md)]
++ **Count missing values**: how many missing values are there in each column of the dataset [[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
+
+
+#### 4. Map plotting
+
++ **Choropleth map** (a.k.a., "heat map") of the United States, on both the state and county level [[doc](./docs/choropleth_map.md)], [[example](./examples/Choropleth_map_example.ipynb)]
+
+
+#### 5. Time series plotting
+
+- **Plot single time series**: [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
+- **Plot multiple time series**: [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
+
+#### 6. Miscellaneous
+
++ A **get_colors()** function that conveniently queries different color palettes [[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
++ A **get_linespecs()** function that generates distinct color/linestyle/linewidth combinations for plotting many lines together [[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
 + **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
-+ **Count missing values**: shows how many missing values are there in each column of the data set [[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
-+ **Categorical feature visualization**: shows different proportion or mean values associated with each category [[doc](./docs/categorical_data.md)], [[example](./examples/Categorical_variables_example.ipynb)]
+
+
 
 
 ## Gallery
 
-### 1. Three-dimensional histograms
-
-Plots 3D histograms. Useful for comparing multiple distributions.
+### 1. One column of data
 
 ```python
->>> import plot_utils as pu
->>> pu.histogram3d(X)  # X is the dataset to be visualized
+import pandas as pd
+import plot_utils as pu
+titanic = pd.read_csv('./examples/datasets/titanic3.csv')
+pu.piechart(titanic['survived'], title='Suvived')
+pu.discrete_histogram(titanic['pclass'], xlabel='Passenger ticket class')
+```
+
+Piechart: [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)] 
+
+Discrete histogram: [[doc](./docs/discrete_histogram.md)], [[example](./examples/Discrete_histogram_example.ipynb)]
+
+![](./examples/gallery/piechart_and_discrete_hist.png)
+
+
+
+### 2. Two columns of data
+
+```{python}
+titanic = pd.read_csv('./examples/datasets/titanic3.csv')
+titanic.rename(index=str, columns={'pclass':'ticket_class'}, inplace=True)
+titanic['embarked'] = titanic['embarked'].map({'S':'Southampton',
+                                               'C':'Cherbourg',
+                                               'Q':'Queenstown'})
+
+pu.bin_and_mean(titanic['age'], titanic['fare'], figsize=(5,3))
+pu.category_means(titanic['ticket_class'], titanic['fare'])
+pu.positive_rate(titanic['ticket_class'], titanic['survived'], figsize=(5,2))
+pu.contingency_table(titanic['ticket_class'], titanic['embarked'], dropna=True, rot=0)
+```
+
+[[doc](./docs/two_columns.md)], [[example](./examples/Two_columns_of_data_example.ipynb)] 
+
+![](./examples/gallery/two_variables.png)
+
+
+
+### 3. Multiple columns of data
+
+#### 3.1. 3D histograms
+
+Useful for comparing multiple distributions.
+
+```python
+iris = pd.read_csv('./examples/datasets/iris.csv')
+pu.histogram3d(iris[['petal_width', 'petal_length', 'sepal_width', 'sepal_length']])
 ```
 
 [[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
 
 ![histogram_3d](./examples/gallery/histogram_3d.png)
 
-### 2. Choropleth map (state level)
 
-Plots state-level choropleth maps from a Python dictionary or Pandas Series/DataFrame.
+
+#### 3.2. Violin plots
+
+Another useful tool to compare multiple distributions.
+
+```{python}
+pu.violin_plot(iris[['petal_width', 'petal_length', 'sepal_width', 'sepal_length']])
+```
+
+[[doc](./docs/violin_plot.md)], [[example](./examples/Violin_plot_example.ipynb)]
+
+![](C:\Users\Jian\Documents\GitHub\python-plot-utilities\examples\gallery\violin_plots.png)
+
+
+
+#### 3.2. Correlation matrix
+
+```{python}
+iris = pd.read_csv('./examples/datasets/iris.csv')
+pu.plot_correlation(iris, scatter_plots=True)
+```
+
+The first figure shows the correlation (or "sample covariance")  between each column. The second figure shows the scatter plots between each pair of columns.
+
+[[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
+
+![](./examples/gallery/correlation_matrix.png)
+
+![](C:\Users\Jian\Documents\GitHub\python-plot-utilities\examples\gallery\scatter_plots.png)
+
+
+
+#### 3.3. Count missing values
+
+```{python}
+titanic = pd.read_csv('./examples/datasets/titanic3.csv')
+pu.missing_value_counts(titanic)
+```
+
+[[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
+
+Each bar corresponds to a column in `titanic`, and the numbers atop are the missing data counts for the corresponding column.
+
+![](C:\Users\Jian\Documents\GitHub\python-plot-utilities\examples\gallery\missing_values.png)
+
+
+
+### 4. Choropleth maps (a.k.a., "heat maps")
+
+#### 4.1. State-level choropleth maps for the US 
 
 ```python
->>> import plot_utils as pu
->>> pu.choropleth_map_state(state_level_data)
+pu.choropleth_map_state(state_level_data)  # see [example] for details of "state_level_data"
 ```
 
 [[doc](./docs/choropleth_map.md)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 ![choropleth_map_state](./examples/gallery/choropleth_map_state.png)
 
-### 3. Choropleth map (county level)
-
-Plots county-level choropleth map from a Python dictionary or Pandas Series/DataFrame.
+#### 4.2. County-level choropleth maps for the US
 
 ```python
->>> import plot_utils as pu
->>> pu.choropleth_map_county(county_level_data)
+pu.choropleth_map_county(county_level_data)  # see [example] for details of "county_level_data"
 ```
 
 [[doc](./docs/choropleth_map.md#plot_utilschoropleth_map_county)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 ![choropleth_map_county](./examples/gallery/choropleth_map_county.png)
 
+### 5. Time series plotting
 
-### 4. Correlation matrix (aka, covariance matrix)
+#### 5.1. Single time series
 
-Plots correlation matrix of a dataset, `X`. Also automatically generates scatter plots of variables with high correlations.
-
-```python
->>> import plot_utils as pu
->>> pu.plot_correlation(X, scatter_plots=True)
+```{python}
+df = pd.read_csv('./examples/datasets/Unemployment_rate_1976-2017.csv', index_col=0)
+pu.plot_timeseries(df['CA'], ylabel='Unit: %', title='Unemployment rate, California')
 ```
 
-[[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
+[[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 
-![](./examples/gallery/correlation_matrix.png)
+![](C:\Users\Jian\Documents\GitHub\python-plot-utilities\examples\gallery\time_series_single.png)
 
-![](./examples/gallery/scatter_plots.png)
+#### 5.2. Multiple time series
 
-### 5. "Bin-and-mean" plot
-
-Useful for discovering correlation within data.
-
-```python
->>> import plot_utils as pu
->>> pu.bin_and_mean(x, y, logx=True,
-         xlabel='Maximum strain [%]',ylabel='Goodness-of-fit scores')
+```{python}
+pu.plot_multiple_timeseries(df, ylabel='Unemployment rate [%]', ncol_legend=10)
 ```
 
-[[doc](./docs/bin_and_mean.md)], [[example](./examples/Bin-and-mean_example.ipynb)]
+[[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 
-![](./examples/gallery/bin_and_mean.png)
+![](./examples/gallery/time_series.png)
 
-### 6.1. `get_colors()` function
+
+
+### 6. Miscellaneous
+
+#### 6.1. `get_colors()` function
 
 Easy querying of distinguishable color palettes.
 
@@ -103,7 +212,7 @@ Easy querying of distinguishable color palettes.
 
 ![](./examples/gallery/get_colors.png)
 
-### 6.2. `get_linespecs()` function
+#### 6.2. `get_linespecs()` function
 
 Easy querying of distinguishable line specs.
 
@@ -117,78 +226,18 @@ Easy querying of distinguishable line specs.
 
 ![](./examples/gallery/get_linespecs.png)
 
-### 7. Pie chart
-
-Plots a pie chart from a single array.
-
-```Python
->>> import plot_utils as pu
->>> pu.piechart(iris['species'])
-```
-
-[[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)] 
-
-![](./examples/gallery/pie_chart.png)
-
-### 8. Time series plotting
-
-Plots single or multiple time series data on the same plot nicely.
-
-```Python
->>> import plot_utils as pu
->>> pu.plot_time_series(x)  # plots single time series
->>> pu.plot_multiple_timeseries(X)  # plots multiple time series
-```
-
-[[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
-
-![](./examples/gallery/time_series.png)
-
-### 9. Plot with error bounds
+#### 6.3. Plot with error bounds
 
 Plots data and error bounds on the same graph.
 
 ```python
->>> import plot_utils as pu
->>> pu.plot_with_error_bounds(data,upper_bound,lower_bound)
+pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 ```
 
 [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 
 ![](./examples/gallery/error_bounds.png)
 
-
-### 10. Count missing values
-
-Summarizes how many missing values are there in each column of the data set.
-
-```python
->>> import plot_utils as pu
->>> data = pd.read_csv('./datasets/titanic.csv')
->>> pu.missing_value_counts(data)
-```
-
-[[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
-
-![](./examples/gallery/missing_values.png)
-
-### 11. Visualize categorical features
-
-Shows different proportion or mean values associated with each category [[doc](./docs/categorical_data.md)], [[example](./examples/Categorical_variables_example.ipynb)]
-
-
-```python
->>> import plot_utils as pu
->>> df = pd.read_csv('./datasets/titanic.csv')
->>> pu.positive_rate(df['Pclass'], df['Survived'], ylabel='Ticket class', xlabel='Survival rate', figsize=(5,2));
->>> pu.category_means(df['Pclass'], df['Fare'],  ylabel='Ticker price', title='Ticket class');
-```
-
-[[doc](./docs/categorical_data.md)], [[example](./examples/Categorical_variables_example.ipynb)]
-
-![](./examples/gallery/categorical_1.png)
-
-![](./examples/gallery/categorical_2.png)
 
 
 ## Installation
@@ -207,6 +256,7 @@ Just download this repository, and you can put `plot_utils.py` anywhere within y
 + scipy: 0.19.0+
 + pandas: 0.20.0+
 + matplotlib/basemap: 1.0.7 (only if you want to plot the two choropleth maps)
+
 
 
 
