@@ -66,7 +66,7 @@ Discrete histogram: [[doc](./docs/discrete_histogram.md)], [[example](./examples
 
 ### 2. Two columns of data
 
-```{python}
+```python
 titanic = pd.read_csv('./examples/datasets/titanic3.csv')
 titanic.rename(index=str, columns={'pclass':'ticket_class'}, inplace=True)
 titanic['embarked'] = titanic['embarked'].map({'S':'Southampton',
@@ -106,7 +106,7 @@ pu.histogram3d(iris[['petal_width', 'petal_length', 'sepal_width', 'sepal_length
 
 Another useful tool to compare multiple distributions.
 
-```{python}
+```python
 pu.violin_plot(iris[['petal_width', 'petal_length', 'sepal_width', 'sepal_length']])
 ```
 
@@ -118,7 +118,7 @@ pu.violin_plot(iris[['petal_width', 'petal_length', 'sepal_width', 'sepal_length
 
 #### 3.2. Correlation matrix
 
-```{python}
+```python
 iris = pd.read_csv('./examples/datasets/iris.csv')
 pu.plot_correlation(iris, scatter_plots=True)
 ```
@@ -135,7 +135,7 @@ The first figure shows the correlation (or "sample covariance")  between each co
 
 #### 3.3. Count missing values
 
-```{python}
+```python
 titanic = pd.read_csv('./examples/datasets/titanic3.csv')
 pu.missing_value_counts(titanic)
 ```
@@ -174,7 +174,7 @@ pu.choropleth_map_county(county_level_data)  # see [example] for details of "cou
 
 #### 5.1. Single time series
 
-```{python}
+```python
 df = pd.read_csv('./examples/datasets/Unemployment_rate_1976-2017.csv', index_col=0)
 pu.plot_timeseries(df['CA'], ylabel='Unit: %', title='Unemployment rate, California')
 ```
@@ -185,7 +185,7 @@ pu.plot_timeseries(df['CA'], ylabel='Unit: %', title='Unemployment rate, Califor
 
 #### 5.2. Multiple time series
 
-```{python}
+```python
 pu.plot_multiple_timeseries(df, ylabel='Unemployment rate [%]', ncol_legend=10)
 ```
 
@@ -202,10 +202,10 @@ pu.plot_multiple_timeseries(df, ylabel='Unemployment rate [%]', ncol_legend=10)
 Easy querying of distinguishable color palettes.
 
 ```python
->>> import seaborn as sns
->>> import plot_utils as pu
->>> colors = pu.get_colors(color_scheme='tab10',N=10)
->>> sns.palplot(colors)
+colors = pu.get_colors(color_scheme='tab10', N=10)
+
+import seaborn as sns
+sns.palplot(colors)
 ```
 
 [[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
@@ -217,9 +217,8 @@ Easy querying of distinguishable color palettes.
 Easy querying of distinguishable line specs.
 
 ```python
->>> import plot_utils as pu
->>> line_specs = pu.get_linespecs(color_scheme='bw',range_linewidth=[3,8],priority='linewidth')
->>> pu.linespecs_demo(line_specs)
+line_specs = pu.get_linespecs(color_scheme='bw',range_linewidth=[3,8],priority='linewidth')
+pu.linespecs_demo(line_specs)
 ```
 
 [[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
