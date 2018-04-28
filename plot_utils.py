@@ -612,7 +612,7 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
     return fig, ax
 
 #%%============================================================================
-def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=45):
+def missing_value_counts(X, fig=None, ax=None, figsize=None, dpi=100, rot=45):
     '''
     Visualize the number of missing values in each column of X.
 
@@ -626,8 +626,10 @@ def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=45):
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     figsize : tuple of scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
+        Size (width, height) of figure in inches. If None, it will be determined
+        as follows: width = (0.5 inches) x (number of columns in X), and height
+        is 3 inches.
+        (fig object passed via "fig" will over override this parameter.)
     dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
@@ -643,8 +645,6 @@ def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=45):
         corresponding to each column of X.
     '''
 
-    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
-
     if not isinstance(X, (pd.DataFrame, pd.Series)):
         raise TypeError('X should be pandas DataFrame or Series.')
 
@@ -652,6 +652,11 @@ def missing_value_counts(X, fig=None, ax=None, figsize=(12,3), dpi=100, rot=45):
 
     ncol = X.shape[1]
     null_counts = X.isnull().sum()  # a pd Series containing number of non-null numbers
+
+    if not figsize:
+        figsize = (ncol * 0.5, 2.5)
+
+    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     ax.bar(range(ncol), null_counts)
     ax.set_xticks(range(ncol))
@@ -792,7 +797,7 @@ def piechart(target_array, class_names=None, fig=None, ax=None, figsize=(3,3),
 def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
                 elev=30, azim=5, alpha=0.6, data_labels=None,
                 plot_legend=True, plot_xlabel=False, color=None,
-                dx_factor=0.6, dy_factor=0.8,
+                dx_factor=0.4, dy_factor=0.8,
                 ylabel='Data', zlabel='Counts',
                 **legend_kwargs):
     '''
@@ -865,6 +870,19 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
                      bars will occupy three different x values)
         y direction: within dataset
 
+                    ^ z
+                    |
+                    |
+                    |
+                    |
+                    |
+                    |--------------------> y
+                   /
+                  /
+                 /
+                /
+               V  x
+
     '''
 
     from mpl_toolkits.mplot3d import Axes3D
@@ -915,6 +933,7 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
         if not valid_color_flag:
             raise TypeError(msg)
         c_ = color
+
     xpos_list = [[None]] * N  # pre-allocation
     for j in range(N):  # loop through each dataset
         if isinstance(bins,(list,np.ndarray)) and len(bins) > 1:  # if 'bins' is a list and length > 1
@@ -929,7 +948,7 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
         ypos = np.mean(np.array([ypos_[:-1],ypos_[1:]]),axis=0)  # mid-point of all bins
         xpos = np.ones_like(ypos) * (j-0.5)  # location of each data set
         zpos = np.zeros_like(xpos)  # should be all 0's
-        dx = bar_width * dx_factor  # width of bars in x direction (across data sets)
+        dx = dx_factor  # width of bars in x direction (across data sets)
         dy = bar_width * dy_factor  # width of bars in y direction (within data set)
         if float(mpl.__version__.split('.')[0]) >= 2.0:
             bar3d_kwargs = {'alpha':alpha}  # 'lw' argument clashes with alpha in 2.0+ versions
@@ -2740,7 +2759,7 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
     return fig, ax
 
 #%%============================================================================
-def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6),
+def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=None,
                      dpi=100, variable_names=None, rot=45, scatter_plots=False,
                      thres=0.7, ncols_scatter_plots=3):
     '''
@@ -2761,8 +2780,9 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6),
         If provided, the graph is plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
     figsize : tuple of two scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
+        Size (width, height) of figure in inches. If None, it will be determined
+        automatically: every column of X takes up 0.7 inches.
+        (fig object passed via "fig" will over override this parameter.)
     dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
@@ -2772,8 +2792,8 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6),
         X is a numpy array, and this argument is not provided, then column
         indices are used. The length of variable_names should match the number
         of columns in X; if not, a warning will be thrown (but not error).
-    rot : <float> or 'vertical' or 'horizontal'
-        The rotation of the x axis labels.
+    rot : <float>
+        The rotation of the x axis labels, in degrees.
     scatter_plots : bool
         Whether or not to show the variable pairs with high correlation.
         Variable pairs whose absolute value of correlation is higher than thres
@@ -2794,8 +2814,6 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6),
 
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
-
     if not isinstance(X, (np.ndarray, pd.DataFrame)):
         raise TypeError('X must be a numpy array or a pandas DataFrame.')
 
@@ -2805,6 +2823,11 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6),
     correlations = X.corr()
     variable_list = list(correlations.columns)
     nr = len(variable_list)
+
+    if not figsize:
+        figsize = (0.7 * nr, 0.7 * nr)  # every column of X takes 0.7 inches
+
+    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     im = ax.matshow(correlations, vmin=-1, vmax=1, cmap=color_map)
     divider = make_axes_locatable(ax)
@@ -2825,30 +2848,8 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=(6,6),
     ax.set_xticklabels(variable_names, rotation=rot, ha=ha)
     ax.set_yticklabels(variable_names)
 
-    if scatter_plots == True:
-        iu = np.triu_indices(nr)  # indices of upper-triangle elements
-        corr_abs = np.abs(np.array(correlations))
-        corr_abs[iu] = 0  # only keep lower-triangle elements
-        hi_corr_idx = np.where(corr_abs >= thres)  # row & col indices of eligible variables
-        indices = list(zip(hi_corr_idx[0],hi_corr_idx[1]))  # variable pairs
-
-        if indices:  # not empty list
-            n_cols = min(ncols_scatter_plots, len(indices))
-            n_rows = int(np.ceil(len(indices) / float(n_cols)))
-
-            sz = 2.5   # (approx.) size of each subplot (unit: inch)
-            mg = 0.28  # (approx.) margin between subplots (unit: inch)
-            fig_size_ = (n_cols*sz + mg*(n_cols-1), n_rows*sz + mg*(n_rows-1))
-            fig = plt.figure(figsize=fig_size_)
-            ax  = plt.axes()
-
-            for j, index in enumerate(indices):
-                sub_ax = plt.subplot(n_rows,n_cols,j+1)
-                scatter_plot_two_cols(X,[variable_names[i] for i in index],fig,sub_ax)
-
-            plt.tight_layout(h_pad=0.3)
-        else:
-            print('*****  No two variables have correlation higher than threshold.  *****')
+    if scatter_plots:
+        pd.plotting.scatter_matrix(X, figsize=(1.8 * nr, 1.8 * nr))
 
     return fig, ax, correlations
 
