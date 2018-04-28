@@ -112,7 +112,7 @@ pu.violin_plot(iris[['petal_width', 'petal_length', 'sepal_width', 'sepal_length
 
 [[doc](./docs/violin_plot.md)], [[example](./examples/Violin_plot_example.ipynb)]
 
-![](C:\Users\Jian\Documents\GitHub\python-plot-utilities\examples\gallery\violin_plots.png)
+![](./examples/gallery/violin_plots.png)
 
 
 
@@ -129,7 +129,7 @@ The first figure shows the correlation (or "sample covariance")  between each co
 
 ![](./examples/gallery/correlation_matrix.png)
 
-![](C:\Users\Jian\Documents\GitHub\python-plot-utilities\examples\gallery\scatter_plots.png)
+![](./examples/gallery/scatter_plots.png)
 
 
 
@@ -144,7 +144,7 @@ pu.missing_value_counts(titanic)
 
 Each bar corresponds to a column in `titanic`, and the numbers atop are the missing data counts for the corresponding column.
 
-![](C:\Users\Jian\Documents\GitHub\python-plot-utilities\examples\gallery\missing_values.png)
+![](./examples/gallery/missing_values.png)
 
 
 
@@ -181,7 +181,7 @@ pu.plot_timeseries(df['CA'], ylabel='Unit: %', title='Unemployment rate, Califor
 
 [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
 
-![](C:\Users\Jian\Documents\GitHub\python-plot-utilities\examples\gallery\time_series_single.png)
+![](./examples/gallery/time_series_single.png)
 
 #### 5.2. Multiple time series
 
