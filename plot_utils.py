@@ -2760,8 +2760,7 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
 
 #%%============================================================================
 def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=None,
-                     dpi=100, variable_names=None, rot=45, scatter_plots=False,
-                     thres=0.7, ncols_scatter_plots=3):
+                     dpi=100, variable_names=None, rot=45, scatter_plots=False):
     '''
     Plot correlation matrix of a dataset X, whose columns are different
     variables (or a sample of a certain random variable).
@@ -2795,14 +2794,7 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=None,
     rot : <float>
         The rotation of the x axis labels, in degrees.
     scatter_plots : bool
-        Whether or not to show the variable pairs with high correlation.
-        Variable pairs whose absolute value of correlation is higher than thres
-        will be plotted as scatter plots.
-    thres : scalar between 0 and 1
-        Threshold of correlation (absolute value). Variable pairs whose absolute
-        correlation is higher than thres will be plotted as scatter plots.
-    ncols_scatter_plots : <int>
-        How many subplots within the scatter plots to show on one row.
+        Whether or not to show the scatter plots of pairs of variables.
 
     Returns
     -------
@@ -2831,7 +2823,7 @@ def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=None,
 
     im = ax.matshow(correlations, vmin=-1, vmax=1, cmap=color_map)
     divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cax = divider.append_axes("right", size="3%", pad=0.08)
     cb = fig.colorbar(im, cax=cax)  # 'cb' is a Colorbar instance
     cb.set_label("Pearson's correlation")
 
