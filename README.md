@@ -39,7 +39,9 @@ Current functionalities include:
 
 + A **get_colors()** function that conveniently queries different color palettes [[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
 + A **get_linespecs()** function that generates distinct color/linestyle/linewidth combinations for plotting many lines together [[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
++ Two helper classes: **Color** and **Multiple_Colors**, which make querying and displaying colors more easily  [[doc](./docs/color_classes.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
 + **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
++ **trim_img()**, which trims the white margins of the specified image file(s) [[doc](./docs/trim_img.md)]
 
 
 
