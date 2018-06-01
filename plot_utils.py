@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 #%%----------------------------------------------------------------------------
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 #%%----------------------------------------------------------------------------
 if sys.version_info.major == 3:  # Python 3
@@ -59,6 +59,361 @@ def _process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
         ax = ax  # plot lines on the provided axes handle
 
     return fig, ax
+
+#%%============================================================================
+def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
+             show_old_img=False, show_new_img=False, forcibly_overwrite=False):
+    '''
+    Trim the margins of image file(s) on the hard drive, and (optionally) add
+    padded margins of a specified color and width.
+
+    Parameters
+    ----------
+    files : <str> or <list, tuple>
+        A file name (as Python str) or several file names (as Python list or
+        tuple) to be trimmed.
+    pad_width : <float>
+        The amount of white margins to be padded (unit: pixels). Float pad_width
+        values are internally converted as int.
+    pad_color : <str> or <tuple> or <list>
+        The color of the padded margin. Valid pad_color values are color names
+        recognizable by matplotlib: https://matplotlib.org/tutorials/colors/colors.html
+    inplace : <bool>
+        Whether or not to replace the existing figure file with the trimmed
+        content.
+    verbose : <bool>
+        Whether or not to print the progress onto the console.
+    show_old_img : <bool>
+        Whether or not to show the old figure in the console.
+    show_new_img : <bool>
+        Whether or not to show the trimmed figure in the  console
+
+    Returns
+    -------
+    None
+    '''
+
+    import PIL
+    import PIL.ImageOps
+
+    if not isinstance(files,(list,tuple)):
+        files = [files]
+
+    pad_width = int(pad_width)
+
+    for filename in files:
+        if verbose:
+            print('Trimming %s...' % filename)
+        im0 = PIL.Image.open(filename)  # load image
+        im1 = PIL.ImageOps.invert(im0.convert('RGB')) # convert from RGBA to RGB, then invert color
+
+        if show_old_img:
+            plt.imshow(im0)
+            plt.xticks([])
+            plt.yticks([])
+
+        im2 = im1.crop(im1.getbbox())  # create new image
+        im2 = PIL.ImageOps.invert(im2) # invert the color back
+
+        new_img_size = (im2.size[0]+2*pad_width,im2.size[1]+2*pad_width) # add padded borders
+        pad_color_rgb = Color(pad_color).as_rgb(normalize=False)
+
+        im3 = PIL.Image.new('RGB',new_img_size,color=pad_color_rgb) # creates new image (background color = white)
+        im3.paste(im2,box=(pad_width,pad_width))  # box defines the upper-left corner
+
+        if show_new_img:
+            plt.imshow(im3)
+            plt.xticks([])
+            plt.yticks([])
+
+        if not inplace:
+            filename_without_ext, ext = os.path.splitext(filename)
+            new_filename_ = '%s_trimmed%s' % (filename_without_ext, ext)
+
+            if not os.path.exists(new_filename_):
+                im3.save(new_filename_)
+                if verbose:
+                    print('  New file created: %s' % new_filename_)
+            else:
+                if forcibly_overwrite:
+                    im3.save(new_filename_)
+                    if verbose:
+                        print('  Overwriting existing file: %s' % new_filename_)
+                else:
+                    print('  New file is not saved, because a file with the '
+                          'same name already exists.')
+        else:
+            im3.save(filename)
+            if verbose:
+                print('  Original file overwritten.')
+
+#%%============================================================================
+class Color():
+    '''
+    A class that defines a color.
+
+    Public attriutes
+    ----------------
+    None.
+
+
+    Initialization
+    --------------
+    Color(color, is_rgb_normalized=True)
+
+    Public methods
+    --------------
+    Color.as_rgb(normalize=True):
+        Export the color object as RGB values (a tuple).
+
+    Color.as_rgba(alpha=1.0):
+        Export the color object as RGBA values (a tuple).
+
+    Color.as_hex():
+        Export the color object as HEX values (a string).
+
+    Color.show():
+        Show color as a square patch.
+    '''
+    def __init__(self, color, is_rgb_normalized=True):
+        '''
+        Parameters
+        ----------
+        color : <str> or <tuple> or <list>
+            The color information to initialize the Color object. Can be a list
+            or tuple of 3 elements (i.e., the RGB information), or a HEX string
+            such as "#00FF00", or XKCD color names (https://xkcd.com/color/rgb/)
+            or X11 color names  (http://cng.seas.rochester.edu/CNG/docs/x11color.html).
+        is_rgb_normalized : <bool>
+            Whether or not the input information (if RGB) contains the normalized
+            values (such as [0, 0.5, 0.5]). This parameter has no effect if
+            the input is not RGB.
+        '''
+
+        import matplotlib._color_data as mcd
+
+        if not isinstance(color, (list, tuple, str)):
+            raise TypeError('color must be a list/tuple of length 3 or a str.')
+
+        if isinstance(color, (list, tuple)):
+            if len(color) != 3:
+                raise TypeError('If "color" is a list/tuple, its length must be 3.')
+            else:
+                self.__color = self.__rgb_to_hex(color, is_rgb_normalized)
+
+        if isinstance(color, str):
+            color = color.lower()  # convert all to lower case
+            if len(color) == 1:  # base color specification, such as 'w' or 'b'
+                _rgb_color = mcd.BASE_COLORS[color]
+                self.__color = self.__rgb_to_hex(_rgb_color, is_normalized=True)
+            elif color[0] == '#':  # HEX color specification, such as '#00FFFF'
+                self.__color = color
+            elif color.startswith('xkcd:'):
+                self.__color = mcd.XKCD_COLORS[color]
+            elif color.startswith('tab:'):
+                self.__color = mcd.TABLEAU_COLORS[color]
+            else:
+                try:
+                    self.__color = mcd.CSS4_COLORS[color]
+                except KeyError:
+                    raise ValueError("Unrecognized color: '%s'" % color)
+
+    def __rgb_to_hex(self, rgb, is_normalized=True):
+        '''
+        Private method. Converts RGB values into HEX.
+        '''
+
+        if np.any(np.array(rgb) > 255):
+            raise ValueError('rgb values should not exceed 255.')
+
+        if np.any(np.array(rgb) < 0):
+            raise ValueError('rgb values should not be negative.')
+
+        if max(rgb) > 1.0 and is_normalized == True:
+            rgb = [_ / 255.0 for _ in rgb]
+
+        if is_normalized:
+            rgb_255 = [int(_ * 255) for _ in rgb]
+        else:
+            rgb_255 = [int(_) for _ in rgb]
+
+        return u'#{:02x}{:02x}{:02x}'.format(*rgb_255)
+
+    def __hex_to_rgb(self, hex_, normalize=True):
+        '''
+        Private method. Convert HEX values into RGB.
+
+        Reference: https://stackoverflow.com/a/29643643/8892243
+        '''
+
+        h = hex_[1:]  # strip the '#' in the front
+        if normalize:
+            rgb = tuple(int(h[i:i+2], 16) / 255.0 for i in (0, 2 ,4))
+        else:
+            rgb = tuple(int(h[i:i+2], 16) for i in (0, 2 ,4))
+
+        return rgb
+
+    def as_rgb(self, normalize=True):
+        '''
+        Public method. Export the color object as RGB values (a tuple).
+        '''
+        return self.__hex_to_rgb(self.__color, normalize=normalize)
+
+    def as_rgba(self, alpha=1.0):
+        '''
+        Public method. Export the color object as RGBA values (a tuple).
+
+        The R, G, and B values are always normalized (between 0 and 1).
+        '''
+        if alpha < 0 or alpha > 1:
+            raise ValueError('alpha must be between 0 and 1 (inclusive).')
+
+        rgb = self.__hex_to_rgb(self.__color, normalize=True)
+        rgba = (*rgb, alpha)
+
+        return rgba
+
+    def as_hex(self):
+        '''
+        Public method. Export the color object as HEX values (a string).
+        '''
+        return self.__color
+
+    def show(self):
+        '''
+        Public method. Show color as a square patch.
+        '''
+        import matplotlib.patches as mpatch
+
+        fig = plt.figure(figsize=(0.5, 0.5))
+        ax = fig.add_axes([0, 0, 1, 1])
+        p = mpatch.Rectangle((0, 0), 1, 1, color=self.__color)
+        ax.add_patch(p)
+        ax.axis('off')
+
+#%%============================================================================
+class Multiple_Colors():
+    '''
+    A class that defines multiple colors.
+
+    Public attriutes
+    ----------------
+    None.
+
+    Initialization
+    --------------
+    Multiple_Colors(colors, is_rgb_normalized=True)
+
+    Public methods
+    --------------
+    Multiple_Colors.as_rgb(normalize=True):
+        Export the colors as a list of RGB values.
+
+    Multiple_Colors.as_rgba(alpha=1.0):
+        Export the colors as a list of RGBA values.
+
+    Multiple_Colors.as_hex():
+        Export the colors as a list of HEX values.
+
+    Multiple_Colors.show(vertical=False):
+        Show colors as square patches.
+    '''
+
+    def __init__(self, colors, is_rgb_normalized=True):
+        '''
+        Parameters
+        ----------
+        colors : <list>
+            A list of color information to initialize the Multiple_Colors object.
+            The list elements can be:
+                - a list or tuple of 3 elements (i.e., the RGB information)
+                - a HEX string such as "#00FF00"
+                - an XKCD color name (https://xkcd.com/color/rgb/)
+                - an X11 color name (http://cng.seas.rochester.edu/CNG/docs/x11color.html)
+            Different elements of colors do not need to be of the same type.
+        is_rgb_normalized : <bool>
+            Whether or not the input information (if RGB) contains the normalized
+            values (such as [0, 0.5, 0.5]). This parameter has no effect if
+            the input is not RGB.
+        '''
+
+        if not isinstance(colors, list):
+            raise TypeError('"colors" must be a list.')
+        if len(colors) == 0:
+            raise LengthError('Length of "colors" must nonzero.')
+
+        self.__length = len(colors)
+        self.__Colors = [None] * self.__length
+        for j, color in enumerate(colors):
+            self.__Colors[j] = Color(color, is_rgb_normalized)
+
+    def as_rgb(self, normalize=True):
+        '''
+        Public method. Export the colors as a list of RGB values.
+        '''
+        result = [None] * self.__length
+        for j in range(self.__length):
+            result[j] = self.__Colors[j].as_rgb(normalize=normalize)
+
+        return result
+
+    def as_rgba(self, alpha=1.0):
+        '''
+        Public method. Export the colors as a list of RGBA values.
+        '''
+        result = [None] * self.__length
+        for j in range(self.__length):
+            result[j] = self.__Colors[j].as_rgba(alpha=alpha)
+
+        return result
+
+    def as_hex(self):
+        '''
+        Public method. Export the colors as a list of HEX values.
+        '''
+        result = [None] * self.__length
+        for j in range(self.__length):
+            result[j] = self.__Colors[j].as_hex()
+
+        return result
+
+    def show(self, vertical=False, text=None):
+        '''
+        Public method. Show the colors as square patches.
+
+        Parameter
+        ---------
+        vertical : <bool>
+            Whether or not to show the patches vertically
+        text : <str>
+            The text to show next to the colors
+        '''
+        import matplotlib.patches as mpatch
+
+        figsize = (.5, self.__length/2) if vertical else (self.__length/2, .5)
+
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_axes([0, 0, 1, 1])
+
+        for j in range(self.__length):
+            loc = (j, 0) if not vertical else (0, self.__length - j - 1)
+            p = mpatch.Rectangle(loc, 1, 1, color=self.__Colors[j].as_hex())
+            ax.add_patch(p)
+
+        ax.axis('off')
+        if not vertical:
+            ax.set_xlim(0, self.__length)
+            ax.set_ylim(0, 1)
+        else:
+            ax.set_ylim(0, self.__length)
+            ax.set_xlim(0, 1)
+
+        if text:
+            if not vertical:
+                ax.text(j + 1.5, 0.5, text, va='center')
+            else:
+                ax.text(0.5, j + 1.5, text, ha='center')
 
 #%%============================================================================
 def category_means(categorical_array, continuous_array, fig=None, ax=None,
@@ -1040,12 +1395,10 @@ def get_colors(N=None, color_scheme='tab10'):
             'tab20'
             'tab20b'
             'tab20c'
-            ![](https://matplotlib.org/mpl_examples/color/colormaps_reference_04.png)
-        (2) 8.3 and 8.4 (floats): old and new MATLAB color scheme
-            Old:
-            ![](https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder_old.png)
-            New:
-            ![](https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder.png)
+            (https://matplotlib.org/mpl_examples/color/colormaps_reference_04.png)
+        (2) '8.3' and '8.4': old and new MATLAB color scheme
+            Old: https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder_old.png
+            New: https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder.png
         (3) 'rgbcmyk': old default Matplotlib color palette (v1.5 and earlier)
         (4) 'bw' (or 'bw3'), 'bw4', and 'bw5'
             Black-and-white (grayscale colors in 3, 4, and 5 levels)
@@ -1075,46 +1428,42 @@ def get_colors(N=None, color_scheme='tab10'):
     if not isinstance(color_scheme,(str,unicode,int,float,np.number)):
         raise TypeError('color_scheme must be str, int, or float.')
 
-    if color_scheme == 'rgbcmyk':  # default matplotlib v1.5 color scheme
-        palette = ['b','g','r','c','m','y','k']
-    elif color_scheme in ['bw','bw3']:  # black and white, 3 levels
-        palette = [[0]*3,[0.4]*3,[0.75]*3]
-    elif color_scheme == 'bw4':  # black and white, 4 levels
-        palette = [[0]*3,[0.25]*3,[0.5]*3,[0.75]*3]
-    elif color_scheme == 'bw5':  # black and white, 5 levels
-        palette = [[0]*3,[0.15]*3,[0.3]*3,[0.5]*3,[0.7]*3,]
-    elif color_scheme == 'tab10':
-        ## This is the default color scheme, and it is a duplicate if the next
-        ## case. The only difference is that this case returns HEX values instead
-        ## of RGB values, hence shorter (better for demonstrative purposes.)
-        palette = ['#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd',
-                   '#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf']
-    elif color_scheme in qcm_names:
-        c_s = color_scheme  # short hand [Note: no wrap-around behavior in mpl.cm functions]
-        rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))  # e.g., mpl.cm.Set1(range(10))
-        palette = [list(_)[:3] for _ in rgba]  # remove alpha value from each sub-list
-    elif color_scheme in qcm_names_lower:
-        c_s = color_scheme.title()  # first letter upper case
-        rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))
-        palette = [list(_)[:3] for _ in rgba]
-    elif color_scheme == 8.3:  # MATLAB ver 8.3 (R2014a) and earlier
-        palette = [[0, 0, 1.0000],  # blue
-                   [0, 0.5000, 0],  # green
-                   [1.0000, 0, 0],  # red
-                   [0, 0.7500, 0.7500],  # cyan
-                   [0.7500, 0, 0.7500],  # magenta
-                   [0.7500, 0.7500, 0],  # dark yellow
-                   [0.2500, 0.2500, 0.2500]]  # dark gray
-    elif color_scheme == 8.4:  # MATLAB ver 8.4 (R2014b) and later
-        palette = [[0.0000, 0.4470, 0.7410],
-                   [0.8500, 0.3250, 0.0980],
-                   [0.9290, 0.6940, 0.1250],
-                   [0.4940, 0.1840, 0.5560],
-                   [0.4660, 0.6740, 0.1880],
-                   [0.3010, 0.7450, 0.9330],
-                   [0.6350, 0.0780, 0.1840]]
+    d = {'rgbcmyk': ['b','g','r','c','m','y','k'], # matplotlib v1.5 palette
+         'bw':  [[0]*3,[0.4]*3,[0.75]*3], # black and white: 3 levels
+         'bw3': [[0]*3,[0.4]*3,[0.75]*3], # black and white: 3 levels
+         'bw4': [[0]*3,[0.25]*3,[0.5]*3,[0.75]*3],  # b and w, 4 levels
+         'bw5': [[0]*3,[0.15]*3,[0.3]*3,[0.5]*3,[0.7]*3],  # b and w, 5 levels
+         'tab10': ['#1f77b4','#ff7f0e','#2ca02c','#d62728',  # old Tableau palette
+                   '#9467bd', '#8c564b','#e377c2','#7f7f7f','#bcbd22','#17becf'],
+         '8.3': [[0, 0, 1.0000],  # blue (MATLAB ver 8.3 (R2014a) or earlier)
+                 [0, 0.5000, 0],  # green
+                 [1.0000, 0, 0],  # red
+                 [0, 0.7500, 0.7500],  # cyan
+                 [0.7500, 0, 0.7500],  # magenta
+                 [0.7500, 0.7500, 0],  # dark yellow
+                 [0.2500, 0.2500, 0.2500]],  # dark gray
+         '8.4': [[0.0000, 0.4470, 0.7410],  # MATLAB ver 8.4 (R2014b) or later
+                 [0.8500, 0.3250, 0.0980],
+                 [0.9290, 0.6940, 0.1250],
+                 [0.4940, 0.1840, 0.5560],
+                 [0.4660, 0.6740, 0.1880],
+                 [0.3010, 0.7450, 0.9330],
+                 [0.6350, 0.0780, 0.1840]]
+         }
+
+    if color_scheme in d:
+        palette = d[color_scheme]
     else:
-        raise ValueError('Invalid value of color_scheme.')
+        if color_scheme in qcm_names:
+            c_s = color_scheme  # short hand [Note: no wrap-around behavior in mpl.cm functions]
+            rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))  # e.g., mpl.cm.Set1(range(10))
+            palette = [list(_)[:3] for _ in rgba]  # remove alpha value from each sub-list
+        elif color_scheme in qcm_names_lower:
+            c_s = color_scheme.title()  # first letter upper case
+            rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))
+            palette = [list(_)[:3] for _ in rgba]
+        else:
+            raise ValueError('Invalid value of color_scheme.')
 
     L = len(palette)
     if N is None:
