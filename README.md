@@ -204,10 +204,8 @@ pu.plot_multiple_timeseries(df, ylabel='Unemployment rate [%]', ncol_legend=10)
 Easy querying of distinguishable color palettes.
 
 ```python
-colors = pu.get_colors(color_scheme='tab10', N=10)
-
-import seaborn as sns
-sns.palplot(colors)
+colors = pu.get_colors(color_scheme='tab10', N=10)  # a Python list containing 10 colors
+pu.Multiple_Colors(colors).show()  # show colors as a palette
 ```
 
 [[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
