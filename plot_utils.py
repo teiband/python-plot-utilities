@@ -270,7 +270,7 @@ class Color():
             raise ValueError('alpha must be between 0 and 1 (inclusive).')
 
         rgb = self.__hex_to_rgb(self.__color, normalize=True)
-        rgba = (*rgb, alpha)
+        rgba = (rgb[0], rgb[1], rgb[2], alpha)
 
         return rgba
 
