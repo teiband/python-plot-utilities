@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 #%%----------------------------------------------------------------------------
-__version__ = '0.3.3'
+__version__ = '0.3.4'
 
 #%%----------------------------------------------------------------------------
 if sys.version_info.major == 3:  # Python 3
@@ -1032,7 +1032,8 @@ def missing_value_counts(X, fig=None, ax=None, figsize=None, dpi=100, rot=45):
     return fig, ax, null_counts
 
 #%%============================================================================
-def piechart(target_array, class_names=None, fig=None, ax=None, figsize=(3,3),
+def piechart(target_array, class_names=None, dropna=False, top_n=None,
+             sort_items=False, fig=None, ax=None, figsize=(3,3),
              dpi=100, colors=None, display='percent', title=None,
              fontsize=None, **piechart_kwargs):
     '''
@@ -1051,6 +1052,11 @@ def piechart(target_array, class_names=None, fig=None, ax=None, figsize=(3,3),
         class_names should be ['neg','pos'] (i.e., alphabetical).
         If None, values of the categories will be used as names. If [], then
         no class names are displayed.
+    dropna : <bool>
+        Whether to drop nan values or not. If False, they show up as 'N/A'.
+    top_n : <int>
+        An integer between 1 and the number of unique categories in target_array.
+        Useful for preventing plotting too many unique categories (very slow).
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
@@ -1093,28 +1099,69 @@ def piechart(target_array, class_names=None, fig=None, ax=None, figsize=(3,3),
 
     if not isinstance(target_array, _array_like):
         raise TypeError('target_array must be a np.ndarray, pd.Series, or list.')
+
     y = target_array  # short hand
+    if isinstance(y, list):
+        y = np.array(y)
 
     if any(pd.isnull(np.array(y))):
-        print('*****  WARNING: target_array contains NaN''s.  *****')
+        y = pd.Series(y)
+        if dropna:
+            print('****** WARNING: NaNs in target_array dropped. ******')
+            y = y[y.notnull()]  # only keep non-null entries
+        else:  # need to fill with some str, otherwise the count will be 0
+            y.fillna('N/A', inplace=True)
 
-    vals = np.unique(y)  # vals is sorted by np.unique()
-    x = []  # x stores the counts of different categories in y
+    if sort_items:  # get unique values in y
+        y = np.array([str(_) for _ in y])  # cast to str to enable comparison
+        vals = np.unique(y)  # in the order of their values
+    else:
+        vals = pd.unique(y)  # in the order of appearance
+
+    #----------- Count occurrences --------------------------------------------
+    x = []  # x stores the counts of unique categories in y
     for val in vals:
         if pd.isnull(val):
             x.append(np.sum(pd.isnull(y)))  # count number of NaN's in y
         else:
             x.append(np.sum(y == val))
 
+    #----------- (Optional) truncation of less common categories --------------
+    if top_n is not None:
+        if not isinstance(top_n, (int, np.integer)) or top_n <= 0:
+            raise ValueError('top_n must be a positive integer.')
+        if top_n > len(vals):
+            raise ValueError('top_n larger than # of categories (%d)' % len(vals))
+
+        occurrences = pd.Series(index=vals, data=x).sort_values(ascending=False)
+        truncated = occurrences.iloc[:top_n]  # first top_n entries
+
+        combined_category_name = 'others'
+        while combined_category_name in vals:
+            combined_category_name += '_'  # must not clash with current category names
+
+        other = pd.Series(index=[combined_category_name],  # just one row of data
+                          data=[occurrences.iloc[top_n:].sum()])
+        new_array = truncated.append(other, verify_integrity=True)
+        x = new_array.values
+        vals = new_array.index
+
+    thres = 100
+    if len(x) > thres:
+        print('Plotting more than %d slices. Please be very patient.' % thres)
+
+    #---------- Set colors ----------------------------------------------------
     if not colors:  # set default color cycle to 'Pastel2'
-        colors_4 = mpl.cm.Pastel2(range(8))  # R,G,B,A values ("8" means Pastel2 has maximum 8 colors)
+        colors_4 = mpl.cm.Pastel2(range(8))  # RGBA values ("8" means Pastel2 has maximum 8 colors)
         colors = [list(_)[:3] for _ in colors_4]  # remove the fourth value
 
+    #---------- Set class names -----------------------------------------------
     if class_names is None:
         class_names = [str(val) for val in vals]
     if class_names == []:
         class_names = None
 
+    #---------- Whether to display percentage or counts (or both) on pie ------
     if display == 'percent':
         autopct = '%1.1f%%'
     elif display == 'count':
@@ -1125,17 +1172,19 @@ def piechart(target_array, class_names=None, fig=None, ax=None, figsize=(3,3),
             def my_autopct(pct):
                 total = sum(values)
                 val = int(round(pct*total/100.0))
-                return '{p:.1f}%  ({v:d})'.format(p=pct,v=val)
+                return '{p:.1f}%  ({v:d})'.format(p=pct, v=val)
             return my_autopct
         autopct = make_autopct(x)
     elif display == None:
         autopct = ''
     else:
-        raise ValueError('Invalid value of "display". Can only be ["percent","count","both",None].')
+        raise ValueError('Invalid value of "display". '
+                         'Can only be ["percent","count","both",None].')
 
-    _,texts,autotexts = ax.pie(x,labels=class_names,colors=colors,
-                               autopct=autopct,**piechart_kwargs)
-    if isinstance(fontsize,(list,tuple)):
+    #------------ Plot pie chart ----------------------------------------------
+    _, texts, autotexts = ax.pie(x, labels=class_names, colors=colors,
+                                 autopct=autopct, **piechart_kwargs)
+    if isinstance(fontsize, (list, tuple)):
         for t_ in texts: t_.set_fontsize(fontsize[0])
         for t_ in autotexts: t_.set_fontsize(fontsize[1])
     elif fontsize:
