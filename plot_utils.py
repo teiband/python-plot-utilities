@@ -1174,7 +1174,7 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
                 val = int(round(pct*total/100.0))
                 return '{p:.1f}%  ({v:d})'.format(p=pct, v=val)
             return my_autopct
-        autopct = make_autopct(x)
+        autopct = make_autopct(counts)
     elif display == None:
         autopct = ''
     else:

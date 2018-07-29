@@ -1,6 +1,6 @@
 # plot_utils.piechart
 
-**plot_utils.piechart**(*target_array, class_names=None, fig=None, ax=None, figsize=(3,3), dpi=100, colors=None, display='percent', title=None, fontsize=None, \*\*piechart_kwargs*):
+**plot_utils.piechart**(*target_array, class_names=None, dropna=False, top_n=None, sort_by='counts', fig=None, ax=None, figsize=(3,3), dpi=100, colors=None, display='percent', title=None, fontsize=None, verbose=True, \*\*piechart_kwargs*):
 
 Plot a pie chart demonstrating proportions of different categories within an array.
 
@@ -15,6 +15,14 @@ Plot a pie chart demonstrating proportions of different categories within an arr
         class_names should be ['neg','pos'] (i.e., alphabetical).
         If None, values of the categories will be used as names. If [], then
         no class names are displayed.
+    dropna : <bool>
+        Whether to drop nan values or not. If False, they show up as 'N/A'.
+    top_n : <int>
+        An integer between 1 and the number of unique categories in target_array.
+        Useful for preventing plotting too many unique categories (very slow).
+    sort_by : {'counts', 'name'}
+        An option to control whether the pie slices are arranged by the counts
+        of each unique categories, or by the names of those categories.
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
@@ -41,6 +49,9 @@ Plot a pie chart demonstrating proportions of different categories within an arr
         to the specified size. If tuple of two scalars, the first value sets
         the font size of class names, and the last value sets the font size
         of the percentages.
+    verbose : <bool>
+        Whether or to show a "Plotting more than 100 slices; please be patient"
+        message when the number of categories exceeds 100.
     **piechart_kwargs :
         Keyword arguments to be passed to matplotlib.pyplot.pie function,
         except for "colors", "labels"and  "autopct" because this subroutine
