@@ -1033,9 +1033,9 @@ def missing_value_counts(X, fig=None, ax=None, figsize=None, dpi=100, rot=45):
 
 #%%============================================================================
 def piechart(target_array, class_names=None, dropna=False, top_n=None,
-             sort_items=False, fig=None, ax=None, figsize=(3,3),
+             sort_by='counts', fig=None, ax=None, figsize=(3,3),
              dpi=100, colors=None, display='percent', title=None,
-             fontsize=None, **piechart_kwargs):
+             fontsize=None, verbose=True, **piechart_kwargs):
     '''
     Plot a pie chart demonstrating proportions of different categories within
     an array.
@@ -1057,6 +1057,9 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     top_n : <int>
         An integer between 1 and the number of unique categories in target_array.
         Useful for preventing plotting too many unique categories (very slow).
+    sort_by : {'counts', 'name'}
+        An option to control whether the pie slices are arranged by the counts
+        of each unique categories, or by the names of those categories.
     fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
         Figure and axes objects.
         If provided, the graph is plotted on the provided figure and
@@ -1083,6 +1086,9 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
         to the specified size. If tuple of two scalars, the first value sets
         the font size of class names, and the last value sets the font size
         of the percentages.
+    verbose : <bool>
+        Whether or to show a "Plotting more than 100 slices; please be patient"
+        message when the number of categories exceeds 100.
     **piechart_kwargs :
         Keyword arguments to be passed to matplotlib.pyplot.pie function,
         except for "colors", "labels"and  "autopct" because this subroutine
@@ -1100,31 +1106,25 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     if not isinstance(target_array, _array_like):
         raise TypeError('target_array must be a np.ndarray, pd.Series, or list.')
 
-    y = target_array  # short hand
-    if isinstance(y, list):
-        y = np.array(y)
+    if sort_by not in ['count', 'counts', 'name', 'names']:
+        raise ValueError("'sort_by' must be 'counts' or 'names'.")
 
-    if any(pd.isnull(np.array(y))):
+    y = target_array
+    if ~isinstance(y, pd.Series):
         y = pd.Series(y)
-        if dropna:
-            print('****** WARNING: NaNs in target_array dropped. ******')
-            y = y[y.notnull()]  # only keep non-null entries
-        else:  # need to fill with some str, otherwise the count will be 0
-            y.fillna('N/A', inplace=True)
 
-    if sort_items:  # get unique values in y
-        y = np.array([str(_) for _ in y])  # cast to str to enable comparison
-        vals = np.unique(y)  # in the order of their values
-    else:
-        vals = pd.unique(y)  # in the order of appearance
+    if dropna:
+        print('****** WARNING: NaNs in target_array dropped. ******')
+        y = y[y.notnull()]  # only keep non-null entries
+    else:  # need to fill with some str, otherwise the count will be 0
+        y.fillna('N/A', inplace=True)
 
     #----------- Count occurrences --------------------------------------------
-    x = []  # x stores the counts of unique categories in y
-    for val in vals:
-        if pd.isnull(val):
-            x.append(np.sum(pd.isnull(y)))  # count number of NaN's in y
-        else:
-            x.append(np.sum(y == val))
+    val_count = y.value_counts()  # index: unique values; values: their counts
+    if sort_by in ['names', 'name']:
+        val_count.sort_index(inplace=True)
+    vals = list(val_count.index)
+    counts = list(val_count)
 
     #----------- (Optional) truncation of less common categories --------------
     if top_n is not None:
@@ -1147,7 +1147,7 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
         vals = new_array.index
 
     thres = 100
-    if len(x) > thres:
+    if len(counts) > thres and verbose:
         print('Plotting more than %d slices. Please be very patient.' % thres)
 
     #---------- Set colors ----------------------------------------------------
@@ -1165,7 +1165,7 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     if display == 'percent':
         autopct = '%1.1f%%'
     elif display == 'count':
-        total = np.sum(x)  # https://stackoverflow.com/a/14171272/8892243
+        total = np.sum(counts)  # https://stackoverflow.com/a/14171272/8892243
         autopct = lambda p: '{:.0f}'.format(p * total / 100.0)
     elif display == 'both':
         def make_autopct(values):  # https://stackoverflow.com/a/6170354/8892243
@@ -1182,7 +1182,7 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
                          'Can only be ["percent","count","both",None].')
 
     #------------ Plot pie chart ----------------------------------------------
-    _, texts, autotexts = ax.pie(x, labels=class_names, colors=colors,
+    _, texts, autotexts = ax.pie(counts, labels=class_names, colors=colors,
                                  autopct=autopct, **piechart_kwargs)
     if isinstance(fontsize, (list, tuple)):
         for t_ in texts: t_.set_fontsize(fontsize[0])
