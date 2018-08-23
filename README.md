@@ -37,9 +37,9 @@ Current functionalities include (for full list, use `print(plot_utils.__doc__)`)
 
 #### 6. Miscellaneous
 
-+ A **get_colors()** function that conveniently queries different color palettes [[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
-+ A **get_linespecs()** function that generates distinct color/linestyle/linewidth combinations for plotting many lines together [[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
-+ Two helper classes: **Color** and **Multiple_Colors**, which make querying and displaying colors more easily  [[doc](./docs/color_classes.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
++ A **get_colors()** function that conveniently queries different color palettes [[doc](./docs/get_colors.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
++ A **get_linespecs()** function that generates distinct color/linestyle/linewidth combinations for plotting many lines together [[doc](./docs/get_linespecs.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
++ Two helper classes: **Color** and **Multiple_Colors**, which make querying and displaying colors more easily  [[doc](./docs/color_classes.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
 + **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 + **trim_img()**, which trims the white margins of the specified image file(s) [[doc](./docs/trim_img.md)]
 
@@ -208,7 +208,7 @@ colors = pu.get_colors(color_scheme='tab10', N=10)  # a Python list containing 1
 pu.Multiple_Colors(colors).show()  # show colors as a palette
 ```
 
-[[doc](./docs/get_colors.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
+[[doc](./docs/get_colors.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
 
 ![](./examples/gallery/get_colors.png)
 
@@ -221,7 +221,7 @@ line_specs = pu.get_linespecs(color_scheme='bw',range_linewidth=[3,8],priority='
 pu.linespecs_demo(line_specs)
 ```
 
-[[doc](./docs/get_linespecs.md)], [[example](./examples/Get_color_linespec_scheme_examples.ipynb)]
+[[doc](./docs/get_linespecs.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
 
 ![](./examples/gallery/get_linespecs.png)
 
