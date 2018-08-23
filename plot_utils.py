@@ -1,8 +1,69 @@
 # -*- coding: utf-8 -*-
 """
-This is a Python module that contains some useful plotting utilities.
+This is a Python module that contains useful data visualization functions.
 
-For user guide, check: https://github.com/jsh9/python-plot-utilities
+Github repository: https://github.com/jsh9/python-plot-utilities
+
+Top-level functions:
+
+    1. One column of data:
+        piechart
+        discrete_histogram
+
+    2. Two columns of data:
+        bin_and_mean
+        category_mean
+        positive_rage
+        contingency_table
+        scatter_plot_two_cols
+
+    3. Multiple columns of data:
+        histogram3d
+        violin_plot
+        plot_correlation
+        missing_value_counts
+
+    4. Heat maps:
+        choropleth_map_state
+        choropleth_map_county
+
+    5. Time series plotting:
+        plot_timeseries
+        plot_multiple_timeseries
+        fill_timeseries
+
+    6. Miscellaneous:
+        get_colors
+        get_linespecs
+        plot_ranking
+        plot_with_error_bounds
+        trim_img
+
+Helper functions:
+     _adjust_colorbar_tick_labels
+     _array_like
+     _as_date
+     _calc_bar_width
+     _calc_month_interval
+     _check_all_states
+     _check_color_types
+     _convert_FIPS_to_state_name
+     _crosstab_to_arrays
+     _format_xlabel
+     _get_ax_size
+     _process_fig_ax_objects
+     _scalar_like
+     _str2date_kernel
+     _translate_state_abbrev
+
+Helper classes:
+    Color
+    Multiple_Colors
+    Normalize
+    MidpointNormalize
+    ScalarFormatter
+    FixedOrderFormatter
+
 
 Created on Fri Apr 28 15:37:26 2017
 
@@ -22,7 +83,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 #%%----------------------------------------------------------------------------
-__version__ = '0.3.5'
+__version__ = '0.3.6'
 
 #%%----------------------------------------------------------------------------
 if sys.version_info.major == 3:  # Python 3
@@ -673,7 +734,7 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
     return fig, ax, pos_rate, (chi2, p_val, dof)
 
 #%%============================================================================
-def crosstab_to_arrays(cross_tab):
+def _crosstab_to_arrays(cross_tab):
     '''
     Helper function. Convert a contingency table to two arrays, which is the
     reversed operation of pandas.crosstab().
@@ -2710,7 +2771,8 @@ def fill_timeseries(time_series, upper_bound, lower_bound, date_fmt=None,
     Plot time_series as a line, where its index indicates a date (e.g., year,
     month, date).
 
-    And then plot the upper bound and lower bound as shaded areas beneath the line.
+    And then plot the upper bound and lower bound as shaded areas beneath the
+    line.
 
     Parameters
     ----------
