@@ -2414,14 +2414,31 @@ def _convert_FIPS_to_state_name(dict1):
         new_state_name = fips2state[FIPS_code]  # convert state name
         dict2.update({new_state_name: dict1[FIPS_code]})
 
-    dict3 = _translate_state_abbrev(dict2,abbrev_to_full=True)
+    dict3 = _translate_state_abbrev(dict2, abbrev_to_full=True)
 
     return dict3
 
 #%%============================================================================
-def _translate_state_abbrev(dict1,abbrev_to_full=True):
+def _translate_state_abbrev(dict1, abbrev_to_full=True):
     '''
     Convert state full names into state abbreviations, or the other way.
+    Overseas territories (except Puerto Rico) cannot be converted.
+
+    Robustness is not guaranteed: if invalide state names (full or abbreviated)
+    exist in dict1, a KeyError will be raised.
+
+    Parameters
+    ----------
+    dict1 : <dict>
+        A mapping between state name and some data, e.g., {'AK': 1, 'AL': 2, ...}
+    abbrev_to_full : <bool>
+        If True, translate {'AK': 1, 'AL': 2, ...} into
+        {'Alaska': 1, 'Alabama': 2, ...}. If False, the opposite way.
+
+    Returns
+    -------
+    dict2 : <dict>
+        The converted dictionary
     '''
     if abbrev_to_full is True:
         translation = {
@@ -2493,6 +2510,7 @@ def _translate_state_abbrev(dict1,abbrev_to_full=True):
             'Colorado': 'CO',
             'Connecticut': 'CT',
             'Delaware': 'DE',
+            'District of Columbia': 'DC',
             'Florida': 'FL',
             'Georgia': 'GA',
             'Hawaii': 'HI',
@@ -2523,6 +2541,7 @@ def _translate_state_abbrev(dict1,abbrev_to_full=True):
             'Oklahoma': 'OK',
             'Oregon': 'OR',
             'Pennsylvania': 'PA',
+            'Puerto Rico': 'PR',
             'Rhode Island': 'RI',
             'South Carolina': 'SC',
             'South Dakota': 'SD',
@@ -2537,8 +2556,8 @@ def _translate_state_abbrev(dict1,abbrev_to_full=True):
             'Wyoming': 'WY',
         }
 
-    dict2 = {}  # create empty dict
-    for state_name in dict1.keys():
+    dict2 = {}
+    for state_name in dict1:
         new_state_name = translation[state_name]  # convert state name
         dict2.update({new_state_name: dict1[state_name]})
 
