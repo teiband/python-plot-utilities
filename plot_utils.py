@@ -218,6 +218,10 @@ class Color():
                 except KeyError:
                     raise ValueError("Unrecognized color: '%s'" % color)
 
+    def __repr__(self):
+
+        return 'RGB color: %s' % str(self.as_rgb());
+
     def __rgb_to_hex(self, rgb, is_normalized=True):
         '''
         Private method. Converts RGB values into HEX.
@@ -348,6 +352,10 @@ class Multiple_Colors():
         for j, color in enumerate(colors):
             self.__Colors[j] = Color(color, is_rgb_normalized)
 
+    def __repr__(self):
+
+        return self.as_rgb()
+
     def as_rgb(self, normalize=True):
         '''
         Public method. Export the colors as a list of RGB values.
@@ -455,7 +463,9 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
         The label for the y axis (i.e., average y values) of the violin plot.
         If None and y is a pandas Series, use y's 'name' attribute as ylabel.
     rot : <float>
-        The rotation (in degrees) of the x axis labels.
+        The rotation (in degrees) of the x axis labels
+    dropna : <bool>
+        Whether or not to exclude N/A records in the data
     show_stats : <bool>
         Whether or not to show the statistical test results (F statistics
         and p-value) on the figure.
@@ -912,11 +922,11 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
         Only shows top_n categories (ranked by their positive rate) in the
         figure. Useful when there are too many categories.
     score_ax_label : <str>
-        Label of the score axis (e.g., 'Age of pet').
+        Label of the score axis (e.g., 'Age of pet')
     name_ax_label : <str>
-        Label of the category name axis.
+        Label of the category name axis
     grid_on : <bool>
-        Whether or not to show grids.
+        Whether or not to show grids on the plot
 
     Returns
     -------
@@ -1133,7 +1143,8 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
         if top_n > len(vals):
             raise ValueError('top_n larger than # of categories (%d)' % len(vals))
 
-        occurrences = pd.Series(index=vals, data=x).sort_values(ascending=False)
+        occurrences = pd.Series(index=vals, data=counts).sort_values(
+                ascending=False)
         truncated = occurrences.iloc[:top_n]  # first top_n entries
 
         combined_category_name = 'others'
@@ -1143,7 +1154,7 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
         other = pd.Series(index=[combined_category_name],  # just one row of data
                           data=[occurrences.iloc[top_n:].sum()])
         new_array = truncated.append(other, verify_integrity=True)
-        x = new_array.values
+        counts = new_array.values
         vals = new_array.index
 
     thres = 100
@@ -2974,7 +2985,8 @@ def _as_date(raw_date, date_fmt=None):
         A variable with the same structure (list or scaler-like) as raw_date,
         whose contents have the data type "pandas._libs.tslib.Timestamp".
 
-    Reference: https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
+    Reference:
+    https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
     '''
 
     if pd.__version__ == '0.17.1':
@@ -3128,7 +3140,7 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
     logx, logy : <bool>
         Whether or not to show x or y axis scales as log
     grid_on : <bool>
-        whether or not to show the grids
+        whether or not to show grids on the plot
 
     Returns
     -------
@@ -3273,12 +3285,12 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
         Screen resolution. (fig object passed via "fig" will over override
         this parameter)
     alpha : scalar
-        Opacity of the scatter points.
+        Opacity of the scatter points
     color : <str> or list of tuple
         Color of the scatter points. If None, default matplotlib color palette
         will be used.
     grid_on : <bool>
-        Whether or not to show grids.
+        Whether or not to show grids on the plot
 
     Returns
     -------
@@ -3423,7 +3435,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     logx, logy : <bool>
         Whether or not to adjust the scales of x and/or y axes to logarithmic
     grid_on : <bool>
-        Whether or not to show the grids
+        Whether or not to show grids on the plot
     error_bounds : <bool>
         Whether or not to show error bounds of each bin
     err_bound_type : ['shade', 'bar']
