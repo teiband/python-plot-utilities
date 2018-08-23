@@ -127,7 +127,9 @@ average y values) is performed, and F statistics and p-value are returned.
         The label for the y axis (i.e., average y values) of the violin plot.
         If None and y is a pandas Series, use y's 'name' attribute as ylabel.
     rot : <float>
-        The rotation (in degrees) of the x axis labels.
+        The rotation (in degrees) of the x axis labels
+    dropna : <bool>
+        Whether or not to exclude N/A records in the data
     show_stats : <bool>
         Whether or not to show the statistical test results (F statistics
         and p-value) on the figure.
