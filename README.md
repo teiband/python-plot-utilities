@@ -2,7 +2,7 @@
 
 This is a Python module that contains some useful data visualization tools.
 
-Current functionalities include:
+Current functionalities include (for full list, use `print(plot_utils.__doc__)`):
 
 #### 1. Visualizing one column of data
 
