@@ -53,7 +53,7 @@ Helper functions:
      _get_ax_size
      _process_fig_ax_objects
      _scalar_like
-     _str2date_kernel
+     _str2date
      _translate_state_abbrev
 
 Helper classes:
@@ -71,8 +71,11 @@ Copyright (c) 2017-2018, Jian Shi
 License: GPL v3
 """
 
+from __future__ import division, print_function
+
 import os
 import sys
+import itertools
 import numpy as np
 import pandas as pd
 import datetime as dt
@@ -81,6 +84,7 @@ import matplotlib as mpl
 import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
+from distutils.version import LooseVersion
 
 #%%----------------------------------------------------------------------------
 __version__ = '0.3.6'
@@ -280,7 +284,6 @@ class Color():
                     raise ValueError("Unrecognized color: '%s'" % color)
 
     def __repr__(self):
-
         return 'RGB color: %s' % str(self.as_rgb());
 
     def __rgb_to_hex(self, rgb, is_normalized=True):
@@ -414,7 +417,6 @@ class Multiple_Colors():
             self.__Colors[j] = Color(color, is_rgb_normalized)
 
     def __repr__(self):
-
         return self.as_rgb()
 
     def as_rgb(self, normalize=True):
@@ -739,7 +741,6 @@ def _crosstab_to_arrays(cross_tab):
     Helper function. Convert a contingency table to two arrays, which is the
     reversed operation of pandas.crosstab().
     '''
-    import itertools
 
     if isinstance(cross_tab, (list, pd.Series)):
         raise DimensionError('Please pass a 2D data structure.')
@@ -831,7 +832,7 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         A tuple in the order of (phi coef., coeff. of contingency, Cramer's V)
     '''
 
-    import itertools
+
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     x = array_horizontal
@@ -914,7 +915,6 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         ax.text(j, i, format(table.iloc[i, j], fmt),
                  ha="center", va='center', fontsize=9,
                  color=text_color(table.iloc[i, j]))
-        pass
 
     if xlabel:
         ax.xaxis.set_label_position('top')
@@ -1269,7 +1269,7 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
 
     return fig, ax
 
-#%%############################################################################
+#%%============================================================================
 def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
                 elev=30, azim=5, alpha=0.6, data_labels=None,
                 plot_legend=True, plot_xlabel=False, color=None,
@@ -1363,14 +1363,14 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
 
     from mpl_toolkits.mplot3d import Axes3D
 
-    # --------  Data type checking for X  ------------
+    #---------  Data type checking for X  -------------------------------------
     if isinstance(X, np.ndarray):
-        if X.ndim <= 1:  # X is a 1D numpy array
+        if X.ndim <= 1:
             N = 1
-            X = [list(X)]  # e.g., np.array([1,2,3]) --> [[1,2,3]], so that X[0] = [1,2,3]
-        elif X.ndim == 2:  # X is a 2D numpy array
+            X = [list(X)]  # np.array([1,2,3])-->[[1,2,3]], so that X[0]=[1,2,3]
+        elif X.ndim == 2:
             N = X.shape[0]  # number of separate distribution to be compared
-            X = list(X)  # then turn X into a list of numpy arrays (no longer a 2D numpy array)
+            X = list(X)  # turn X into a list of numpy arrays
         else:  # 3D numpy array or above
             raise TypeError('If X is a numpy array, it should be a 1D or 2D array.')
     elif isinstance(X, pd.Series):
@@ -1387,7 +1387,7 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
     else:  # X is a scalar
         raise TypeError('X must be a list, 2D numpy array, or pd Series/DataFrame.')
 
-    # -----------  NaN checking for X  ----------------
+    #------------  NaN checking for X  ----------------------------------------
     for j in range(N):
         if not all(np.isfinite(X[j])):
             raise ValueError('X[%d] contains non-finite values (not accepted by histogram3d()).' % j)
@@ -1397,11 +1397,11 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
         for j in range(N):
             data_labels[j] = 'Dataset #%d' % (j+1)  # use generic data set names
 
+    #------------ Prepare figure, axes and colors -----------------------------
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi, '3d')
+    ax.view_init(elev, azim)  # set view elevation and angle
 
-    ax.view_init(elev,azim)  # set view elevation and angle
-
-    proxy = [[None]] * N  # create a 'proxy' to help generating legends
+    proxy = [[None]] * N  # create a 'proxy' to help generate legends
     if not color:
         c_ = get_colors(color_scheme='tab10', N=N)  # get a list of colors
     else:
@@ -1410,45 +1410,52 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
             raise TypeError(msg)
         c_ = color
 
-    xpos_list = [[None]] * N  # pre-allocation
+    #------------ Plot one data set at a time ---------------------------------
+    xpos_list = [[None]] * N
     for j in range(N):  # loop through each dataset
-        if isinstance(bins,(list,np.ndarray)) and len(bins) > 1:  # if 'bins' is a list and length > 1
-            bar_width = np.min(np.array(bins[1:])-np.array(bins[:-1]))  # pick the mininum bin width as bar_width
-        elif isinstance(bins,(int,np.integer)):  # if integer (i.e., number of bins)
-            bar_width = (np.max(X[j])-np.min(X[j]))/float(bins)  # use the most narrow bin width as bar_width
-        else:  # for other type of "bins", try to convert it into a list
-            bins = list(bins)
-            bar_width = np.min(np.array(bins[1:])-np.array(bins[:-1]))  # pick the mininum bin width as bar_width
+        if isinstance(bins, (list, np.ndarray)):
+            if len(bins) == 0:
+                raise ValueError('`bins` must not be empty.')
+            else:
+                all_bin_widths = np.array(bins[1:]) - np.array(bins[:-1])
+                bar_width = np.min(all_bin_widths)
+        elif isinstance(bins, (int, np.integer)):  # i.e., number of bins
+            if bins <= 0:
+                raise ValueError('`bins` must be a positive integer.')
+            bar_width = np.ptp(X[j])/float(bins)  # most narrow bin width --> bar_width
+        else:
+            raise ValueError('`bins` must be an integer, list, or np.ndarray.')
 
-        dz, ypos_ = np.histogram(X[j],bins)  # calculate counts and bin edges
-        ypos = np.mean(np.array([ypos_[:-1],ypos_[1:]]),axis=0)  # mid-point of all bins
+        dz, ypos_ = np.histogram(X[j], bins)  # calculate counts and bin edges
+        ypos = np.mean(np.array([ypos_[:-1],ypos_[1:]]), axis=0)  # mid-point of all bins
         xpos = np.ones_like(ypos) * (j-0.5)  # location of each data set
-        zpos = np.zeros_like(xpos)  # should be all 0's
+        zpos = np.zeros_like(xpos)  # zpos is where the bars stand
         dx = dx_factor  # width of bars in x direction (across data sets)
         dy = bar_width * dy_factor  # width of bars in y direction (within data set)
-        if float(mpl.__version__.split('.')[0]) >= 2.0:
-            bar3d_kwargs = {'alpha':alpha}  # 'lw' argument clashes with alpha in 2.0+ versions
+        if LooseVersion(mpl.__version__) >= LooseVersion('2.0'):
+            bar3d_kwargs = {'alpha':alpha}  # lw clashes with alpha in 2.0+ versions
         else:
             bar3d_kwargs = {'alpha':alpha, 'lw':0.5}
         ax.bar3d(xpos, ypos, zpos, dx, dy, dz, color=c_[j], **bar3d_kwargs)
         proxy[j] = plt.Rectangle((0, 0), 1, 1, fc=c_[j])  # generate proxy for plotting legends
         xpos_list[j] = xpos[0] + dx/2.0  # '+dx/2.0' makes x ticks pass through center of bars
 
+    #-------------- Legends, labels, etc. -------------------------------------
     if plot_legend is True:
         default_kwargs = {'loc':9, 'fancybox':True, 'framealpha':0.5,
                           'ncol':N, 'fontsize':10}
-        if legend_kwargs == {}:  # set default legend keyword arguments
-            legend_kwargs.update(default_kwargs)  # update with default_kwargs
-        else:  # if user provides (some of the) keyword arguments
-            default_kwargs.update(legend_kwargs)  # use provided args to update default args
-            legend_kwargs = default_kwargs  # then replace legend_kwargs with default_kwargs
-        ax.legend(proxy,data_labels,**legend_kwargs)
+        if legend_kwargs == {}:
+            legend_kwargs.update(default_kwargs)
+        else:  # if user provides some keyword arguments
+            default_kwargs.update(legend_kwargs)
+            legend_kwargs = default_kwargs
+        ax.legend(proxy, data_labels, **legend_kwargs)
 
     if plot_xlabel is True:
-        ax.set_xticks(xpos_list)  # show x ticks
-        ax.set_xticklabels(data_labels)  # use data_labels to denote X ticks
+        ax.set_xticks(xpos_list)
+        ax.set_xticklabels(data_labels)
     else:
-        ax.set_xticks([])  # do not show X ticks and X tick labels
+        ax.set_xticks([])
 
     ax.set_ylabel(ylabel)
     ax.set_zlabel(zlabel)
@@ -1458,7 +1465,7 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
 
     return fig, ax
 
-#%%############################################################################
+#%%============================================================================
 def _check_color_types(color, n=None):
     '''
     Helper function that checks whether a Python object "color" is indeed a
@@ -1484,7 +1491,7 @@ def _check_color_types(color, n=None):
 
     return is_valid, err_msg
 
-#%%############################################################################
+#%%============================================================================
 def get_colors(N=None, color_scheme='tab10'):
     '''
     Returns a list of N distinguisable colors. When N is larger than the color
@@ -1584,16 +1591,17 @@ def get_colors(N=None, color_scheme='tab10'):
             rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))
             palette = [list(_)[:3] for _ in rgba]
         else:
-            raise ValueError('Invalid value of color_scheme.')
+            raise ValueError('Invalid color_scheme.')
 
     L = len(palette)
     if N is None:
         N = L
-    elif not isinstance(N,(int,np.integer)):
+    elif not isinstance(N, (int, np.integer)):
         raise TypeError('N should be either None or integers.')
+
     return [palette[i % L] for i in range(N)]  # wrap around 'palette' if N > L
 
-#%%############################################################################
+#%%============================================================================
 def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
                   priority='color'):
     '''
@@ -1625,7 +1633,7 @@ def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
     -------
     >>> import plot_utils as pu
     >>> import matplotlib.pyplot as plt
-    >>> plt.plot([0,1],[0,1],**pu.get_linespecs()[53])
+    >>> plt.plot([0,1], [0,1], **pu.get_linespecs()[53])
     '''
 
     import cycler
@@ -1649,7 +1657,7 @@ def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
 
     return list(style_cycle)
 
-#%%############################################################################
+#%%============================================================================
 def linespecs_demo(line_specs, horizontal_plot=False):
     '''
     Demonstrate all generated line specifications given by get_linespecs()
@@ -1689,8 +1697,8 @@ def linespecs_demo(line_specs, horizontal_plot=False):
 
     return fig, ax
 
-#%%############################################################################
-def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
+#%%============================================================================
+def _find_axes_lim(data_limit, tick_base_unit, direction='upper'):
     '''
     Return a "whole" number to be used as the upper or lower limit of axes.
 
@@ -1720,7 +1728,11 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
     (Note: it is always ordered no matter what the order of data_limit is.)
 
     If data_limit is a scalar, return axis_limit according to the DIRECTION.
+
+    NOTE:
+        This subroutine is no longer being used for now.
     '''
+
     if isinstance(data_limit, _scalar_like):
         if direction == 'upper':
             return tick_base_unit * (int(data_limit/tick_base_unit)+1)
@@ -1738,13 +1750,13 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
             min_limit = tick_base_unit * (int(min_data/tick_base_unit))
             return [min_limit, max_limit]
         elif len(data_limit) == 1:  # such as [2.14]
-            return find_axes_lim(data_limit[0],tick_base_unit,direction) # recursion
+            return _find_axes_lim(data_limit[0],tick_base_unit,direction)
     elif isinstance(data_limit, np.ndarray):
         data_limit = data_limit.flatten()  # convert np.array(2.5) into np.array([2.5])
         if data_limit.size == 1:
-            return find_axes_lim(data_limit[0],tick_base_unit,direction) # recursion
+            return _find_axes_lim(data_limit[0],tick_base_unit,direction)
         elif data_limit.size == 2:
-            return find_axes_lim(list(data_limit),tick_base_unit,direction) # recursion
+            return _find_axes_lim(list(data_limit),tick_base_unit,direction)
         elif data_limit.size >= 3:
             raise LengthError('Length of data_limit should be at most 2.')
         else:
@@ -1752,7 +1764,7 @@ def find_axes_lim(data_limit,tick_base_unit,direction='upper'):
     else:
         raise TypeError('data_limit should be a scalar or a tuple/list of 2.')
 
-#%%############################################################################
+#%%============================================================================
 def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
                        alpha=None, rot=0, logy=False, title=None, xlabel=None,
                        ylabel='Number of occurrences', show_xticklabel=True):
@@ -1832,7 +1844,7 @@ def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
     if isinstance(x, dict):
         value_count = pd.Series(x, name='counts').sort_index()
     else:
-        X = pd.Series(x)  # convert x into series
+        X = pd.Series(x)
         value_count = X.value_counts().sort_index()  # count distinct values and sort
         name = 'counts' if value_count.name is None else value_count.name + '_counts'
         value_count.rename(name, inplace=True)
@@ -1856,25 +1868,27 @@ def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
 
     return fig, ax, value_count
 
-#%%############################################################################
-from matplotlib.ticker import ScalarFormatter
-class FixedOrderFormatter(ScalarFormatter):
+#%%============================================================================
+class FixedOrderFormatter(mpl.ticker.ScalarFormatter):
     '''
     Formats axis ticks using scientific notation with a constant order of
     magnitude.
 
     (Reference: https://stackoverflow.com/a/3679918)
+
+    Note: this class is not currently being used.
     '''
 
     def __init__(self, order_of_mag=0, useOffset=True, useMathText=True):
         self._order_of_mag = order_of_mag
-        ScalarFormatter.__init__(self, useOffset=useOffset,
-                                 useMathText=useMathText)
+        mpl.ticker.ScalarFormatter.__init__(self, useOffset=useOffset,
+                                            useMathText=useMathText)
+
     def _set_orderOfMagnitude(self, range):
         """Over-riding this to avoid having orderOfMagnitude reset elsewhere"""
         self.orderOfMagnitude = self._order_of_mag
 
-#%%############################################################################
+#%%============================================================================
 def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
                          dpi=100, vmin=None, vmax=None, map_title='USA map',
                          unit='', cmap='OrRd', fontsize=14, cmap_midpoint=None,
@@ -1895,7 +1909,7 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
         Acceptable data types include:
             - pandas Series: Index should be valid state identifiers (i.e.,
                              state full name, abbreviation, or FIPS code)
-            - pandas DataFrame: The dataframe can have only one columns (with
+            - pandas DataFrame: The dataframe can have only one column (with
                                 the index being valid state identifiers), two
                                 columns (with one of the column named 'state',
                                 'State', or 'FIPS_code', and containing state
@@ -1934,8 +1948,8 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     shapefile_dir : <str>
         Directory where shape files are stored. Shape files (state level and
         county level) should be organized as follows:
-            [shapefile_dir]/usa_states/st99_d00.(...)
-            [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
+            <shapefile_dir>/usa_states/st99_d00.(...)
+            <shapefile_dir>/usa_counties/cb_2016_us_county_500k.(...)
 
     Returns
     -------
@@ -1949,7 +1963,7 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     '''
 
     from mpl_toolkits.basemap import Basemap as Basemap
-    from matplotlib.colors import rgb2hex, Normalize
+    from matplotlib.colors import rgb2hex
     from matplotlib.patches import Polygon
     from matplotlib.colorbar import ColorbarBase
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -1989,21 +2003,21 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     # Lambert Conformal map of lower 48 states.
-    m = Basemap(llcrnrlon=-119,llcrnrlat=20,urcrnrlon=-64,urcrnrlat=49,
-                projection='lcc',lat_1=33,lat_2=45,lon_0=-95)
+    m = Basemap(llcrnrlon=-119, llcrnrlat=20, urcrnrlon=-64, urcrnrlat=49,
+                projection='lcc', lat_1=33, lat_2=45, lon_0=-95)
 
     # Mercator projection, for Alaska and Hawaii
-    m_ = Basemap(llcrnrlon=-190,llcrnrlat=20,urcrnrlon=-143,urcrnrlat=46,
-                projection='merc',lat_ts=20)  # do not change these numbers
+    m_ = Basemap(llcrnrlon=-190, llcrnrlat=20, urcrnrlon=-143, urcrnrlat=46,
+                projection='merc', lat_ts=20)  # do not change these numbers
 
     #---------   draw state boundaries  ----------------------------------------
     if shapefile_dir is None:
         shapefile_dir = './shapefiles'
-    shp_path_state = os.path.join(shapefile_dir,'usa_states','st99_d00')
+    shp_path_state = os.path.join(shapefile_dir, 'usa_states', 'st99_d00')
     try:
-        shp_info = m.readshapefile(shp_path_state,'states',drawbounds=True,
-                                   linewidth=0.45,color='gray')
-        shp_info_ = m_.readshapefile(shp_path_state,'states',drawbounds=False)
+        shp_info = m.readshapefile(shp_path_state, 'states', drawbounds=True,
+                                   linewidth=0.45, color='gray')
+        shp_info_ = m_.readshapefile(shp_path_state, 'states', drawbounds=False)
     except IOError:
         raise IOError('Shape files not found. Specify the location of the "shapefiles" folder.')
 
@@ -2034,11 +2048,11 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
         # skip DC and Puerto Rico.
         if statenames[nshape] not in ['Puerto Rico', 'District of Columbia']:
             if colors[statenames[nshape]] == None:
-                color = rgb2hex([0.93]*3)
-                poly = Polygon(seg,facecolor=color,edgecolor=[0.4]*3,hatch='\\')
+                color = rgb2hex([0.93] * 3)
+                poly = Polygon(seg, facecolor=color, edgecolor=[0.4]*3, hatch='\\')
             else:
                 color = rgb2hex(colors[statenames[nshape]])
-                poly = Polygon(seg,facecolor=color,edgecolor=color)
+                poly = Polygon(seg, facecolor=color, edgecolor=color)
 
             ax.add_patch(poly)
 
@@ -2053,10 +2067,10 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     for nshape, shapedict in enumerate(m_.states_info):  # plot Alaska and Hawaii as map insets
         if shapedict['NAME'] in ['Alaska', 'Hawaii']:
             seg = m_.states[int(shapedict['SHAPENUM'] - 1)]
-            if shapedict['NAME'] == 'Hawaii' and float(shapedict['AREA']) > AREA_1:
+            if shapedict['NAME']=='Hawaii' and float(shapedict['AREA'])>AREA_1:
                 seg = [(x + HI_OFFSET_X, y + HI_OFFSET_Y) for x, y in seg]
                 color = rgb2hex(colors[statenames[nshape]])
-            elif shapedict['NAME'] == 'Alaska' and float(shapedict['AREA']) > AREA_2:
+            elif shapedict['NAME']=='Alaska' and float(shapedict['AREA'])>AREA_2:
                 seg = [(x*AK_SCALE + AK_OFFSET_X, y*AK_SCALE + AK_OFFSET_Y)\
                        for x, y in seg]
                 color = rgb2hex(colors[statenames[nshape]])
@@ -2066,21 +2080,21 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     ax.set_title(map_title)
 
     #---------  Plot bounding boxes for Alaska and Hawaii insets  --------------
-    light_gray = [0.8]*3  # define light gray color RGB
-    m_.plot(np.linspace(170,177),np.linspace(29,29),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(177,180),np.linspace(29,26),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(180,180),np.linspace(26,23),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(-180,-177),np.linspace(23,20),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(-180,-175),np.linspace(26,26),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(-175,-171),np.linspace(26,22),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(-171,-171),np.linspace(22,20),linewidth=1.,
-            color=light_gray,latlon=True)
+    light_gray = [0.8] * 3
+    m_.plot(np.linspace(170, 177), np.linspace(29, 29), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(177, 180), np.linspace(29, 26), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(180, 180), np.linspace(26, 23), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(-180, -177), np.linspace(23, 20), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(-180, -175), np.linspace(26, 26), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(-175, -171), np.linspace(26, 22), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(-171, -171), np.linspace(22, 20), linewidth=1.,
+            color=light_gray, latlon=True)
 
     #---------   Show color bar  ---------------------------------------
     if cmap_midpoint is None:
@@ -2090,10 +2104,9 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
 
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="3%", pad=0.08)
-    cb = ColorbarBase(cax,cmap=cmap,norm=norm,orientation='vertical',label=unit)
+    cb = ColorbarBase(cax, cmap=cmap, norm=norm, orientation='vertical', label=unit)
 
-    mpl_version = mpl.__version__.split('.')
-    if float(mpl_version[0] + '.' + mpl_version[0]) >= 2.1: # version > 2.1.0
+    if LooseVersion(mpl.__version__) >= LooseVersion('2.1.0'):
         cb = _adjust_colorbar_tick_labels(cb,
                                          np.nanmax(list(data_per_state.values())) > vmax,
                                          np.nanmin(list(data_per_state.values())) < vmin)
@@ -2104,7 +2117,7 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
 
     return fig, ax  # return figure and axes handles
 
-#%%############################################################################
+#%%============================================================================
 def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
                           dpi=100, vmin=None, vmax=None, unit='', cmap='OrRd',
                           map_title='USA county map', fontsize=14,
@@ -2125,7 +2138,7 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
         Acceptable data types include:
             - pandas Series: Index should be valid county identifiers (i.e.,
                              5 digit county FIPS codes)
-            - pandas DataFrame: The dataframe can have only one columns (with
+            - pandas DataFrame: The dataframe can have only one column (with
                                 the index being valid county identifiers), two
                                 columns (with one of the column named 'state',
                                 'State', or 'FIPS_code', and containing county
@@ -2164,8 +2177,8 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
     shapefile_dir : <str>
         Directory where shape files are stored. Shape files (state level and
         county level) should be organized as follows:
-            [shapefile_dir]/usa_states/st99_d00.(...)
-            [shapefile_dir]/usa_counties/cb_2016_us_county_500k.(...)
+            <shapefile_dir>/usa_states/st99_d00.(...)
+            <shapefile_dir>/usa_counties/cb_2016_us_county_500k.(...)
 
     Returns
     -------
@@ -2179,7 +2192,7 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
     '''
 
     from mpl_toolkits.basemap import Basemap as Basemap
-    from matplotlib.colors import rgb2hex, Normalize
+    from matplotlib.colors import rgb2hex
     from matplotlib.patches import Polygon
     from matplotlib.colorbar import ColorbarBase
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -2205,32 +2218,34 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     # Lambert Conformal map of lower 48 states.
-    m = Basemap(llcrnrlon=-119,llcrnrlat=20,urcrnrlon=-64,urcrnrlat=49,
-                projection='lcc',lat_1=33,lat_2=45,lon_0=-95)
+    m = Basemap(llcrnrlon=-119, llcrnrlat=20, urcrnrlon=-64, urcrnrlat=49,
+                projection='lcc', lat_1=33, lat_2=45, lon_0=-95)
 
     # Mercator projection, for Alaska and Hawaii
-    m_ = Basemap(llcrnrlon=-190,llcrnrlat=20,urcrnrlon=-143,urcrnrlat=46,
-                projection='merc',lat_ts=20)  # do not change these numbers
+    m_ = Basemap(llcrnrlon=-190, llcrnrlat=20, urcrnrlon=-143, urcrnrlat=46,
+                 projection='merc', lat_ts=20)  # do not change these numbers
 
     #---------   draw state and county boundaries  ----------------------------
     if shapefile_dir is None:
         shapefile_dir = './shapefiles'
-    shp_path_state = os.path.join(shapefile_dir,'usa_states','st99_d00')
+    shp_path_state = os.path.join(shapefile_dir, 'usa_states', 'st99_d00')
     try:
-        shp_info = m.readshapefile(shp_path_state,'states',drawbounds=True,
-                                   linewidth=0.45,color='gray')
-        shp_info_ = m_.readshapefile(shp_path_state,'states',drawbounds=False)
+        shp_info = m.readshapefile(shp_path_state, 'states', drawbounds=True,
+                                   linewidth=0.45, color='gray')
+        shp_info_ = m_.readshapefile(shp_path_state, 'states', drawbounds=False)
     except IOError:
         raise IOError('Shape files not found. Specify the location of the "shapefiles" folder.')
 
-    cbc = [0.75]*3  # county boundary color
+    cbc = [0.75] * 3  # county boundary color
     cbw = 0.15  # county boundary line width
-    shp_path_county = os.path.join(shapefile_dir,'usa_counties','cb_2016_us_county_500k')
+    shp_path_county = os.path.join(shapefile_dir, 'usa_counties', 'cb_2016_us_county_500k')
     try:
-        shp_info_cnty = m.readshapefile(shp_path_county,'counties',drawbounds=True,
-                                        linewidth=cbw,color=cbc)
+        shp_info_cnty = m.readshapefile(shp_path_county, 'counties',
+                                        drawbounds=True, linewidth=cbw,
+                                        color=cbc)
 
-        shp_info_cnty_ = m_.readshapefile(shp_path_county,'counties',drawbounds=False)
+        shp_info_cnty_ = m_.readshapefile(shp_path_county, 'counties',
+                                          drawbounds=False)
     except IOError:
         raise IOError('Shape files not found. Specify the location of the "shapefiles" folder.')
 
@@ -2268,52 +2283,53 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
         shapedict = m.counties_info[j]  # query shape dict at j-th position
         if shapedict['STATEFP'] not in ['02','15']:  # not Alaska or Hawaii
             if colors[county_FIPS_code_list[j]] == None:
-                color = rgb2hex([0.93]*3)
-                poly = Polygon(seg,facecolor=color,edgecolor=color)#,hatch='\\')
+                color = rgb2hex([0.93] * 3)
+                poly = Polygon(seg, facecolor=color, edgecolor=color)#,hatch='\\')
             else:
                 color = rgb2hex(colors[county_FIPS_code_list[j]])
-                poly = Polygon(seg,facecolor=color,edgecolor=color)
+                poly = Polygon(seg, facecolor=color, edgecolor=color)
             ax.add_patch(poly)
 
     for j, seg in enumerate(m_.counties):  # for Alaska and Hawaii
         shapedict = m.counties_info[j]  # query shape dict at j-th position
-        if shapedict['STATEFP']=='02':  # Alaska
-            seg = [(x*AK_SCALE + AK_OFFSET_X, y*AK_SCALE + AK_OFFSET_Y) for x,y in seg]
+        if shapedict['STATEFP'] == '02':  # Alaska
+            seg = [(x * AK_SCALE + AK_OFFSET_X, y * AK_SCALE + AK_OFFSET_Y)\
+                   for x,y in seg]
             if colors[county_FIPS_code_list[j]] == None:
                 color = rgb2hex([0.93]*3)
-                poly = Polygon(seg,facecolor=color,edgecolor=cbc,lw=cbw)#,hatch='\\')
+                poly = Polygon(seg, facecolor=color, edgecolor=cbc, lw=cbw)#,hatch='\\')
             else:
                 color = rgb2hex(colors[county_FIPS_code_list[j]])
-                poly = Polygon(seg,facecolor=color,edgecolor=cbc,lw=cbw)
+                poly = Polygon(seg, facecolor=color, edgecolor=cbc, lw=cbw)
             ax.add_patch(poly)
-        if shapedict['STATEFP']=='15':  # Hawaii
+        if shapedict['STATEFP'] == '15':  # Hawaii
             seg = [(x + HI_OFFSET_X, y + HI_OFFSET_Y) for x, y in seg]
             if colors[county_FIPS_code_list[j]] == None:
                 color = rgb2hex([0.93]*3)
-                poly = Polygon(seg,facecolor=color,edgecolor=cbc,lw=cbw)#,hatch='\\')
+                poly = Polygon(seg, facecolor=color, edgecolor=cbc, lw=cbw)#,hatch='\\')
             else:
                 color = rgb2hex(colors[county_FIPS_code_list[j]])
-                poly = Polygon(seg,facecolor=color,edgecolor=cbc,lw=cbw)
+                poly = Polygon(seg, facecolor=color, edgecolor=cbc, lw=cbw)
             ax.add_patch(poly)
 
     ax.set_title(map_title)
 
     #------------  Plot bounding boxes for Alaska and Hawaii insets  --------------
-    light_gray = [0.8]*3  # define light gray color RGB
-    m_.plot(np.linspace(170,177),np.linspace(29,29),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(177,180),np.linspace(29,26),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(180,180),np.linspace(26,23),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(-180,-177),np.linspace(23,20),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(-180,-175),np.linspace(26,26),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(-175,-171),np.linspace(26,22),linewidth=1.,
-            color=light_gray,latlon=True)
-    m_.plot(np.linspace(-171,-171),np.linspace(22,20),linewidth=1.,
-            color=light_gray,latlon=True)
+    light_gray = [0.8] * 3
+    m_.plot(np.linspace(170, 177), np.linspace(29, 29), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(177, 180), np.linspace(29, 26), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(180, 180), np.linspace(26, 23), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(-180, -177), np.linspace(23, 20), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(-180, -175), np.linspace(26, 26), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(-175, -171), np.linspace(26, 22), linewidth=1.,
+            color=light_gray, latlon=True)
+    m_.plot(np.linspace(-171, -171), np.linspace(22, 20), linewidth=1.,
+            color=light_gray, latlon=True)
 
     #------------   Show color bar   ---------------------------------------
     if cmap_midpoint is None:
@@ -2325,8 +2341,7 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
     cax = divider.append_axes("right", size="3%", pad=0.08)
     cb = ColorbarBase(cax,cmap=cmap,norm=norm,orientation='vertical',label=unit)
 
-    mpl_version = mpl.__version__.split('.')
-    if float(mpl_version[0] + '.' + mpl_version[0]) >= 2.1: # version > 2.1.0
+    if LooseVersion(mpl.__version__) >= LooseVersion('2.1.0'):
         cb = _adjust_colorbar_tick_labels(cb,
                                          np.nanmax(list(data_per_county.values())) > vmax,
                                          np.nanmin(list(data_per_county.values())) < vmin)
@@ -2337,8 +2352,8 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
 
     return fig, ax  # return figure and axes handles
 
-#%%############################################################################
-def _adjust_colorbar_tick_labels(colorbar_obj,adjust_top=True,adjust_bottom=True):
+#%%============================================================================
+def _adjust_colorbar_tick_labels(colorbar_obj, adjust_top=True, adjust_bottom=True):
     '''
     Given a colorbar object (colorbar_obj), change the text of the top (and/or
     bottom) tick label text.
@@ -2382,6 +2397,7 @@ class MidpointNormalize(Normalize):
     Auxiliary class definition. Copied from:
     https://stackoverflow.com/questions/20144529/shifted-colorbar-matplotlib/20146989#20146989
     '''
+
     def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
         self.midpoint = midpoint
         Normalize.__init__(self, vmin, vmax, clip)
@@ -2410,7 +2426,7 @@ def _convert_FIPS_to_state_name(dict1):
               "56": "WY"}  # dictionary mapping FIPS code to state abbreviation
 
     dict2 = {}  # create empty dict
-    for FIPS_code in dict1.keys():
+    for FIPS_code in dict1:
         new_state_name = fips2state[FIPS_code]  # convert state name
         dict2.update({new_state_name: dict1[FIPS_code]})
 
@@ -2566,30 +2582,33 @@ def _translate_state_abbrev(dict1, abbrev_to_full=True):
 #%%============================================================================
 def _check_all_states(dict1):
     '''
-    Check whether dict1 has all 50 states of USA. If not, append missing state(s)
-    to the dictionary and assign np.nan value as its value.
+    Check whether dict1 has all 50 states of USA as well as District of
+    Columbia. If not, append missing state(s) to the dictionary and assign
+    np.nan value as its value.
 
     The state names of dict1 must be full names.
     '''
-    full_state_list = [
 
-         'Alabama','Alaska','Arizona','Arkansas','California','Colorado',
-         'Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho',
-         'Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana',
-         'Maine', 'Maryland','Massachusetts','Michigan','Minnesota',
-         'Mississippi', 'Missouri','Montana','Nebraska','Nevada',
-         'New Hampshire','New Jersey','New Mexico','New York',
-         'North Carolina','North Dakota','Ohio',
-         'Oklahoma','Oregon','Pennsylvania','Rhode Island',
-         'South Carolina','South Dakota','Tennessee','Texas','Utah',
-         'Vermont','Virginia','Washington','West Virginia',
-         'Wisconsin','Wyoming'
+    assert(type(dict1) == dict)
+
+    full_state_list = [
+         'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado',
+         'Connecticut', 'Delaware', 'District of Columbia', 'Florida',
+         'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas',
+         'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts',
+         'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana',
+         'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
+         'New York', 'North Carolina', 'North Dakota', 'Ohio',
+         'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island',
+         'South Carolina', 'South Dakota', 'Tennessee', 'Texas','Utah',
+         'Vermont', 'Virginia', 'Washington', 'West Virginia',
+         'Wisconsin', 'Wyoming'
     ]
 
-    if list(dict1.keys()).sort() != full_state_list:
-        dict2 = {}  # create new list
+    if dict1.keys() != set(full_state_list):
+        dict2 = {}
         for state in full_state_list:
-            if state in dict1.keys():
+            if state in dict1:
                 dict2[state] = dict1[state]
             else:
                 print('%s data missing (replaced with NaN).'%state)
@@ -2669,9 +2688,11 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
     ts.index = _as_date(ts.index, date_fmt)  # batch-convert index to Timestamp format of pandas
 
     if zorder:
-        ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label,zorder=zorder)
+        ax.plot(ts.index, ts, color=color, lw=lw, ls=ls, marker=marker,
+                label=label, zorder=zorder)
     else:
-        ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,marker=marker,label=label)
+        ax.plot(ts.index, ts, color=color, lw=lw, ls=ls, marker=marker,
+                label=label)
     ax.set_label(label)  # set label for legends using argument 'label'
     if xlabel: ax.set_xlabel(xlabel)
     if ylabel: ax.set_ylabel(ylabel)
@@ -2680,10 +2701,10 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
     ax = _format_xlabel(ax,month_grid_width)
 
     if ygrid_on == True:
-        ax.yaxis.grid(ls=':',color=[0.75]*3)
+        ax.yaxis.grid(ls=':', color=[0.75]*3)
     if xgrid_on == True:
-        ax.xaxis.grid(False,'major')
-        ax.xaxis.grid(xgrid_on,'minor',ls=':',color=[0.75]*3)
+        ax.xaxis.grid(False, 'major')
+        ax.xaxis.grid(xgrid_on, 'minor', ls=':', color=[0.75]*3)
     ax.set_axisbelow(True)
 
     if title is not None:
@@ -2755,27 +2776,28 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         elif nr_timeseries <= 120:  # need multiple line widths
             linespecs = get_linespecs(range_linewidth=[1,3,5])
         elif nr_timeseries <= 240:
-            linespecs = get_linespecs(color_scheme='tab20',range_linewidth=[1,3,5])
+            linespecs = get_linespecs(color_scheme='tab20',
+                                      range_linewidth=[1,3,5])
         else:
             linespecs = get_linespecs(color_scheme='tab20',  # use more line widths
-                            range_linewidth=range(1,(nr_timeseries-1)//240+5,2))
+                           range_linewidth=range(1,(nr_timeseries-1)//240+5,2))
 
         for j in range(nr_timeseries):
             tmp_dict = linespecs[j % nr_timeseries].copy()
             tmp_dict.update(kwargs)  # kwargs overwrites tmp_dict if key already exists in tmp_dict
-            if 'lw' in tmp_dict.keys():  # thinner lines above thicker lines
+            if 'lw' in tmp_dict:  # thinner lines above thicker lines
                 zorder = 1 + 1.0/tmp_dict['lw']  # and "+1" to put all lines above grid line
 
             plot_timeseries(multiple_time_series.iloc[:,j],
-                            fig=fig, ax=ax, label=multiple_time_series.columns[j],
-                            zorder=zorder, **tmp_dict)
+                            fig=fig, ax=ax, zorder=zorder,
+                            label=multiple_time_series.columns[j], **tmp_dict)
 
         if 'title' not in kwargs:
             bbox_anchor_loc = (0., 1.02, 1., .102)
         else:
             bbox_anchor_loc = (0., 1.08, 1., .102)
-        ax.legend(bbox_to_anchor=bbox_anchor_loc,
-                  loc='lower center', ncol=ncol_legend)
+        ax.legend(bbox_to_anchor=bbox_anchor_loc, loc='lower center',
+                  ncol=ncol_legend)
 
     ax.set_axisbelow(True)
     return fig, ax
@@ -2849,20 +2871,20 @@ def fill_timeseries(time_series, upper_bound, lower_bound, date_fmt=None,
     lb = lower_bound.copy()
     ub = upper_bound.copy()
 
-    ax.fill_between(ts.index,lb,ub,color=color,facecolor=color,
-                    linewidth=0.01,alpha=0.5,interpolate=True)
-    ax.plot(ts.index,ts,color=color,lw=lw,ls=ls,label=label)
+    ax.fill_between(ts.index, lb, ub, color=color, facecolor=color,
+                    linewidth=0.01, alpha=0.5, interpolate=True)
+    ax.plot(ts.index, ts, color=color, lw=lw, ls=ls, label=label)
     ax.set_label(label)  # set label for legends using argument 'label'
     if xlabel: ax.set_xlabel(xlabel)
     if ylabel: ax.set_ylabel(ylabel)
     month_grid_width = float(figsize[0])/_calc_month_interval(ts.index) # width of each month in inches
-    ax = _format_xlabel(ax,month_grid_width)
+    ax = _format_xlabel(ax, month_grid_width)
 
     if ygrid_on == True:
-        ax.yaxis.grid(ygrid_on,ls=':',color=[0.75]*3)
+        ax.yaxis.grid(ygrid_on, ls=':', color=[0.75]*3)
     if xgrid_on == True:
-        ax.xaxis.grid(False,'major')
-        ax.xaxis.grid(xgrid_on,'minor',ls=':',color=[0.75]*3)
+        ax.xaxis.grid(False, 'major')
+        ax.xaxis.grid(xgrid_on, 'minor', ls=':', color=[0.75]*3)
     ax.set_axisbelow(True)
 
     if title is not None:
@@ -2919,16 +2941,19 @@ def _get_ax_size(fig, ax, unit='inches'):
     if unit == 'pixels':
         width *= fig.dpi  # convert from inches to pixels
         height *= fig.dpi
+
     return width, height
 
 #%%============================================================================
-def _format_xlabel(ax,month_width):
+def _format_xlabel(ax, month_width):
     '''
-    Format the X axis label (which represents dates) in accordance to the width
+    Format the x axis label (which represents dates) in accordance to the width
     of each time interval (month or day).
 
     For narrower cases, year will be put below month.
+
     For even narrower cases, not every month will be displayed as a label.
+
     For very narrow cases (e.g., many years), months will not be displayed, and
     sometimes not every year will be displayed.
     '''
@@ -3006,7 +3031,7 @@ def _format_xlabel(ax,month_width):
     else:
         months_fmt = mpl.dates.DateFormatter('%m/%d')
 
-    if m_int:   # show every 'm_int' months
+    if m_int:  # show every 'm_int' months
         if d_int:  # day labels will be shown
             months = mpl.dates.DayLocator(interval=d_int)
         else:
@@ -3025,9 +3050,9 @@ def _format_xlabel(ax,month_width):
     ax.tick_params(labelright=True)  # also show y axis on right edge of figure
 
     if rot and d_int:  # days/months are shown as rotated
-        plt.setp(ax.xaxis.get_minorticklabels(),rotation=rot)
+        plt.setp(ax.xaxis.get_minorticklabels(), rotation=rot)
     elif rot and not d_int:  # only show years as rotated
-        plt.setp(ax.xaxis.get_majorticklabels(),rotation=rot)
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=rot)
 
     return ax
 
@@ -3070,7 +3095,7 @@ def _as_date(raw_date, date_fmt=None):
     https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
     '''
 
-    if pd.__version__ == '0.17.1':
+    if LooseVersion(pd.__version__) <= LooseVersion('0.17.1'):
         timestamp_type = pd.tslib.Timestamp
     else:
         timestamp_type = pd._libs.tslib.Timestamp
@@ -3122,9 +3147,10 @@ def _as_date(raw_date, date_fmt=None):
     return date_list
 
 #%%============================================================================
-def _str2date_kernel(date_):
+def _str2date(date_):
     '''
-    Convert date_ into a datetime object. date_ must be a string (not a list of strings).
+    Convert date_ into a datetime object. date_ must be a string (not a list
+    of strings).
 
     Currently accepted date formats:
     (1) Aug-2014
@@ -3132,6 +3158,8 @@ def _str2date_kernel(date_):
     (3) 201407
     (4) 2016-07
     (5) 2015-02-21
+
+    Note: This subroutine is no longer being used.
     '''
 
     day = None
