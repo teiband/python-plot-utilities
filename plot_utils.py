@@ -862,14 +862,14 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
     observed = pd.crosstab(np.array(y), x)  # use at least one numpy array to avoid possible index matching errors
     chi2, p_val, dof, expected = stats.chi2_contingency(observed)
     expected = pd.DataFrame(expected, index=observed.index, columns=observed.columns)
-    diff = (observed - expected) / expected
+    relative_diff = (observed - expected) / expected
 
     if figsize == 'auto':
         figsize = observed.shape
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
-    table = diff if normalize else observed
+    table = relative_diff if normalize else observed
     peak = max(abs(table.min().min()), abs(table.max().max()))
     max_val = table.max().max()
     min_val = table.min().min()
@@ -882,6 +882,8 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
 
     if normalize:
         if symm_cbar:
+            if peak <= 1:
+                peak = 1.0  # still set color bar limits to [-1.0, 1.0]
             norm = MidpointNormalize(midpoint=0.0, vmin=-peak, vmax=peak)
         else:  # limits of color bar are the natural minimum/maximum of "table"
             norm = MidpointNormalize(midpoint=0.0, vmin=min_val, vmax=max_val)
@@ -893,7 +895,7 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
     if normalize:
         cb.set_label('(Obs$-$Exp)/Exp')
     else:
-        cb.set_label('observed freq.')
+        cb.set_label('Observed freq.')
 
     ax.set_xticks(range(table.shape[1]))
     ax.set_yticks(range(table.shape[0]))
@@ -912,9 +914,8 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         text_color = lambda x: 'k' if x > up_3 else ('y' if x > lo_3 else 'w')
 
     for i, j in itertools.product(range(table.shape[0]), range(table.shape[1])):
-        ax.text(j, i, format(table.iloc[i, j], fmt),
-                 ha="center", va='center', fontsize=9,
-                 color=text_color(table.iloc[i, j]))
+        ax.text(j, i, format(table.iloc[i, j], fmt), ha="center", va='center',
+                fontsize=9, color=text_color(table.iloc[i, j]))
 
     if xlabel:
         ax.xaxis.set_label_position('top')
@@ -923,7 +924,7 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         ax.yaxis.set_label_position('left')
         ax.set_ylabel(ylabel)
 
-    tables = (observed, expected, diff)
+    tables = (observed, expected, relative_diff)
     chi2_results = (chi2, p_val, dof)
 
     phi = np.sqrt(chi2 / len(x))  # https://en.wikipedia.org/wiki/Phi_coefficient
