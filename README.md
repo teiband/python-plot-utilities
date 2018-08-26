@@ -249,7 +249,7 @@ pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 
 Just download this repository, and you can put `plot_utils.py` anywhere within your Python search path.
 
-#####Note:
+##### Note:
 
 If you run into the following issue on Mac OS X (or macOS) when importing `plot_utils`:
 
