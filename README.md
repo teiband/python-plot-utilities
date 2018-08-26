@@ -241,7 +241,11 @@ pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 
 ## Installation
 
-No installation required.
+##### 1. Install with `pip` (recommended):
+
+`>>> pip install git+https://github.com/jsh9/python-plot-utilities`
+
+##### 2. The portable way:
 
 Just download this repository, and you can put `plot_utils.py` anywhere within your Python search path.
 
@@ -254,7 +258,9 @@ Just download this repository, and you can put `plot_utils.py` anywhere within y
 + numpy: 1.11.0+
 + scipy: 0.19.0+
 + pandas: 0.20.0+
++ cycler: 0.10.0+
 + matplotlib/basemap: 1.0.7 (only if you want to plot the two choropleth maps)
++ PIL (only if you want to use `trim_img`)
 
 
 
