@@ -3424,24 +3424,24 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
     if not isinstance(X, pd.DataFrame):
         raise TypeError('X must be a pandas DataFrame.')
 
-    if not isinstance(two_columns,list):
+    if not isinstance(two_columns, list):
         raise TypeError('"two_columns" must be a list of length 2.')
     if len(two_columns) != 2:
         raise LengthError('Length of "two_columns" must be 2.')
 
-    if isinstance(two_columns[0],str):
+    if isinstance(two_columns[0], str):
         x = X[two_columns[0]]
         xlabel = two_columns[0]
-    elif isinstance(two_columns[0],(int,np.integer)):
-        x = X.iloc[:,two_columns[0]]
+    elif isinstance(two_columns[0], (int, np.integer)):
+        x = X.iloc[:, two_columns[0]]
         xlabel = X.columns[two_columns[0]]
     else:
         raise TypeError('"two_columns" must be a list of str or int.')
 
-    if isinstance(two_columns[1],str):
+    if isinstance(two_columns[1], str):
         y = X[two_columns[1]]
         ylabel = two_columns[1]
-    elif isinstance(two_columns[1],(int,np.integer)):
+    elif isinstance(two_columns[1], (int, np.integer)):
         y = X.iloc[:,two_columns[1]]
         ylabel = X.columns[two_columns[1]]
     else:
@@ -3450,13 +3450,19 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
     x = np.array(x)  # convert to numpy array so that x[ind] runs correctly
     y = np.array(y)
 
-    nan_index_in_x = np.where(np.isnan(x))[0]
-    nan_index_in_y = np.where(np.isnan(y))[0]
+    try:
+        nan_index_in_x = np.where(np.isnan(x))[0]
+    except TypeError:
+        raise TypeError('Cannot cast the first column safely into numerical types.')
+    try:
+        nan_index_in_y = np.where(np.isnan(y))[0]
+    except TypeError:
+        raise TypeError('Cannot cast the second column safely into numerical types.')
     nan_index = set(nan_index_in_x) | set(nan_index_in_y)
     not_nan_index = list(set(range(len(x))) - nan_index)
-    _, _, r_value, _, _ = stats.linregress(x[not_nan_index],y[not_nan_index])
+    _, _, r_value, _, _ = stats.linregress(x[not_nan_index], y[not_nan_index])
 
-    ax.scatter(x,y,alpha=alpha,color=color)
+    ax.scatter(x, y, alpha=alpha, color=color)
     if xlabel: ax.set_xlabel(xlabel)
     if ylabel: ax.set_ylabel(ylabel)
     ax.set_title('$r$ = %.2f' % r_value)
@@ -3465,7 +3471,7 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
     if logy:
         ax.set_yscale('log')
     if grid_on == True:
-        ax.grid(ls=':',lw=0.5)
+        ax.grid(ls=':', lw=0.5)
         ax.set_axisbelow(True)
 
     return fig, ax
