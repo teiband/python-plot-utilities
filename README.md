@@ -249,6 +249,14 @@ pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 
 Just download this repository, and you can put `plot_utils.py` anywhere within your Python search path.
 
+#####Note:
+
+If you run into the following issue on Mac OS X (or macOS) when importing `plot_utils`:
+
+`RuntimeError: Python is not installed as a framework. The Mac OS X backend will not be able to function correctly if Python is not installed as a framework.`
+
+please follow this solution to fix the issue: https://stackoverflow.com/a/21789908/8892243
+
 
 
 ## Dependencies
