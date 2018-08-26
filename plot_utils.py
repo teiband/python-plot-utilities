@@ -1524,16 +1524,18 @@ def get_colors(N=None, color_scheme='tab10'):
             'tab20b'
             'tab20c'
             (https://matplotlib.org/mpl_examples/color/colormaps_reference_04.png)
-        (2) '8.3' and '8.4': old and new MATLAB color scheme
+        (2) 'tab10_muted':
+            A set of 10 colors that are the muted version of "tab10"
+        (3) '8.3' and '8.4': old and new MATLAB color scheme
             Old: https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder_old.png
             New: https://www.mathworks.com/help/matlab/graphics_transition/transition_colororder.png
-        (3) 'rgbcmyk': old default Matplotlib color palette (v1.5 and earlier)
-        (4) 'bw' (or 'bw3'), 'bw4', and 'bw5'
+        (4) 'rgbcmyk': old default Matplotlib color palette (v1.5 and earlier)
+        (5) 'bw' (or 'bw3'), 'bw4', and 'bw5'
             Black-and-white (grayscale colors in 3, 4, and 5 levels)
 
     Returns
     -------
-    A list of colors.
+    A list of colors (as RGB, or color name, or hex)
     '''
 
     nr_c = {'Pastel1': 9,  # number of qualitative colors in each color map
@@ -1584,14 +1586,23 @@ def get_colors(N=None, color_scheme='tab10'):
     else:
         if color_scheme in qcm_names:
             c_s = color_scheme  # short hand [Note: no wrap-around behavior in mpl.cm functions]
-            rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))  # e.g., mpl.cm.Set1(range(10))
+            rgba = eval('mpl.cm.%s(range(%d))' % (c_s, nr_c[c_s]))  # e.g., mpl.cm.Set1(range(10))
             palette = [list(_)[:3] for _ in rgba]  # remove alpha value from each sub-list
         elif color_scheme in qcm_names_lower:
             c_s = color_scheme.title()  # first letter upper case
-            rgba = eval('mpl.cm.%s(range(%d))' % (c_s,nr_c[c_s]))
+            rgba = eval('mpl.cm.%s(range(%d))' % (c_s, nr_c[c_s]))
             palette = [list(_)[:3] for _ in rgba]
+        elif color_scheme == 'tab10_muted':
+            rgba_tmp = mpl.cm.tab20(range(nr_c['tab20']))
+            palette_tmp = [list(_)[:3] for _ in rgba_tmp]
+            palette = palette_tmp[1::2]
         else:
-            raise ValueError('Invalid color_scheme.')
+            raise ValueError("Invalid color_scheme. Must be one of these:\n"
+                             "['pastel1', 'pastel2', 'paired', 'accent', "
+                             "'dark2', 'set1', 'set2', 'set3', 'tab10', "
+                             "'tab10_muted', 'tab20', 'tab20b', 'tab20c', "
+                             "'rgbcmyk', 'bw', 'bw3', 'bw4', 'bw5', "
+                             "'8.3', '8.4']")
 
     L = len(palette)
     if N is None:
