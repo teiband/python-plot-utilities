@@ -13,7 +13,7 @@ Top-level functions:
     2. Two columns of data:
         bin_and_mean
         category_mean
-        positive_rage
+        positive_rate
         contingency_table
         scatter_plot_two_cols
 
@@ -487,6 +487,22 @@ class Multiple_Colors():
                 ax.text(0.5, j + 1.5, text, ha='center')
 
 #%%============================================================================
+def _upcast_dtype(x):
+    '''
+    Cast dtype of x (a pandas Series) as string or float
+    '''
+
+    assert(type(x) == pd.Series)
+
+    if x.dtype.name in ['category', 'bool', 'datetime64[ns]', 'datetime64[ns, tz]']:
+        x = x.astype(str)
+
+    if x.dtype.name == 'timedelta[ns]':
+        x = x.astype(float)
+
+    return x
+
+#%%============================================================================
 def category_means(categorical_array, continuous_array, fig=None, ax=None,
                    figsize=(3,3), dpi=100, title=None, xlabel=None, ylabel=None,
                    rot=0, dropna=False, show_stats=True, **violinplot_kwargs):
@@ -559,7 +575,8 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
     if not isinstance(y, _array_like):
         raise TypeError('"continuous_array" must be pd.Series, np.array, or list.')
     if len(x) != len(y):
-        raise LengthError('Lengths of x and y must be the same.')
+        raise LengthError('Lengths of categorical_array and continuous_array '
+                          'must be the same.')
     if isinstance(x, np.ndarray) and x.ndim > 1:
         raise DimensionError('"categorical_array" must be a 1D numpy array.')
     if isinstance(y, np.ndarray) and y.ndim > 1:
@@ -570,6 +587,8 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
 
     if isinstance(x, (list, np.ndarray)): x = pd.Series(x)
     if isinstance(y, (list, np.ndarray)): y = pd.Series(y)
+
+    x = _upcast_dtype(x)
 
     if not dropna: x = x.fillna('N/A')  # input arrays are unchanged
 
@@ -690,6 +709,9 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
 
     if isinstance(x, (list, np.ndarray)): x = pd.Series(x)
     if isinstance(y, (list, np.ndarray)): y = pd.Series(y)
+
+    x = _upcast_dtype(x)
+    y = _upcast_dtype(y)
 
     if dropna:
         x = x[pd.notnull(x) & pd.notnull(y)]  # input arrays are not changed
@@ -832,7 +854,6 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         A tuple in the order of (phi coef., coeff. of contingency, Cramer's V)
     '''
 
-
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     x = array_horizontal
@@ -854,6 +875,9 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
 
     if isinstance(x, (list, np.ndarray)): x = pd.Series(x)
     if isinstance(y, (list, np.ndarray)): y = pd.Series(y)
+
+    x = _upcast_dtype(x)
+    y = _upcast_dtype(y)
 
     if not dropna:  # keep missing values: replace them with actual string "N/A"
         x = x.fillna('N/A')  # this is to avoid changing the input arrays
@@ -1185,6 +1209,8 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     if ~isinstance(y, pd.Series):
         y = pd.Series(y)
 
+    y = _upcast_dtype(y)
+
     if dropna:
         print('****** WARNING: NaNs in target_array dropped. ******')
         y = y[y.notnull()]  # only keep non-null entries
@@ -1251,8 +1277,8 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     elif display == None:
         autopct = ''
     else:
-        raise ValueError('Invalid value of "display". '
-                         'Can only be ["percent","count","both",None].')
+        raise ValueError("Invalid value of `display`. "
+                         "Can only be ['percent', 'count', 'both', None].")
 
     #------------ Plot pie chart ----------------------------------------------
     _, texts, autotexts = ax.pie(counts, labels=class_names, colors=colors,
