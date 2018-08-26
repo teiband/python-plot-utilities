@@ -39,31 +39,30 @@ Top-level functions:
         plot_with_error_bounds
         trim_img
 
-Helper functions:
+Public helper functions:
+    _convert_FIPS_to_state_name
+    _translate_state_abbrev
+
+Private helper functions
      _adjust_colorbar_tick_labels
-     _array_like
      _as_date
      _calc_bar_width
      _calc_month_interval
      _check_all_states
      _check_color_types
-     _convert_FIPS_to_state_name
      _crosstab_to_arrays
      _format_xlabel
      _get_ax_size
      _process_fig_ax_objects
-     _scalar_like
      _str2date
-     _translate_state_abbrev
 
-Helper classes:
+Public classes:
     Color
     Multiple_Colors
-    Normalize
-    MidpointNormalize
-    ScalarFormatter
-    FixedOrderFormatter
 
+Private helper classes:
+    _MidpointNormalize
+    _FixedOrderFormatter
 
 Created on Fri Apr 28 15:37:26 2017
 
@@ -85,9 +84,6 @@ import matplotlib.pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from distutils.version import LooseVersion
-
-#%%----------------------------------------------------------------------------
-__version__ = '0.3.6'
 
 #%%----------------------------------------------------------------------------
 if sys.version_info.major == 3:  # Python 3
@@ -158,8 +154,16 @@ def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
     None
     '''
 
-    import PIL
-    import PIL.ImageOps
+    try:
+        import PIL
+        import PIL.ImageOps
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError('\nPlease install PIL in order to use '
+                                  '`trim_img`.\n'
+                                  'Install with conda (recommended):\n'
+                                  '    >>> conda install PIL\n'
+                                  'To install without conda, refer to:\n'
+                                  '    http://www.pythonware.com/products/pil/')
 
     if not isinstance(files,(list,tuple)):
         files = [files]
@@ -908,9 +912,9 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
         if symm_cbar:
             if peak <= 1:
                 peak = 1.0  # still set color bar limits to [-1.0, 1.0]
-            norm = MidpointNormalize(midpoint=0.0, vmin=-peak, vmax=peak)
+            norm = _MidpointNormalize(midpoint=0.0, vmin=-peak, vmax=peak)
         else:  # limits of color bar are the natural minimum/maximum of "table"
-            norm = MidpointNormalize(midpoint=0.0, vmin=min_val, vmax=max_val)
+            norm = _MidpointNormalize(midpoint=0.0, vmin=min_val, vmax=max_val)
     else:
         norm = None  # no need to set midpoint of color bar
 
@@ -1907,7 +1911,7 @@ def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
     return fig, ax, value_count
 
 #%%============================================================================
-class FixedOrderFormatter(mpl.ticker.ScalarFormatter):
+class _FixedOrderFormatter(mpl.ticker.ScalarFormatter):
     '''
     Formats axis ticks using scientific notation with a constant order of
     magnitude.
@@ -2000,7 +2004,17 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
         stackoverflow thread: https://stackoverflow.com/questions/39742305
     '''
 
-    from mpl_toolkits.basemap import Basemap as Basemap
+    try:
+        from mpl_toolkits.basemap import Basemap as Basemap
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError('\nPlease install Basemap in order to use '
+                                  '`choropleth_map_state`.\n'
+                                  'To install with conda (recommended):\n'
+                                  '    >>> conda install basemap\n'
+                                  'To install without conda, refer to:\n'
+                                  '    https://matplotlib.org/basemap/users/installing.html')
+
+    import pkg_resources
     from matplotlib.colors import rgb2hex
     from matplotlib.patches import Polygon
     from matplotlib.colorbar import ColorbarBase
@@ -2050,7 +2064,7 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
 
     #---------   draw state boundaries  ----------------------------------------
     if shapefile_dir is None:
-        shapefile_dir = './shapefiles'
+        shapefile_dir = pkg_resources.resource_filename('plot_utils', 'shapefiles/')
     shp_path_state = os.path.join(shapefile_dir, 'usa_states', 'st99_d00')
     try:
         shp_info = m.readshapefile(shp_path_state, 'states', drawbounds=True,
@@ -2082,7 +2096,7 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     #---------  cycle through state names, color each one.  --------------------
     ax = plt.gca() # get current axes instance
 
-    for nshape,seg in enumerate(m.states):
+    for nshape, seg in enumerate(m.states):
         # skip DC and Puerto Rico.
         if statenames[nshape] not in ['Puerto Rico', 'District of Columbia']:
             if colors[statenames[nshape]] == None:
@@ -2138,7 +2152,7 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     if cmap_midpoint is None:
         norm = Normalize(vmin=vmin, vmax=vmax)
     else:
-        norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=cmap_midpoint)
+        norm = _MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=cmap_midpoint)
 
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="3%", pad=0.08)
@@ -2229,7 +2243,17 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
         stackoverflow thread: https://stackoverflow.com/questions/39742305
     '''
 
-    from mpl_toolkits.basemap import Basemap as Basemap
+    try:
+        from mpl_toolkits.basemap import Basemap as Basemap
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError('\nPlease install Basemap in order to use '
+                                  '`choropleth_map_county`.\n'
+                                  'To install with conda (recommended):\n'
+                                  '    >>> conda install basemap\n'
+                                  'To install without conda, refer to:\n'
+                                  '    https://matplotlib.org/basemap/users/installing.html')
+
+    import pkg_resources
     from matplotlib.colors import rgb2hex
     from matplotlib.patches import Polygon
     from matplotlib.colorbar import ColorbarBase
@@ -2265,7 +2289,7 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
 
     #---------   draw state and county boundaries  ----------------------------
     if shapefile_dir is None:
-        shapefile_dir = './shapefiles'
+        shapefile_dir = pkg_resources.resource_filename('plot_utils', 'shapefiles/')
     shp_path_state = os.path.join(shapefile_dir, 'usa_states', 'st99_d00')
     try:
         shp_info = m.readshapefile(shp_path_state, 'states', drawbounds=True,
@@ -2373,7 +2397,7 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
     if cmap_midpoint is None:
         norm = Normalize(vmin=vmin, vmax=vmax)
     else:
-        norm = MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=cmap_midpoint)
+        norm = _MidpointNormalize(vmin=vmin, vmax=vmax, midpoint=cmap_midpoint)
 
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="3%", pad=0.08)
@@ -2430,7 +2454,7 @@ def _adjust_colorbar_tick_labels(colorbar_obj, adjust_top=True, adjust_bottom=Tr
     return colorbar_obj
 
 #%%============================================================================
-class MidpointNormalize(Normalize):
+class _MidpointNormalize(Normalize):
     '''
     Auxiliary class definition. Copied from:
     https://stackoverflow.com/questions/20144529/shifted-colorbar-matplotlib/20146989#20146989
