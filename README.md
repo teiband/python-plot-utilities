@@ -271,6 +271,9 @@ please follow this solution to fix the issue: https://stackoverflow.com/a/217899
 + PIL (only if you want to use `trim_img`)
 
 
+## Testing
+
+To test `plot_utils`, run the ipython notebooks in the `examples` folder.
 
 
 ## Aesthetics
