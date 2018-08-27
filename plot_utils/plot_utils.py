@@ -2121,12 +2121,19 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
             seg = m_.states[int(shapedict['SHAPENUM'] - 1)]
             if shapedict['NAME']=='Hawaii' and float(shapedict['AREA'])>AREA_1:
                 seg = [(x + HI_OFFSET_X, y + HI_OFFSET_Y) for x, y in seg]
-                color = rgb2hex(colors[statenames[nshape]])
             elif shapedict['NAME']=='Alaska' and float(shapedict['AREA'])>AREA_2:
                 seg = [(x*AK_SCALE + AK_OFFSET_X, y*AK_SCALE + AK_OFFSET_Y)\
                        for x, y in seg]
+
+            if colors[statenames[nshape]] == None:
+                color = rgb2hex([0.93] * 3)
+                poly = Polygon(seg, facecolor=color, edgecolor='gray',
+                               linewidth=.45, hatch='\\')
+            else:
                 color = rgb2hex(colors[statenames[nshape]])
-            poly = Polygon(seg, facecolor=color, edgecolor='gray', linewidth=.45)
+                poly = Polygon(seg, facecolor=color, edgecolor='gray',
+                               linewidth=.45)
+
             ax.add_patch(poly)
 
     ax.set_title(map_title)
