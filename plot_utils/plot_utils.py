@@ -1412,7 +1412,7 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
         N = X.shape[1]
         if data_labels is None:
             data_labels = X.columns  # override data_labels with column names
-        X = list(X.as_matrix().T)
+        X = list(X.values.T)
     elif len(list(X)) > 1:  # adding list() to X to make sure len() does not throw an error
         N = len(X)  # number of separate distribution to be compared
     else:  # X is a scalar
@@ -3838,12 +3838,12 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
 
     if isinstance(X, pd.Series):
         ncol = 1
-        data = X.dropna().as_matrix()
+        data = X.dropna().values
     elif isinstance(X, pd.DataFrame):
         ncol = X.shape[1]
         data = []
         for j in range(ncol):
-            data.append(X.iloc[:,j].dropna().as_matrix())
+            data.append(X.iloc[:,j].dropna().values)
     elif isinstance(X, np.ndarray):
         if X.ndim == 1:  # 1D numpy array
             ncol = 1
@@ -3862,7 +3862,7 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
         for key in X:
             x = X[key]
             if isinstance(x, pd.Series):
-                x_ = x.as_matrix()
+                x_ = x.values
             elif isinstance(x, np.ndarray) and x.ndim == 1:
                 x_ = x.copy()
             elif isinstance(x, list):
