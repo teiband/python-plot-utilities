@@ -19,7 +19,7 @@ Current functionalities include (for full list, use `print(plot_utils.__doc__)`)
 #### 3. Visualizing multiple columns of data
 
 + **3D histograms**: distributions of multiple variables [[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
-+ **Violin plot**: distribution of multiple variables 
++ **Violin plot**: distribution of multiple variables
 + **Correlation matrix**: correlation between each columns of a dataset [[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
     - and the one-to-one **scatter plots** for the variables within the dataset [[doc](./docs/scatter_plots_two_cols.md)]
 + **Count missing values**: how many missing values are there in each column of the dataset [[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
@@ -42,7 +42,7 @@ Current functionalities include (for full list, use `print(plot_utils.__doc__)`)
 + Two helper classes: **Color** and **Multiple_Colors**, which make querying and displaying colors more easily  [[doc](./docs/color_classes.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
 + **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 + **trim_img()**, which trims the white margins of the specified image file(s) [[doc](./docs/trim_img.md)]
-
++ **plot_ranking()**, which ranks a series of values and shows them as a bar chart [[doc](./docs/plot_ranking.md)], [[example](./examples/Plot_ranking_example.ipynb)]
 
 
 
@@ -58,7 +58,7 @@ pu.piechart(titanic['survived'], title='Suvived')
 pu.discrete_histogram(titanic['pclass'], xlabel='Passenger ticket class')
 ```
 
-Piechart: [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)] 
+Piechart: [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)]
 
 Discrete histogram: [[doc](./docs/discrete_histogram.md)], [[example](./examples/Discrete_histogram_example.ipynb)]
 
@@ -81,7 +81,7 @@ pu.positive_rate(titanic['ticket_class'], titanic['survived'], figsize=(5,2))
 pu.contingency_table(titanic['ticket_class'], titanic['embarked'], dropna=True, rot=0)
 ```
 
-[[doc](./docs/two_columns.md)], [[example](./examples/Two_columns_of_data_example.ipynb)] 
+[[doc](./docs/two_columns.md)], [[example](./examples/Two_columns_of_data_example.ipynb)]
 
 ![](./examples/gallery/two_variables.png)
 
@@ -152,7 +152,7 @@ Each bar corresponds to a column in `titanic`, and the numbers atop are the miss
 
 ### 4. Choropleth maps (a.k.a., "heat maps")
 
-#### 4.1. State-level choropleth maps for the US 
+#### 4.1. State-level choropleth maps for the US
 
 ```python
 pu.choropleth_map_state(state_level_data)  # see [example] for details of "state_level_data"
