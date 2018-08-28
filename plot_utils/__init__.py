@@ -1,4 +1,4 @@
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 
 from .plot_utils import *
 from .plot_utils import _translate_state_abbrev
