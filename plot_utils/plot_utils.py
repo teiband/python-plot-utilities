@@ -971,8 +971,8 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
 
 #%%============================================================================
 def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
-                 barh=True, top_n=-1, score_ax_label=None, name_ax_label=None,
-                 grid_on=True):
+                 barh=True, top_n=0, score_ax_label=None, name_ax_label=None,
+                 invert_name_ax=False, grid_on=True):
     '''
     Plots rankings as a bar plot (in descending order), such as:
 
@@ -1009,12 +1009,17 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
     barh : <bool>
         Whether or not to show the bars as horizontal (otherwise, vertical).
     top_n : <int>
-        Only shows top_n categories (ranked by their positive rate) in the
-        figure. Useful when there are too many categories.
+        top_n == 0 means showing all categories. top_n > 0 means showing the
+        highest top_n categories. top_n < 0 means showing the lowest |top_n|
+        categories.
     score_ax_label : <str>
-        Label of the score axis (e.g., 'Age of pet')
+        Label of the score axis (e.g., "Age of pet")
     name_ax_label : <str>
-        Label of the category name axis
+        Label of the "category name" axis (e.g., "Pet name")
+    invert_name_ax : <bool>
+        Whether to invert the "category name" axis. For example, if
+        invert_name_ax is False, then higher values are shown on the top
+        for barh=True.
     grid_on : <bool>
         Whether or not to show grids on the plot
 
@@ -1027,12 +1032,13 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
     if not isinstance(ranking, (dict, pd.Series)):
         raise TypeError('"ranking" must be a Python dict or pandas Series.')
 
-    if top_n == -1:
+    if not isinstance(top_n, (int, np.integer)):
+        raise ValueError('top_n must be an integer.')
+
+    if top_n == 0:
         nr_classes = len(ranking)
-    elif (top_n >= 1) and (isinstance(top_n,(int,np.integer))):
-        nr_classes = top_n
     else:
-        raise ValueError('top_n must be -1 or positive integers.')
+        nr_classes = np.abs(top_n)
 
     if figsize == 'auto':
         if barh:
@@ -1045,22 +1051,26 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
     if isinstance(ranking,dict):
         ranking = pd.Series(ranking)
 
-    if barh == True:
+    if barh:
         kind = 'barh'
         xlabel, ylabel = score_ax_label, name_ax_label
+        ax = ranking.sort_values(ascending=(top_n >= 0)).iloc[-np.abs(top_n):]\
+                    .plot(kind=kind, ax=ax)
     else:
         kind = 'bar'
         xlabel, ylabel = name_ax_label, score_ax_label
+        ax = ranking.sort_values(ascending=(top_n < 0))\
+                    .iloc[:np.abs(top_n) if top_n != 0 else None]\
+                    .plot(kind=kind, ax=ax)
 
-    if top_n == -1:  # plot all categories
-        ax = ranking.sort_values(ascending=barh).plot(kind=kind,ax=ax)
-    elif (top_n >= 1) and (isinstance(top_n,(int,np.integer))):
-        ax = ranking.sort_values(ascending=barh).iloc[-top_n:].plot(kind=kind,ax=ax)
-    else:
-        raise ValueError('top_n must be -1 or positive integers.')
+    if invert_name_ax:
+        if barh is True:
+            ax.invert_yaxis()
+        else:
+            ax.invert_xaxis()
     if xlabel: ax.set_xlabel(xlabel)
     if ylabel: ax.set_ylabel(ylabel)
-    if grid_on == True:
+    if grid_on:
         ax.grid(ls=':')
         ax.set_axisbelow(True)
 
