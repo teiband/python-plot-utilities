@@ -3776,7 +3776,8 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
 #%%============================================================================
 def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
                 showmeans=True, showextrema=False, showmedians=False, vert=False,
-                data_names=[], rot=45, name_ax_label=None, data_ax_label=None):
+                data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
+                sort_by=None):
     '''
     Generates violin plots for a each data set within X. (X contains one more
     set of data points.)
@@ -3827,6 +3828,13 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
     name_ax_label, data_ax_label : <str>
         The labels of the name axis and the data axis.
         If vert is True, then the name axis is the x axis, otherwise, y axis.
+    sort_by : <str>
+        Option to sort the different data groups in X in the violin plot. Valid
+        options are: {'name', 'mean', 'median', None}. None means no sorting,
+        keeping the violin plot order as provided; 'mean' and 'median' mean
+        sorting the violins according to the mean/median values of each data
+        group; 'name' means sorting the violins according to the names of the
+        groups.
 
     Returns
     -------
@@ -3899,8 +3907,86 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
         else:  # numpy array
             data_names = ['data_'+str(_) for _ in range(ncol)]
 
+    assert(len(data) == ncol)
     if len(data_names) != ncol:
         raise LengthError('Length of data_names must equal the number of datasets.')
+
+    data_with_names = _prepare_violin_plot_data(data, data_names,
+                                                sort_by=sort_by, vert=vert)
+
+    fig, ax = _violin_plot_helper(data_with_names, fig=fig, ax=ax,
+                                  figsize=figsize, dpi=dpi, showmeans=showmeans,
+                                  showmedians=showmedians, vert=vert, rot=rot,
+                                  data_ax_label=data_ax_label,
+                                  name_ax_label=name_ax_label)
+
+    return fig, ax
+
+#%%============================================================================
+def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
+    '''
+    Package `data` and `data_names` into a dictionary with the specified sorting
+    option.
+
+    Returns
+    -------
+    data_with_names_dict : OrderedDict<str, list>
+        A mapping from data names to data, ordered by the specification in
+        `sort_by`.
+    '''
+    from collections import OrderedDict
+
+    assert(len(data) == len(data_names))
+    n = len(data)
+
+    data_with_names = []
+    for j in range(n):
+        data_with_names.append((data_names[j], data[j]))
+
+    reverse = not vert
+
+    if not sort_by:
+        sorted_list = data_with_names.copy()
+    elif sort_by == 'name':
+        sorted_list = sorted(data_with_names, key=lambda x: x[0],
+                             reverse=reverse)
+    elif sort_by == 'mean':
+        sorted_list = sorted(data_with_names, key=lambda x: np.mean(x[1]),
+                             reverse=reverse)
+    elif sort_by == 'median':
+        sorted_list = sorted(data_with_names, key=lambda x: np.median(x[1]),
+                             reverse=reverse)
+    else:
+        raise NameError("`sort_by` must be one of {None, 'name', mean', median'}.")
+
+    data_with_names_dict = OrderedDict()
+    for j in range(n):
+        data_with_names_dict[sorted_list[j][0]] = sorted_list[j][1]
+
+    return data_with_names_dict
+
+#%%============================================================================
+def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
+                        dpi=100, showmeans=True, showextrema=False,
+                        showmedians=False, vert=False, rot=45,
+                        data_ax_label=None, name_ax_label=None):
+    '''
+    Helper function for violin plot.
+
+    Parameters
+    ----------
+    data_with_names : OrderedDict<str, list>
+        A dictionary whose keys are the names of the categories and values are
+        the actual data.
+    '''
+
+    data = []
+    data_names = []
+    for key, val in data_with_names.items():
+        data.append(val)
+        data_names.append(key)
+
+    ncol = len(data)
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
     ax.violinplot(data, vert=vert, showmeans=showmeans, showextrema=showextrema,
@@ -3930,4 +4016,3 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
             ax.set_xlabel(name_ax_label)
 
     return fig, ax
-
