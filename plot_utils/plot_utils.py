@@ -666,7 +666,7 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
         axes. If not, a new figure and new axes are created.
     figsize : tuple of two scalars, or None
         Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter). If 'auto', the figure size will be
+        will over override this parameter). If None, the figure size will be
         automatically determined from the number of distinct categories in x.
     dpi : scalar
         Screen resolution. (fig object passed via "fig" will over override
@@ -1852,9 +1852,9 @@ def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
         Figure and axes objects.
         If provided, the histograms are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars, or 'auto'
+    figsize : tuple of two scalars, or None
         Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter). If 'auto', the figure size will be
+        will over override this parameter). If None, the figure size will be
         automatically determined from the number of distinct categories in x.
     dpi : <float> or <int>
         Screen resolution. (fig object passed via "fig" will over override
