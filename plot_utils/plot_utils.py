@@ -508,8 +508,9 @@ def _upcast_dtype(x):
 
 #%%============================================================================
 def category_means(categorical_array, continuous_array, fig=None, ax=None,
-                   figsize=(3,3), dpi=100, title=None, xlabel=None, ylabel=None,
-                   rot=0, dropna=False, show_stats=True, **violinplot_kwargs):
+                   figsize=None, dpi=100, title=None, xlabel=None, ylabel=None,
+                   rot=0, dropna=False, show_stats=True, sort_by='name',
+                   vert=True, **violinplot_kwargs):
     '''
     Summarize the mean values of entries of y corresponding to each distinct
     category in x, and show a violin plot to visualize it. The violin plot will
@@ -552,6 +553,15 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
     show_stats : <bool>
         Whether or not to show the statistical test results (F statistics
         and p-value) on the figure.
+    sort_by : <str>
+        Option to arrange the different categories in `categorical_array` in
+        the violin plot. Valid options are: {'name', 'mean', 'median', None}.
+        None means no sorting, i.e., using the hashed order of the category
+        names; 'mean' and 'median' mean sorting the violins according to the
+        mean/median values of each category; 'name' means sorting the violins
+        according to the category names.
+    vert : <bool>
+        Whether to show the violins as vertical
     **violinplot_kwargs :
         Keyword arguments to be passed to plt.violinplot().
         (https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.violinplot.html)
@@ -596,8 +606,6 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
 
     if not dropna: x = x.fillna('N/A')  # input arrays are unchanged
 
-    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
-
     x_classes = x.unique()
     x_classes_copy = list(x_classes.copy())
     y_values = []  # each element in y_values represent the values of a category
@@ -619,21 +627,17 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
     if 'showmeans' not in violinplot_kwargs:
         violinplot_kwargs['showmeans'] = True
 
-    ax.violinplot(y_values, **violinplot_kwargs)
+    data_names = [str(_) for _ in x_classes_copy]
 
-    ax.grid(ls=':')
-    ax.set_axisbelow(True)
-
-    if xlabel: ax.set_xlabel(xlabel)
-    if ylabel: ax.set_ylabel(ylabel)
-    ax.set_xticks(range(1,len(x_classes_copy)+1))
-
-    ha = 'center' if (0 <= rot < 30 or rot == 90) else 'right'
-    ax.set_xticklabels([str(_) for _ in x_classes_copy], rotation=rot, ha=ha)
+    fig, ax = violin_plot(y_values, fig=fig, ax=ax, figsize=figsize,
+                          dpi=dpi, data_names=data_names,
+                          sort_by=sort_by, vert=vert, **violinplot_kwargs)
 
     if show_stats:
-        ax.annotate('F=%.2f, p_val=%.2g' % (F_stat, p_value),
-                    xy=(0.05, 0.92), xycoords='axes fraction')
+        ha = 'left' if vert else 'right'
+        xy = (0.05, 0.92) if vert else (0.95, 0.92)
+        ax.annotate('F=%.2f, p_val=%.2g' % (F_stat, p_value), ha=ha,
+                    xy=xy, xycoords='axes fraction')
 
     if title: ax.set_title(title)
 
