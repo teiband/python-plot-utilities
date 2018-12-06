@@ -3777,7 +3777,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
 def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
                 showmeans=True, showextrema=False, showmedians=False, vert=False,
                 data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
-                sort_by=None):
+                sort_by=None, **violinplot_kwargs):
     '''
     Generates violin plots for a each data set within X. (X contains one more
     set of data points.)
@@ -3794,6 +3794,7 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
             + 2D numpy array: each column contains a set of data
             + higher dimensional numpy array: not allowed
         - dict: each key-value pair is one set of data
+        - list of lists: each sub-list is a data set
 
         Note that the NaN values in the data are implicitly excluded.
 
@@ -3835,6 +3836,8 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
         sorting the violins according to the mean/median values of each data
         group; 'name' means sorting the violins according to the names of the
         groups.
+    violinplot_kwargs : dict
+        Other keyword arguments to be passed to matplotlib.pyplot.violinplot()
 
     Returns
     -------
@@ -3842,40 +3845,64 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
         Figure and axes objects
     '''
 
-    if not isinstance(X, (pd.DataFrame, pd.Series, np.ndarray, dict)):
-        raise TypeError('X must be pd.DataFrame, pd.Series, np.ndarray, or dict.')
-
+    if not isinstance(X, (pd.DataFrame, pd.Series, np.ndarray, dict, list)):
+        raise TypeError('X must be pd.DataFrame, pd.Series, np.ndarray, dict, or list.')
     if not isinstance(data_names, (list, type(None))):
         raise TypeError('data_names must be a list of names, empty list, or None.')
-
     if nan_warning and isinstance(X, (pd.DataFrame, pd.Series)) and X.isnull().any().any():
         print('WARNING in violin_plot(): X contains NaN values.')
-
     if nan_warning and isinstance(X, np.ndarray) and np.isnan(X).any():
         print('WARNING in violin_plot(): X contains NaN values.')
+    if isinstance(X, list) and not all([isinstance(_, list) for _ in X]):
+        raise TypeError('If X is a list, it must be a list of lists.')
+
+    data, data_names, n_datasets = _preprocess_violin_plot_data(X,
+                                                      data_names=data_names,
+                                                      nan_warning=nan_warning)
+
+    data_with_names = _prepare_violin_plot_data(data, data_names,
+                                                sort_by=sort_by, vert=vert)
+
+    fig, ax = _violin_plot_helper(data_with_names, fig=fig, ax=ax,
+                                  figsize=figsize, dpi=dpi, showmeans=showmeans,
+                                  showmedians=showmedians, vert=vert, rot=rot,
+                                  data_ax_label=data_ax_label,
+                                  name_ax_label=name_ax_label,
+                                  **violinplot_kwargs)
+
+    return fig, ax
+
+#%%============================================================================
+def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
+    '''
+    Helper function.
+    '''
 
     if isinstance(X, pd.Series):
-        ncol = 1
+        n_datasets = 1
         data = X.dropna().values
     elif isinstance(X, pd.DataFrame):
-        ncol = X.shape[1]
+        n_datasets = X.shape[1]
         data = []
-        for j in range(ncol):
+        for j in range(n_datasets):
             data.append(X.iloc[:,j].dropna().values)
-    elif isinstance(X, np.ndarray):
+    elif isinstance(X, np.ndarray):  # use columns
         if X.ndim == 1:  # 1D numpy array
-            ncol = 1
+            n_datasets = 1
             data = X[np.isfinite(X)].copy()
         elif X.ndim == 2:  # 2D numpy array
-            ncol = X.shape[1]
+            n_datasets = X.shape[1]
             data = []
-            for j in range(ncol):  # go through every column
+            for j in range(n_datasets):  # go through every column
                 x = X[:,j]
                 data.append(x[np.isfinite(x)])  # remove NaN values
         else:
             raise DimensionError('X should be a 1D or 2D numpy array.')
-    else:  # dict
-        ncol = len(X)
+    elif isinstance(X, list):  # list of lists
+        data = X.copy()
+        n_datasets = len(data)
+    else:  # dict --> extract its values
+        n_datasets = len(X)
         data = []
         for key in X:
             x = X[key]
@@ -3892,10 +3919,9 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
                 print('WARNING in violin_plot(): X[%d] contains NaN values.' % key)
             data.append(x_[np.isfinite(x_)])
 
-    if not figsize:
-        l1 = max(3, 0.5 * ncol)
-        l2 = 3.5
-        figsize = (l1, l2) if vert else (l2, l1)
+    assert(len(data) == n_datasets)
+    if len(data_names) != n_datasets:
+        raise LengthError('Length of data_names must equal the number of datasets.')
 
     if not data_names:  # [] or None
         if isinstance(X, pd.Series):
@@ -3904,23 +3930,10 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
             data_names = list(X.columns)
         elif isinstance(X, dict):
             data_names = list(X.keys())
-        else:  # numpy array
-            data_names = ['data_'+str(_) for _ in range(ncol)]
+        else:  # numpy array or list of lists
+            data_names = ['data_'+str(_) for _ in range(n_datasets)]
 
-    assert(len(data) == ncol)
-    if len(data_names) != ncol:
-        raise LengthError('Length of data_names must equal the number of datasets.')
-
-    data_with_names = _prepare_violin_plot_data(data, data_names,
-                                                sort_by=sort_by, vert=vert)
-
-    fig, ax = _violin_plot_helper(data_with_names, fig=fig, ax=ax,
-                                  figsize=figsize, dpi=dpi, showmeans=showmeans,
-                                  showmedians=showmedians, vert=vert, rot=rot,
-                                  data_ax_label=data_ax_label,
-                                  name_ax_label=name_ax_label)
-
-    return fig, ax
+    return data, data_names, n_datasets
 
 #%%============================================================================
 def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
@@ -3969,7 +3982,8 @@ def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
 def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
                         dpi=100, showmeans=True, showextrema=False,
                         showmedians=False, vert=False, rot=45,
-                        data_ax_label=None, name_ax_label=None):
+                        data_ax_label=None, name_ax_label=None,
+                        **violinplot_kwargs):
     '''
     Helper function for violin plot.
 
@@ -3986,22 +4000,27 @@ def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
         data.append(val)
         data_names.append(key)
 
-    ncol = len(data)
+    n_datasets = len(data)
+
+    if not figsize:
+        l1 = max(3, 0.5 * n_datasets)
+        l2 = 3.5
+        figsize = (l1, l2) if vert else (l2, l1)
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
     ax.violinplot(data, vert=vert, showmeans=showmeans, showextrema=showextrema,
-                  showmedians=showmedians)
+                  showmedians=showmedians, **violinplot_kwargs)
     ax.grid(ls=':')
     ax.set_axisbelow(True)
 
     if vert:
         ax.xaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
-        ax.set_xticks(np.arange(ncol) + 1)
+        ax.set_xticks(np.arange(n_datasets) + 1)
         ha = 'center' if (0 <= rot < 30 or rot == 90) else 'right'
         ax.set_xticklabels(data_names, rotation=rot, ha=ha)
     else:
         ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(base=1.0))
-        ax.set_yticks(np.arange(ncol) + 1)
+        ax.set_yticks(np.arange(n_datasets) + 1)
         ax.set_yticklabels(data_names)
 
     if data_ax_label:
