@@ -243,7 +243,13 @@ pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 
 ##### 1. Install with `pip` (recommended):
 
-`>>> pip install git+https://github.com/jsh9/python-plot-utilities`
+`>>> pip install git+https://github.com/jsh9/python-plot-utilities`	
+
+Alternatively, install a specific release:
+
+`>>> pip install git+https://github.com/jsh9/python-plot-utilities@{version_name}`
+
+Replace `{version_name}` with the desired release version name.
 
 ##### 2. The portable way:
 
@@ -292,6 +298,6 @@ I did not built every function of this module entirely from scratch. I documente
 
 ## Copyright and license
 
-(c) 2017-2018, Jian Shi
+(c) 2017-2019, Jian Shi
 
 License: GPL v3.0
