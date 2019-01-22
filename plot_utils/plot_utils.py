@@ -3908,8 +3908,10 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
     else:  # dict --> extract its values
         n_datasets = len(X)
         data = []
+        key_list = []
         for key in X:
             x = X[key]
+            key_list.append(key)
             if isinstance(x, pd.Series):
                 x_ = x.values
             elif isinstance(x, np.ndarray) and x.ndim == 1:
@@ -3922,6 +3924,9 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
             if nan_warning and np.isnan(x_).any():
                 print('WARNING in violin_plot(): X[%d] contains NaN values.' % key)
             data.append(x_[np.isfinite(x_)])
+
+    if not data_names and isinstance(X, dict):
+        data_names = key_list
 
     assert(len(data) == n_datasets)
     if len(data_names) != n_datasets:
