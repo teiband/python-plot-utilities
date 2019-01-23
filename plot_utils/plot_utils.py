@@ -3779,7 +3779,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
 
 #%%============================================================================
 def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
-                showmeans=True, showextrema=False, showmedians=False, vert=False,
+                showmeans=True, showextrema=False, showmedians=False, vert=True,
                 data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
                 sort_by=None, **violinplot_kwargs):
     '''
