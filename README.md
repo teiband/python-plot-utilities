@@ -2,6 +2,52 @@
 
 This is a Python module that contains some useful data visualization tools.
 
+## Table of contents
+
+   * [Installation](#installation)
+   * [Current functionalities](#current-functionalities)
+   * [Gallery](#gallery)
+       - [One column of data](#1-one-column-of-data)
+       - [Two columns of data](#2-two-columns-of-data)
+       - [Multiple columns of data](#3-multiple-columns-of-data)
+       - [Choropleth maps (a.k.a., "heat maps")](#4-choropleth-maps-aka-heat-maps)
+       - [Time series plotting](#5-time-series-plotting-1)
+       - [Miscellaneous](#6-miscellaneous-1)
+   * [Dependencies](#dependencies)
+   * [Testing](#testing)
+   * [Aesthetics](#aesthetics)
+   * [References](#references)
+   * [Copyright and license](#copyright-and-license)
+
+   
+## Installation
+
+##### 1. Install with `pip` (recommended):
+
+`>>> pip install git+https://github.com/jsh9/python-plot-utilities`	
+
+Alternatively, install a specific release:
+
+`>>> pip install git+https://github.com/jsh9/python-plot-utilities@{version_name}`
+
+Replace `{version_name}` with the desired release version name.
+
+##### 2. The portable way:
+
+Just download this repository, and you can put `plot_utils.py` anywhere within your Python search path.
+
+##### Note:
+
+If you run into the following issue on Mac OS X (or macOS) when importing `plot_utils`:
+
+`RuntimeError: Python is not installed as a framework. The Mac OS X backend will not be able to function correctly if Python is not installed as a framework.`
+
+please follow this solution to fix the issue: https://stackoverflow.com/a/21789908/8892243
+
+
+
+## Current functionalities
+
 Current functionalities include (for full list, use `print(plot_utils.__doc__)`):
 
 #### 1. Visualizing one column of data
@@ -236,32 +282,6 @@ pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 
 ![](./examples/gallery/error_bounds.png)
-
-
-
-## Installation
-
-##### 1. Install with `pip` (recommended):
-
-`>>> pip install git+https://github.com/jsh9/python-plot-utilities`	
-
-Alternatively, install a specific release:
-
-`>>> pip install git+https://github.com/jsh9/python-plot-utilities@{version_name}`
-
-Replace `{version_name}` with the desired release version name.
-
-##### 2. The portable way:
-
-Just download this repository, and you can put `plot_utils.py` anywhere within your Python search path.
-
-##### Note:
-
-If you run into the following issue on Mac OS X (or macOS) when importing `plot_utils`:
-
-`RuntimeError: Python is not installed as a framework. The Mac OS X backend will not be able to function correctly if Python is not installed as a framework.`
-
-please follow this solution to fix the issue: https://stackoverflow.com/a/21789908/8892243
 
 
 
