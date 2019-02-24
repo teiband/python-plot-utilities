@@ -20,6 +20,7 @@ Plot a pie chart demonstrating proportions of different categories within an arr
     top_n : <int>
         An integer between 1 and the number of unique categories in target_array.
         Useful for preventing plotting too many unique categories (very slow).
+        If None, plot all categories.
     sort_by : {'counts', 'name'}
         An option to control whether the pie slices are arranged by the counts
         of each unique categories, or by the names of those categories.

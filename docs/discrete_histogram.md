@@ -32,9 +32,9 @@ In the figure, N is the number of occurences for x1, x2, x3, x4, etc. And x1, x2
         Figure and axes objects.
         If provided, the histograms are plotted on the provided figure and
         axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars, or 'auto'
+    figsize : tuple of two scalars, or None
         Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter). If 'auto', the figure size will be
+        will over override this parameter). If None, the figure size will be
         automatically determined from the number of distinct categories in x.
     dpi : <float> or <int>
         Screen resolution. (fig object passed via "fig" will over override

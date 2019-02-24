@@ -1,6 +1,6 @@
 # plot_utils.plot_ranking
 
-**plot_utils.plot_ranking**(*ranking, fig=None, ax=None, figsize='auto', dpi=100, barh=True, top_n=0, score_ax_label=None, name_ax_label=None, invert_name_ax=False, grid_on=True*):
+**plot_utils.plot_ranking**(*ranking, fig=None, ax=None, figsize='auto', dpi=100, barh=True, top_n=None, score_ax_label=None, name_ax_label=None, invert_name_ax=False, grid_on=True*):
 
 Plots rankings as a bar plot (in descending order), such as:
 
@@ -37,7 +37,7 @@ Plots rankings as a bar plot (in descending order), such as:
     barh : <bool>
         Whether or not to show the bars as horizontal (otherwise, vertical).
     top_n : <int>
-        top_n == 0 means showing all categories. top_n > 0 means showing the
+        If None, show all categories. top_n > 0 means showing the
         highest top_n categories. top_n < 0 means showing the lowest |top_n|
         categories.
     score_ax_label : <str>

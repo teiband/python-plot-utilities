@@ -1,8 +1,6 @@
 # plot_utils.violin_plots
 
-**violin_plot**(*X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
-                showmeans=True, showextrema=False, showmedians=False, vert=False,
-                data_names=[], rot=45, name_ax_label=None, data_ax_label=None*):
+**violin_plot**(_X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False, showmeans=True, showextrema=False, showmedians=False, vert=True, data_names=[], rot=45, name_ax_label=None, data_ax_label=None, sort_by=None, **violinplot_kwargs_):
                 
 Generates violin plots for a each data set within X. (X contains one more set of data points.)
 
@@ -17,6 +15,7 @@ Generates violin plots for a each data set within X. (X contains one more set of
             + 2D numpy array: each column contains a set of data
             + higher dimensional numpy array: not allowed
         - dict: each key-value pair is one set of data
+        - list of lists: each sub-list is a data set
 
         Note that the NaN values in the data are implicitly excluded.
 
@@ -51,6 +50,15 @@ Generates violin plots for a each data set within X. (X contains one more set of
     name_ax_label, data_ax_label : <str>
         The labels of the name axis and the data axis.
         If vert is True, then the name axis is the x axis, otherwise, y axis.
+    sort_by : <str>
+        Option to sort the different data groups in X in the violin plot. Valid
+        options are: {'name', 'mean', 'median', None}. None means no sorting,
+        keeping the violin plot order as provided; 'mean' and 'median' mean
+        sorting the violins according to the mean/median values of each data
+        group; 'name' means sorting the violins according to the names of the
+        groups.
+    violinplot_kwargs : dict
+        Other keyword arguments to be passed to matplotlib.pyplot.violinplot()
 
 #### [Returns]
     fig, ax :

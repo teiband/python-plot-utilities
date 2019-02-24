@@ -91,7 +91,7 @@ The theory that enables this method is the assumption that the data points with 
 
 # plot_utils.category_means
 
-**plot_utils.category_means**(_categorical_array, continuous_array, fig=None, ax=None, figsize=(3,3), dpi=100, title=None, xlabel=None, ylabel=None, rot=0, dropna=False, show_stats=True, **violinplot_kwargs_):
+**plot_utils.category_means**(_categorical_array, continuous_array, fig=None, ax=None, figsize=None, dpi=100, title=None, xlabel=None, ylabel=None, rot=0, dropna=False, show_stats=True, sort_by='name', vert=True, **violinplot_kwargs_):
 
 Summarize the mean values of entries of y corresponding to each distinct
 category in x, and show a violin plot to visualize it. The violin plot will
@@ -133,6 +133,15 @@ average y values) is performed, and F statistics and p-value are returned.
     show_stats : <bool>
         Whether or not to show the statistical test results (F statistics
         and p-value) on the figure.
+    sort_by : <str>
+        Option to arrange the different categories in `categorical_array` in
+        the violin plot. Valid options are: {'name', 'mean', 'median', None}.
+        None means no sorting, i.e., using the hashed order of the category
+        names; 'mean' and 'median' mean sorting the violins according to the
+        mean/median values of each category; 'name' means sorting the violins
+        according to the category names.
+    vert : <bool>
+        Whether to show the violins as vertical
     **violinplot_kwargs :
         Keyword arguments to be passed to plt.violinplot().
         (https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.violinplot.html)
@@ -154,7 +163,7 @@ average y values) is performed, and F statistics and p-value are returned.
 
 # plot_utils.positive_rate
 
-**plot_utils.positive_rate**(*categorical_array, two_classes_array, fig=None, ax=None, figsize=None, dpi=100, barh=True, top_n=-1, dropna=False, xlabel=None, ylabel=None, show_stats=True*):
+**plot_utils.positive_rate**(*categorical_array, two_classes_array, fig=None, ax=None, figsize=None, dpi=100, barh=True, top_n=None, dropna=False, xlabel=None, ylabel=None, show_stats=True*):
 
 Calculate the proportions of the different categories in vector x that fall
 into class "1" (or "True") in vector y, and optionally show a figure.
@@ -186,7 +195,8 @@ are returned.
         Whether or not to show the bars as horizontal (otherwise, vertical).
     top_n : <int>
         Only shows top_n categories (ranked by their positive rate) in the
-        figure. Useful when there are too many categories.
+        figure. Useful when there are too many categories. If None, show all
+        categories.
     dropna : <bool>
         If True, ignore entries (in both arrays) where there are missing values
         in at least one array. If False, the missing values are treated as a
