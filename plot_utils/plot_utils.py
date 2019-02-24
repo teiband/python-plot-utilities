@@ -645,7 +645,7 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
 
 #%%============================================================================
 def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
-                  figsize=None, dpi=100, barh=True, top_n=-1, dropna=False,
+                  figsize=None, dpi=100, barh=True, top_n=None, dropna=False,
                   xlabel=None, ylabel=None, show_stats=True):
     '''
     Calculate the proportions of the different categories in vector x that fall
@@ -679,7 +679,8 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
         Whether or not to show the bars as horizontal (otherwise, vertical).
     top_n : <int>
         Only shows top_n categories (ranked by their positive rate) in the
-        figure. Useful when there are too many categories.
+        figure. Useful when there are too many categories. If None, show all
+        categories.
     dropna : <bool>
         If True, ignore entries (in both arrays) where there are missing values
         in at least one array. If False, the missing values are treated as a
@@ -975,7 +976,7 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
 
 #%%============================================================================
 def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
-                 barh=True, top_n=0, score_ax_label=None, name_ax_label=None,
+                 barh=True, top_n=None, score_ax_label=None, name_ax_label=None,
                  invert_name_ax=False, grid_on=True):
     '''
     Plots rankings as a bar plot (in descending order), such as:
@@ -1013,7 +1014,7 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
     barh : <bool>
         Whether or not to show the bars as horizontal (otherwise, vertical).
     top_n : <int>
-        top_n == 0 means showing all categories. top_n > 0 means showing the
+        If None, show all categories. top_n > 0 means showing the
         highest top_n categories. top_n < 0 means showing the lowest |top_n|
         categories.
     score_ax_label : <str>
@@ -1036,11 +1037,12 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
     if not isinstance(ranking, (dict, pd.Series)):
         raise TypeError('"ranking" must be a Python dict or pandas Series.')
 
-    if not isinstance(top_n, (int, np.integer)):
-        raise ValueError('top_n must be an integer.')
+    if top_n is not None and not isinstance(top_n, (int, np.integer)):
+        raise ValueError('top_n must be an integer of None.')
 
-    if top_n == 0:
+    if top_n == None:
         nr_classes = len(ranking)
+        top_n = len(ranking)
     else:
         nr_classes = np.abs(top_n)
 
@@ -1171,6 +1173,7 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     top_n : <int>
         An integer between 1 and the number of unique categories in target_array.
         Useful for preventing plotting too many unique categories (very slow).
+        If None, plot all categories.
     sort_by : {'counts', 'name'}
         An option to control whether the pie slices are arranged by the counts
         of each unique categories, or by the names of those categories.
