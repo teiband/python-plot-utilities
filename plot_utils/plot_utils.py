@@ -3369,8 +3369,8 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
     return fig, ax
 
 #%%============================================================================
-def plot_correlation(X, color_map='RdBu_r', fig=None, ax=None, figsize=None,
-                     dpi=100, variable_names=None, rot=45, scatter_plots=False):
+def correlation_matrix(X, color_map='RdBu_r', fig=None, ax=None, figsize=None,
+                      dpi=100, variable_names=None, rot=45, scatter_plots=False):
     '''
     Plot correlation matrix of a dataset X, whose columns are different
     variables (or a sample of a certain random variable).
