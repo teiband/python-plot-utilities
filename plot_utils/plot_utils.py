@@ -20,6 +20,7 @@ Top-level functions:
     3. Multiple columns of data:
         histogram3d
         violin_plot
+        hist_multi
         plot_correlation
         missing_value_counts
 
@@ -3784,9 +3785,9 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
 def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
                 showmeans=True, showextrema=False, showmedians=False, vert=True,
                 data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
-                sort_by=None, **violinplot_kwargs):
+                sort_by=None, title=None, **violinplot_kwargs):
     '''
-    Generates violin plots for a each data set within X. (X contains one more
+    Generates violin plots for each data set within X. (X contains one more
     set of data points.)
 
     Parameters
@@ -3843,6 +3844,8 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
         sorting the violins according to the mean/median values of each data
         group; 'name' means sorting the violins according to the names of the
         groups.
+    title : str
+        The title of the plot
     violinplot_kwargs : dict
         Other keyword arguments to be passed to matplotlib.pyplot.violinplot()
 
@@ -3852,16 +3855,7 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
         Figure and axes objects
     '''
 
-    if not isinstance(X, (pd.DataFrame, pd.Series, np.ndarray, dict, list)):
-        raise TypeError('X must be pd.DataFrame, pd.Series, np.ndarray, dict, or list.')
-    if not isinstance(data_names, (list, type(None))):
-        raise TypeError('data_names must be a list of names, empty list, or None.')
-    if nan_warning and isinstance(X, (pd.DataFrame, pd.Series)) and X.isnull().any().any():
-        print('WARNING in violin_plot(): X contains NaN values.')
-    if nan_warning and isinstance(X, np.ndarray) and np.isnan(X).any():
-        print('WARNING in violin_plot(): X contains NaN values.')
-    if isinstance(X, list) and not all([isinstance(_, list) for _ in X]):
-        raise TypeError('If X is a list, it must be a list of lists.')
+    _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning)
 
     data, data_names, n_datasets = _preprocess_violin_plot_data(X,
                                                       data_names=data_names,
@@ -3875,9 +3869,25 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
                                   showmedians=showmedians, vert=vert, rot=rot,
                                   data_ax_label=data_ax_label,
                                   name_ax_label=name_ax_label,
-                                  **violinplot_kwargs)
+                                  title=title, **violinplot_kwargs)
 
     return fig, ax
+
+#%%============================================================================
+def _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning):
+    '''
+    Check that the input, `X`, for violin_plot() or hist_multi() is valid.
+    '''
+    if not isinstance(X, (pd.DataFrame, pd.Series, np.ndarray, dict, list)):
+        raise TypeError('X must be pd.DataFrame, pd.Series, np.ndarray, dict, or list.')
+    if not isinstance(data_names, (list, type(None))):
+        raise TypeError('data_names must be a list of names, empty list, or None.')
+    if nan_warning and isinstance(X, (pd.DataFrame, pd.Series)) and X.isnull().any().any():
+        print('WARNING in violin_plot(): X contains NaN values.')
+    if nan_warning and isinstance(X, np.ndarray) and np.isnan(X).any():
+        print('WARNING in violin_plot(): X contains NaN values.')
+    if isinstance(X, list) and not all([isinstance(_, list) for _ in X]):
+        raise TypeError('If X is a list, it must be a list of lists.')
 
 #%%============================================================================
 def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
@@ -3925,14 +3935,15 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
                 raise TypeError('Unknown data type in X[%d]. Should be either '
                                 'pd.Series, 1D numpy array, or a list.' % key)
             if nan_warning and np.isnan(x_).any():
-                print('WARNING in violin_plot(): X[%d] contains NaN values.' % key)
+                print('WARNING in violin_plot() or hist_multi(): '
+                      'X[%d] contains NaN values.' % key)
             data.append(x_[np.isfinite(x_)])
 
     if not data_names and isinstance(X, dict):
         data_names = key_list
 
     assert(len(data) == n_datasets)
-    if len(data_names) != n_datasets:
+    if len(data_names) != 0 and len(data_names) != n_datasets:
         raise LengthError('Length of data_names must equal the number of datasets.')
 
     if not data_names:  # [] or None
@@ -3943,7 +3954,7 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
         elif isinstance(X, dict):
             data_names = list(X.keys())
         else:  # numpy array or list of lists
-            data_names = ['data_'+str(_) for _ in range(n_datasets)]
+            data_names = ['data_' + str(_) for _ in range(n_datasets)]
 
     return data, data_names, n_datasets
 
@@ -3994,7 +4005,7 @@ def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
 def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
                         dpi=100, showmeans=True, showextrema=False,
                         showmedians=False, vert=False, rot=45,
-                        data_ax_label=None, name_ax_label=None,
+                        data_ax_label=None, name_ax_label=None, title=None,
                         **violinplot_kwargs):
     '''
     Helper function for violin plot.
@@ -4022,6 +4033,256 @@ def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
     ax.violinplot(data, vert=vert, showmeans=showmeans, showextrema=showextrema,
                   showmedians=showmedians, **violinplot_kwargs)
+    ax = __axes_styling_helper(ax, vert, rot, data_names, n_datasets,
+                               data_ax_label, name_ax_label, title)
+    return fig, ax
+
+#%%============================================================================
+def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
+               nan_warning=False, showmeans=True, showmedians=False, vert=True,
+               data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
+               sort_by=None, title=None, **hist_kwargs):
+    '''
+    Generates multiple histograms, one for each data set within X. (X
+    contains one more set of data points.)
+
+    Parameters
+    ----------
+    X : <pd.DataFrame>, <pd.Series>, <np.ndarray>, or <dict>
+        The data to be visualized.
+
+        - pd.DataFrame: each column contains a set of data
+        - pd.Series: contains only one set of data
+        - np.ndarray:
+            + 1D numpy array: only one set of data
+            + 2D numpy array: each column contains a set of data
+            + higher dimensional numpy array: not allowed
+        - dict: each key-value pair is one set of data
+        - list of lists: each sub-list is a data set
+
+        Note that the NaN values in the data are implicitly excluded.
+
+    bins : int or sequence or str
+        If an integer is given, the whole range of data (i.e., all the numbers
+        within X) is divided into `bins` segments. If sequence or str, they
+        will be passed to the `bins` argument of matplotlib.pyplot.hist().
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the graph is plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars
+        Size (width, height) of figure in inches. If None, it will be determined
+        by how many sets of data are there in X (each set takes up 0.5 inches.)
+        (fig object passed via "fig" will over override this parameter)
+    dpi : <float>
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    nan_warning : <bool>
+        Whether to show a warning if there are NaN values in the data.
+    showmeans, showmedians : <bool>
+        Whether or not to show the mean values, median values on top
+        of the histograms.
+    vert : <bool>
+        Whether to show the "base" of the histograms as vertical
+    data_names : <list<str>>
+        The names of each data set, to be shown as the axis tick label of each
+        data set. If [] or None, it will be determined automatically: if X is a
+            - np.ndarray: data_names = ['data_0', 'data_1', 'data_2', ...]
+            - pd.Series: data_names = X.name
+            - pd.DataFrame: data_names = list(X.columns)
+            - dict: data_names = list(X.keys())
+    rot : <float>
+        The rotation (in degrees) of the data_names when shown as the tick
+        labels. If vert is False, rot has no effect.
+    name_ax_label, data_ax_label : <str>
+        The labels of the name axis and the data axis.
+        If vert is True, then the name axis is the x axis, otherwise, y axis.
+    sort_by : <str>
+        Option to sort the different data groups in X in the violin plot. Valid
+        options are: {'name', 'mean', 'median', None}. None means no sorting,
+        keeping the violin plot order as provided; 'mean' and 'median' mean
+        sorting the violins according to the mean/median values of each data
+        group; 'name' means sorting the violins according to the names of the
+        groups.
+    title : str
+        Title of the plot
+    hist_kwargs : dict
+        Other keyword arguments to be passed to matplotlib.pyplot.hist()
+
+    Returns
+    -------
+    fig, ax :
+        Figure and axes objects
+    '''
+
+    _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning)
+
+    data, data_names, n_datasets = _preprocess_violin_plot_data(X,
+                                                      data_names=data_names,
+                                                      nan_warning=nan_warning)
+
+    data_with_names = _prepare_violin_plot_data(data, data_names,
+                                                sort_by=sort_by, vert=vert)
+
+    if isinstance(bins, int):
+        flattened_data = []
+        for data_i in data:
+            flattened_data.extend(data_i)
+        all_X_max = np.max(flattened_data)
+        all_X_min = np.min(flattened_data)
+        bins = np.linspace(all_X_min, all_X_max, num=bins, endpoint=True)
+
+    fig, ax = _hist_multi_helper(data_with_names, bins=bins, fig=fig, ax=ax,
+                                 figsize=figsize, dpi=dpi, showmeans=showmeans,
+                                 showmedians=showmedians, vert=vert, rot=rot,
+                                 data_ax_label=data_ax_label,
+                                 name_ax_label=name_ax_label,
+                                 title=title, **hist_kwargs)
+
+    return fig, ax
+
+#%%============================================================================
+def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
+                       figsize=None, dpi=100, showmeans=True, showmedians=False,
+                       vert=False, rot=45, data_ax_label=None,
+                       name_ax_label=None, show_legend=True, title=None,
+                       **hist_kwargs):
+    '''
+    Helper function to multi_hist().
+
+    Parameters
+    ----------
+    data_with_names : OrderedDict<str, list>
+        A dictionary whose keys are the names of the categories and values are
+        the actual data.
+    bins : int or sequence or str
+        If an integer is given, the whole range of data (i.e., all the numbers
+        within X) is divided into `bins` segments. If sequence or str, they
+        will be passed to the `bins` argument of matplotlib.pyplot.hist().
+    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
+        Figure and axes objects.
+        If provided, the graph is plotted on the provided figure and
+        axes. If not, a new figure and new axes are created.
+    figsize : tuple of two scalars
+        Size (width, height) of figure in inches. If None, it will be determined
+        by how many sets of data are there in X (each set takes up 0.5 inches.)
+        (fig object passed via "fig" will over override this parameter)
+    dpi : <float>
+        Screen resolution. (fig object passed via "fig" will over override
+        this parameter)
+    nan_warning : <bool>
+        Whether to show a warning if there are NaN values in the data.
+    showmeans, showmedians : <bool>
+        Whether or not to show the mean values, median values on top
+        of the histograms.
+    vert : <bool>
+        Whether to show the "base" of the histograms as vertical
+    data_names : <list<str>>
+        The names of each data set, to be shown as the axis tick label of each
+        data set. If [] or None, it will be determined automatically: if X is a
+            - np.ndarray: data_names = ['data_0', 'data_1', 'data_2', ...]
+            - pd.Series: data_names = X.name
+            - pd.DataFrame: data_names = list(X.columns)
+            - dict: data_names = list(X.keys())
+    rot : <float>
+        The rotation (in degrees) of the data_names when shown as the tick
+        labels. If vert is False, rot has no effect.
+    name_ax_label, data_ax_label : <str>
+        The labels of the name axis and the data axis.
+        If vert is True, then the name axis is the x axis, otherwise, y axis.
+    sort_by : <str>
+        Option to sort the different data groups in X in the violin plot. Valid
+        options are: {'name', 'mean', 'median', None}. None means no sorting,
+        keeping the violin plot order as provided; 'mean' and 'median' mean
+        sorting the violins according to the mean/median values of each data
+        group; 'name' means sorting the violins according to the names of the
+        groups.
+    title : str
+        Title of the plot
+    hist_kwargs : dict
+        Other keyword arguments to be passed to matplotlib.pyplot.hist()
+
+    Returns
+    -------
+    fig, ax :
+        Figure and axes objects
+    '''
+    data = []
+    data_names = []
+    for key, val in data_with_names.items():
+        data.append(val)
+        data_names.append(key)
+
+    n_datasets = len(data)
+
+    if not figsize:
+        l1 = max(3, 1.0 * n_datasets)
+        l2 = 3.5
+        figsize = (l1, l2) if vert else (l2, l1)
+
+    fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
+    for i, data_i in enumerate(data):
+        ax.hist(data_i, bins=bins, density=True, bottom=i + 1,
+                orientation='vertical' if not vert else 'horizontal',
+                alpha=0.75, lw=0.5, ec='w', **hist_kwargs)
+        if showmeans:
+            mean_val = np.mean(data_i)
+            label_1 = 'mean' if i == 0 else None
+            if vert:
+                ax.plot([i+1, i+1.5], [mean_val] * 2, c='k', label=label_1)
+            else:
+                ax.plot([mean_val] * 2, [i+1, i+1.5], c='k', label=label_1)
+        if showmedians:
+            median_val = np.median(data_i)
+            label_2 = 'median' if i == 0 else None
+            if vert:
+                ax.plot([i+1, i+1.5], [median_val] * 2, c='k', ls='--',
+                        label=label_2)
+            else:
+                ax.plot([median_val] * 2, [i+1, i+1.5], c='k', ls='--',
+                        label=label_2)
+
+    if show_legend:
+        ax.legend(loc='best')
+    ax = __axes_styling_helper(ax, vert, rot, data_names, n_datasets,
+                               data_ax_label, name_ax_label, title)
+    return fig, ax
+
+#%%============================================================================
+def __axes_styling_helper(ax, vert, rot, data_names, n_datasets, data_ax_label,
+                          name_ax_label, title):
+    '''
+    Helper function. Used by _violin_plot_helper() and _multi_hist_helper().
+
+    Parameters
+    ----------
+    ax : matplotlib.axes._subplots.AxesSubplot
+        Matplotlib axes object
+    vert : bool
+        Whether to show the violins or the "base" of the histograms as vertical
+    rot : <float>
+        The rotation (in degrees) of the data_names when shown as the tick
+        labels. If vert is False, rot has no effect.
+    data_names : <list<str>>
+        The names of each data set, to be shown as the axis tick label of each
+        data set. If [] or None, it will be determined automatically: if X is a
+            - np.ndarray: data_names = ['data_0', 'data_1', 'data_2', ...]
+            - pd.Series: data_names = X.name
+            - pd.DataFrame: data_names = list(X.columns)
+            - dict: data_names = list(X.keys())
+    n_datasets : int
+        Number of sets of data
+    data_ax_label, name_ax_label : <str>
+        The labels of the name axis and the data axis.
+        If vert is True, then the name axis is the x axis, otherwise, y axis.
+    title : str
+        Title of the plot
+
+    Returns
+    -------
+    ax : matplotlib.axes._subplots.AxesSubplot
+        Matplotlib axes object
+    '''
     ax.grid(ls=':')
     ax.set_axisbelow(True)
 
@@ -4046,4 +4307,7 @@ def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
         else:
             ax.set_xlabel(name_ax_label)
 
-    return fig, ax
+    if title:
+        ax.set_title(title)
+
+    return ax
