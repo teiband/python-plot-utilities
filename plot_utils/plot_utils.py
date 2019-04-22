@@ -68,7 +68,7 @@ Private helper classes:
 
 Created on Fri Apr 28 15:37:26 2017
 
-Copyright (c) 2017-2018, Jian Shi
+Copyright (c) 2017-2019, Jian Shi
 License: GPL v3
 """
 
@@ -131,7 +131,6 @@ def _process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
     '''
-
     if fig is None:  # if a figure handle is not provided, create new figure
         fig = pl.figure(figsize=figsize,dpi=dpi)
     else:   # if provided, plot to the specified figure
@@ -171,17 +170,15 @@ def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
     show_new_img : bool
         Whether or not to show the trimmed figure in the console.
     '''
-
     try:
         import PIL
         import PIL.ImageOps
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError('\nPlease install PIL in order to use '
-                                  '`trim_img`.\n'
-                                  'Install with conda (recommended):\n'
-                                  '    >>> conda install PIL\n'
-                                  'To install without conda, refer to:\n'
-                                  '    http://www.pythonware.com/products/pil/')
+    except ImportError:
+        raise ImportError('\nPlease install PIL in order to use `trim_img()`.\n'
+                          'Install with conda (recommended):\n'
+                          '    >>> conda install PIL\n'
+                          'To install without conda, refer to:\n'
+                          '    http://www.pythonware.com/products/pil/')
 
     if not isinstance(files,(list,tuple)):
         files = [files]
@@ -256,11 +253,11 @@ class Color():
         import matplotlib._color_data as mcd
 
         if not isinstance(color, (list, tuple, str)):
-            raise TypeError('color must be a list/tuple of length 3 or a str.')
+            raise TypeError('`color` must be a list/tuple of length 3 or a str.')
 
         if isinstance(color, (list, tuple)):
             if len(color) != 3:
-                raise TypeError('If "color" is a list/tuple, its length must be 3.')
+                raise TypeError('If `color` is a list/tuple, its length must be 3.')
             else:
                 self.__color = self.__rgb_to_hex(color, is_rgb_normalized)
 
@@ -300,12 +297,11 @@ class Color():
         hex_val : str
             HEX value
         '''
-
         if np.any(np.array(rgb) > 255):
-            raise ValueError('rgb values should not exceed 255.')
+            raise ValueError('`rgb` values should not exceed 255.')
 
         if np.any(np.array(rgb) < 0):
-            raise ValueError('rgb values should not be negative.')
+            raise ValueError('`rgb` values should not be negative.')
 
         if max(rgb) > 1.0 and is_normalized == True:
             rgb = [_ / 255.0 for _ in rgb]
@@ -335,7 +331,6 @@ class Color():
         rgb : tuple<float>
             RGB values in three numbers.
         '''
-
         h = hex_[1:]  # strip the '#' in the front
         if normalize:
             rgb = tuple(int(h[i:i+2], 16) / 255.0 for i in (0, 2 ,4))
@@ -376,7 +371,7 @@ class Color():
             RGBA values in four numbers.
         '''
         if alpha < 0 or alpha > 1:
-            raise ValueError('alpha must be between 0 and 1 (inclusive).')
+            raise ValueError('`alpha` must be between 0 and 1 (inclusive).')
 
         rgb = self.__hex_to_rgb(self.__color, normalize=True)
         rgba = (rgb[0], rgb[1], rgb[2], alpha)
@@ -428,9 +423,9 @@ class Multiple_Colors():
     '''
     def __init__(self, colors, is_rgb_normalized=True):
         if not isinstance(colors, list):
-            raise TypeError('"colors" must be a list.')
+            raise TypeError('`colors` must be a list.')
         if len(colors) == 0:
-            raise LengthError('Length of "colors" must nonzero.')
+            raise LengthError('Length of `colors` must non-zero.')
 
         self.__length = len(colors)
         self.__Colors = [None] * self.__length
@@ -549,7 +544,6 @@ def _upcast_dtype(x):
     x : pandas.Series
         The array whose elements are now upcast.
     '''
-
     assert(type(x) == pd.Series)
 
     if x.dtype.name in ['category', 'bool', 'datetime64[ns]', 'datetime64[ns, tz]']:
@@ -640,21 +634,22 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
         F-value of the one-way ANOVA test, and p_value is the associated
         p-value from the F-distribution.
     '''
-
     x = categorical_array
     y = continuous_array
 
     if not isinstance(x, _array_like):
-        raise TypeError('"categorical_array" must be pd.Series, np.array, or list.')
+        raise TypeError('`categorical_array` must be pandas.Series, '
+                        'numpy.ndarray, or list.')
     if not isinstance(y, _array_like):
-        raise TypeError('"continuous_array" must be pd.Series, np.array, or list.')
+        raise TypeError('`continuous_array` must be pandas.Series, '
+                        'numpy.ndarray, or list.')
     if len(x) != len(y):
-        raise LengthError('Lengths of categorical_array and continuous_array '
+        raise LengthError('Lengths of `categorical_array` and `continuous_array` '
                           'must be the same.')
     if isinstance(x, np.ndarray) and x.ndim > 1:
-        raise DimensionError('"categorical_array" must be a 1D numpy array.')
+        raise DimensionError('`categorical_array` must be a 1D numpy array.')
     if isinstance(y, np.ndarray) and y.ndim > 1:
-        raise DimensionError('"continuous_array" must be a 1D numpy array..')
+        raise DimensionError('`continuous_array` must be a 1D numpy array..')
 
     if not xlabel and isinstance(x, pd.Series): xlabel = x.name
     if not ylabel and isinstance(y, pd.Series): ylabel = y.name
@@ -772,15 +767,18 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
     y = two_classes_array
 
     if not isinstance(categorical_array, _array_like):
-        raise TypeError('"categorical_array" must be pd.Series, np.array, or list.')
+        raise TypeError('`categorical_array` must be pandas.Series, '
+                        'numpy.ndarray, or list.')
     if not isinstance(two_classes_array, _array_like):
-        raise TypeError('"two_classes_array" must be pd.Series, np.array, or list.')
+        raise TypeError('`two_classes_array` must be pandas.Series, '
+                        'numpy.array, or list.')
     if len(x) != len(y):
-        raise LengthError('Lengths of the two arrays must be the same.')
+        raise LengthError('Lengths of `categorical_array` and '
+                          '`two_classes_array` must be the same.')
     if isinstance(x, np.ndarray) and x.ndim > 1:
-        raise DimensionError('"categorical_array" must be a 1D numpy array.')
+        raise DimensionError('`categorical_array` must be a 1D numpy array.')
     if isinstance(y, np.ndarray) and y.ndim > 1:
-        raise DimensionError('"two_classes_array" must be a 1D numpy array.')
+        raise DimensionError('`two_classes_array` must be a 1D numpy array.')
 
     if isinstance(x, (list, np.ndarray)): x = pd.Series(x)
     if isinstance(y, (list, np.ndarray)): y = pd.Series(y)
@@ -796,7 +794,7 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
         y = y.fillna('N/A')
 
     if len(np.unique(y)) != 2:
-        raise ValueError('"two_classes_array" should have only two unique values.')
+        raise ValueError('`two_classes_array` should have only two unique values.')
 
     nr_classes = len(x.unique())  # this is not sorted
     y_classes = list(np.unique(y))  # use numpy's unique() to get sorted classes
@@ -850,7 +848,6 @@ def _crosstab_to_arrays(cross_tab):
     y : list<float>
         The second output array
     '''
-
     if isinstance(cross_tab, (list, pd.Series)):
         raise DimensionError('Please pass a 2D data structure.')
     if isinstance(cross_tab,(np.ndarray,pd.DataFrame)) and min(cross_tab.shape)==1:
@@ -943,22 +940,24 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
     correlation_metrics : tuple<float>
         A tuple in the order of (phi coef., coeff. of contingency, Cramer's V).
     '''
-
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     x = array_horizontal
     y = array_vertical
 
     if not isinstance(x, _array_like):
-        raise TypeError('The input "x" must be pd.Series, np.array, or list.')
+        raise TypeError('The input `array_horizontal` must be pandas.Series, '
+                        'numpy.ndarray, or list.')
     if not isinstance(y, _array_like):
-        raise TypeError('The input "y" must be pd.Series, np.array, or list.')
+        raise TypeError('The input `array_vertical` must be pandas.Series, '
+                        'numpy.array, or list.')
     if len(x) != len(y):
-        raise LengthError('Lengths of x and y must be the same.')
+        raise LengthError('Lengths of `array_horizontal` and `array_vertical` '
+                          'must be the same.')
     if isinstance(x, np.ndarray) and len(x.shape) > 1:
-        raise DimensionError('"array_horizontal" must be a 1D numpy array.')
+        raise DimensionError('`array_horizontal` must be a 1D numpy array.')
     if isinstance(y, np.ndarray) and len(y.shape) > 1:
-        raise DimensionError('"array_vertical" must be a 1D numpy array.')
+        raise DimensionError('`array_vertical` must be a 1D numpy array.')
 
     if xlabel is None and isinstance(x, pd.Series): xlabel = x.name
     if ylabel is None and isinstance(y, pd.Series): ylabel = y.name
@@ -1115,12 +1114,11 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
     '''
-
     if not isinstance(ranking, (dict, pd.Series)):
-        raise TypeError('"ranking" must be a Python dict or pandas Series.')
+        raise TypeError('`ranking` must be a Python dict or pandas Series.')
 
     if top_n is not None and not isinstance(top_n, (int, np.integer)):
-        raise ValueError('top_n must be an integer of None.')
+        raise ValueError('`top_n` must be an integer of None.')
 
     if top_n == None:
         nr_classes = len(ranking)
@@ -1197,9 +1195,8 @@ def missing_value_counts(X, fig=None, ax=None, figsize=None, dpi=100, rot=45):
         A pandas Series whose every element is the number of missing values
         corresponding to each column of ``X``.
     '''
-
     if not isinstance(X, (pd.DataFrame, pd.Series)):
-        raise TypeError('X should be pandas DataFrame or Series.')
+        raise TypeError('`X` should be pandas DataFrame or Series.')
 
     if isinstance(X, pd.Series): X = pd.DataFrame(X)
 
@@ -1301,14 +1298,15 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
     '''
-
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if not isinstance(target_array, _array_like):
-        raise TypeError('target_array must be a np.ndarray, pd.Series, or list.')
+        raise TypeError('`target_array` must be a numpy array, pandas.Series'
+                        ', or list.')
 
     if sort_by not in ['count', 'counts', 'name', 'names']:
-        raise ValueError("'sort_by' must be 'counts' or 'names'.")
+        raise ValueError("`sort_by` must be one of {'count', 'counts', "
+                         "'name', 'names'}, not '%s'." % sort_by)
 
     y = target_array
     if ~isinstance(y, pd.Series):
@@ -1332,9 +1330,10 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     #----------- (Optional) truncation of less common categories --------------
     if top_n is not None:
         if not isinstance(top_n, (int, np.integer)) or top_n <= 0:
-            raise ValueError('top_n must be a positive integer.')
+            raise ValueError('`top_n` must be a positive integer.')
         if top_n > len(vals):
-            raise ValueError('top_n larger than # of categories (%d)' % len(vals))
+            raise ValueError('`top_n` larger than the total number of '
+                             'categories (i.e., %d).' % len(vals))
 
         occurrences = pd.Series(index=vals, data=counts).sort_values(
                 ascending=False)
@@ -1382,8 +1381,8 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
     elif display == None:
         autopct = ''
     else:
-        raise ValueError("Invalid value of `display`. "
-                         "Can only be ['percent', 'count', 'both', None].")
+        raise ValueError("`display` can only be one of {'percent', 'count', "
+                         "'both', None}, not '%s'." % display)
 
     #------------ Plot pie chart ----------------------------------------------
     _, texts, autotexts = ax.pie(counts, labels=class_names, colors=colors,
@@ -1505,7 +1504,6 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
                V  x
 
     '''
-
     from mpl_toolkits.mplot3d import Axes3D
 
     #---------  Data type checking for X  -------------------------------------
@@ -1517,7 +1515,7 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
             N = X.shape[0]  # number of separate distribution to be compared
             X = list(X)  # turn X into a list of numpy arrays
         else:  # 3D numpy array or above
-            raise TypeError('If X is a numpy array, it should be a 1D or 2D array.')
+            raise TypeError('If `X` is a numpy array, it should be a 1D or 2D array.')
     elif isinstance(X, pd.Series):
         data_labels = [X.name]
         X = [list(X)]
@@ -1530,12 +1528,14 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
     elif len(list(X)) > 1:  # adding list() to X to make sure len() does not throw an error
         N = len(X)  # number of separate distribution to be compared
     else:  # X is a scalar
-        raise TypeError('X must be a list, 2D numpy array, or pd Series/DataFrame.')
+        raise TypeError('`X` must be a list, 2D numpy array, or pandas '
+                        'Series/DataFrame.')
 
     #------------  NaN checking for X  ----------------------------------------
     for j in range(N):
         if not all(np.isfinite(X[j])):
-            raise ValueError('X[%d] contains non-finite values (not accepted by histogram3d()).' % j)
+            raise ValueError('X[%d] contains non-finite values (not accepted '
+                             'by `histogram3d()`).' % j)
 
     if data_labels is None:
         data_labels = [[None]] * N
@@ -1683,7 +1683,6 @@ def get_colors(N=None, color_scheme='tab10'):
     colors : list<list<float>>, list<str>
         A list of colors (as RGB, or color name, or hex)
     '''
-
     nr_c = {'Pastel1': 9,  # number of qualitative colors in each color map
             'Pastel2': 8,
             'Paired': 12,
@@ -1702,7 +1701,7 @@ def get_colors(N=None, color_scheme='tab10'):
                        'set2','set3']  # lower case version (without 'tab' ones)
 
     if not isinstance(color_scheme,(str,unicode,int,float,np.number)):
-        raise TypeError('color_scheme must be str, int, or float.')
+        raise TypeError('`color_scheme` must be str, int, or float.')
 
     d = {'rgbcmyk': ['b','g','r','c','m','y','k'], # matplotlib v1.5 palette
          'bw':  [[0]*3,[0.4]*3,[0.75]*3], # black and white: 3 levels
@@ -1743,18 +1742,19 @@ def get_colors(N=None, color_scheme='tab10'):
             palette_tmp = [list(_)[:3] for _ in rgba_tmp]
             palette = palette_tmp[1::2]
         else:
-            raise ValueError("Invalid color_scheme. Must be one of these:\n"
-                             "['pastel1', 'pastel2', 'paired', 'accent', "
+            raise ValueError("You provided an invalid `color_scheme` ('%s'). "
+                             "A valid `color_scheme` must be one of "
+                             "{'pastel1', 'pastel2', 'paired', 'accent', "
                              "'dark2', 'set1', 'set2', 'set3', 'tab10', "
                              "'tab10_muted', 'tab20', 'tab20b', 'tab20c', "
                              "'rgbcmyk', 'bw', 'bw3', 'bw4', 'bw5', "
-                             "'8.3', '8.4']")
+                             "'8.3', '8.4'}." % color_scheme)
 
     L = len(palette)
     if N is None:
         N = L
     elif not isinstance(N, (int, np.integer)):
-        raise TypeError('N should be either None or integers.')
+        raise TypeError('`N` should be either None or integers.')
 
     return [palette[i % L] for i in range(N)]  # wrap around 'palette' if N > L
 
@@ -1795,14 +1795,13 @@ def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
     >>> import matplotlib.pyplot as plt
     >>> plt.plot([0,1], [0,1], **pu.get_linespecs()[53])
     '''
-
     import cycler
 
     colors = get_colors(N=None, color_scheme=color_scheme)
     if n_linestyle in [1,2,3,4]:
         linestyles = ['-', '--', '-.', ':'][:n_linestyle]
     else:
-        raise ValueError('n_linestyle should be 1, 2, 3, or 4.')
+        raise ValueError('`n_linestyle` should be 1, 2, 3, or 4.')
 
     color_cycle = cycler.cycler(color=colors)
     ls_cycle = cycler.cycler(ls=linestyles)
@@ -1895,17 +1894,16 @@ def _find_axes_lim(data_limit, tick_base_unit, direction='upper'):
         ``data_limit`` is). If ``data_limit`` is a scalar, return the axis
         limit according to ``direction``.
     '''
-
     if isinstance(data_limit, _scalar_like):
         if direction == 'upper':
             return tick_base_unit * (int(data_limit/tick_base_unit)+1)
         elif direction == 'lower':
             return tick_base_unit * (int(data_limit/tick_base_unit))
         else:
-            raise LengthError('Length of data_limit should be at least 1.')
+            raise LengthError('Length of `data_limit` should be at least 1.')
     elif isinstance(data_limit, (tuple, list)):
         if len(data_limit) > 2:
-            raise LengthError('Length of data_limit should be at most 2.')
+            raise LengthError('Length of `data_limit` should be at most 2.')
         elif len(list(data_limit)) == 2:
             min_data = min(data_limit)
             max_data = max(data_limit)
@@ -1921,11 +1919,13 @@ def _find_axes_lim(data_limit, tick_base_unit, direction='upper'):
         elif data_limit.size == 2:
             return _find_axes_lim(list(data_limit),tick_base_unit,direction)
         elif data_limit.size >= 3:
-            raise LengthError('Length of data_limit should be at most 2.')
+            raise LengthError('Length of `data_limit` should be at most 2.')
         else:
-            raise TypeError('data_limit should be a scalar or a tuple/list of 2.')
+            raise TypeError('`data_limit` should be a scalar or a tuple/list '
+                            'of length 2.')
     else:
-        raise TypeError('data_limit should be a scalar or a tuple/list of 2.')
+        raise TypeError('`data_limit` should be a scalar or a tuple/list of '
+                        'length 2.')
 
 #%%============================================================================
 def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
@@ -2008,11 +2008,11 @@ def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
     plot_ranking :
         Plot bars showing the ranking of the data
     '''
-
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if not isinstance(x, (list, pd.Series, np.ndarray, dict)):
-        raise TypeError('"x" should be a list, pd.Series, np.ndarray, or dict.')
+        raise TypeError('`x` should be a list, pandas.Series, numpy.ndarray, '
+                        'or dict.')
 
     if isinstance(x, dict):
         value_count = pd.Series(x, name='counts').sort_index()
@@ -2051,7 +2051,6 @@ class _FixedOrderFormatter(mpl.ticker.ScalarFormatter):
 
     Note: this class is not currently being used.
     '''
-
     def __init__(self, order_of_mag=0, useOffset=True, useMathText=True):
         self._order_of_mag = order_of_mag
         mpl.ticker.ScalarFormatter.__init__(self, useOffset=useOffset,
@@ -2144,16 +2143,15 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     as well as a modification on Stack Overflow
     (https://stackoverflow.com/questions/39742305).
     '''
-
     try:
         from mpl_toolkits.basemap import Basemap as Basemap
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError('\nPlease install Basemap in order to use '
-                                  '`choropleth_map_state`.\n'
-                                  'To install with conda (recommended):\n'
-                                  '    >>> conda install basemap\n'
-                                  'To install without conda, refer to:\n'
-                                  '    https://matplotlib.org/basemap/users/installing.html')
+    except ImportError:
+        raise ImportError('\nPlease install Basemap in order to use '
+                          '`choropleth_map_state()`.\n'
+                          'To install with conda (recommended):\n'
+                          '    >>> conda install basemap\n'
+                          'To install without conda, refer to:\n'
+                          '    https://matplotlib.org/basemap/users/installing.html')
 
     import pkg_resources
     from matplotlib.colors import rgb2hex
@@ -2174,14 +2172,15 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
             elif 'State' in data_per_state.columns:
                 data_per_state = data_per_state.set_index('State')
             else:
-                raise ValueError('data_per_state has unrecognized column name.')
+                raise ValueError('`data_per_state` has unrecognized column name.')
             data_per_state = data_per_state.iloc[:,0].to_dict()
         else:  # more than two columns
-            raise DimensionError('data_per_state should have only two columns.')
+            raise DimensionError('`data_per_state` should have only two columns.')
     elif isinstance(data_per_state,dict):
         pass
     else:
-        raise TypeError('data_per_state should be pd.Series, pd.DataFrame, or dict.')
+        raise TypeError('`data_per_state` should be pandas.Series, '
+                        'pandas.DataFrame, or dict.')
 
     #  if dict keys are state abbreviations such as "AK", "CA", etc.
     if len(list(data_per_state.keys())[0])==2 and list(data_per_state.keys())[0].isalpha():
@@ -2400,16 +2399,15 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
     as well as a modification on Stack Overflow
     (https://stackoverflow.com/questions/39742305).
     '''
-
     try:
         from mpl_toolkits.basemap import Basemap as Basemap
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError('\nPlease install Basemap in order to use '
-                                  '`choropleth_map_county`.\n'
-                                  'To install with conda (recommended):\n'
-                                  '    >>> conda install basemap\n'
-                                  'To install without conda, refer to:\n'
-                                  '    https://matplotlib.org/basemap/users/installing.html')
+    except ImportError:
+        raise ImportError('\nPlease install Basemap in order to use '
+                          '`choropleth_map_county`.\n'
+                          'To install with conda (recommended):\n'
+                          '    >>> conda install basemap\n'
+                          'To install without conda, refer to:\n'
+                          '    https://matplotlib.org/basemap/users/installing.html')
 
     import pkg_resources
     from matplotlib.colors import rgb2hex
@@ -2426,14 +2424,16 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
             if 'FIPS_code' in data_per_county.columns:
                 data_per_county = data_per_county.set_index('FIPS_code')
             else:
-                raise ValueError('data_per_county should have a column named "FIPS_code".')
+                raise ValueError('`data_per_county` should have a column '
+                                 'named "FIPS_code".')
             data_per_county = data_per_county.iloc[:,0].to_dict()
         else:  # more than two columns
-            raise DimensionError('data_per_county should have only two columns.')
+            raise DimensionError('`data_per_county` should have only two columns.')
     elif isinstance(data_per_county,dict):
         pass
     else:
-        raise TypeError('data_per_county should be pd.Series, pd.DataFrame, or dict.')
+        raise TypeError('`data_per_county` should be pandas.Series, '
+                        'pandas.DataFrame, or dict.')
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
@@ -2454,7 +2454,8 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
                                    linewidth=0.45, color='gray')
         shp_info_ = m_.readshapefile(shp_path_state, 'states', drawbounds=False)
     except IOError:
-        raise IOError('Shape files not found. Specify the location of the "shapefiles" folder.')
+        raise IOError('Shape files not found. Specify the location of the '
+                      '"shapefiles" folder.')
 
     cbc = [0.75] * 3  # county boundary color
     cbw = 0.15  # county boundary line width
@@ -2467,7 +2468,8 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
         shp_info_cnty_ = m_.readshapefile(shp_path_county, 'counties',
                                           drawbounds=False)
     except IOError:
-        raise IOError('Shape files not found. Specify the location of the "shapefiles" folder.')
+        raise IOError('Shape files not found. Specify the location of the '
+                      '"shapefiles" folder.')
 
     #-------- choose a color for each county based on unemployment rate -------
     colors={}
@@ -2593,7 +2595,6 @@ def _adjust_colorbar_tick_labels(colorbar_obj, adjust_top=True, adjust_bottom=Tr
     Note: get_ticks() only exists in matplotlib version 2.1.0+, and this function
           does not check for matplotlib version. Use with caution.
     '''
-
     cbar_ticks = colorbar_obj.get_ticks()  # get_ticks() is only added in ver 2.1.0
     new_ticks = [str(int(a)) if int(a)==a else str(a) for a in cbar_ticks]  # convert to int if possible
 
@@ -2617,7 +2618,6 @@ class _MidpointNormalize(Normalize):
     Auxiliary class definition. Copied from:
     https://stackoverflow.com/questions/20144529/shifted-colorbar-matplotlib/20146989#20146989
     '''
-
     def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
         self.midpoint = midpoint
         Normalize.__init__(self, vmin, vmax, clip)
@@ -2644,6 +2644,8 @@ def _convert_FIPS_to_state_name(dict1):
         A dictionary whose keys are state abbreviations. Its values of each
         state come from ``dict``.
     '''
+    assert(isinstance(dict1, dict))
+
     fips2state = {"01": "AL", "02": "AK", "04": "AZ", "05": "AR", "06": "CA", \
               "08": "CO", "09": "CT", "10": "DE", "11": "DC", "12": "FL", \
               "13": "GA", "15": "HI", "16": "ID", "17": "IL", "18": "IN", \
@@ -2687,6 +2689,8 @@ def _translate_state_abbrev(dict1, abbrev_to_full=True):
     dict2 : dict
         The converted dictionary
     '''
+    assert(isinstance(dict1, dict))
+
     if abbrev_to_full is True:
         translation = {
             'AK': 'Alaska',
@@ -2819,7 +2823,6 @@ def _check_all_states(dict1):
 
     The state names of dict1 must be full names.
     '''
-
     assert(type(dict1) == dict)
 
     full_state_list = [
@@ -2915,9 +2918,8 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
         Plot multiple time series, with the ability to specify different
         line specifications for each line.
     '''
-
     if not isinstance(time_series, (pd.Series, pd.DataFrame)):
-        raise TypeError('time_series must be a pandas Series or DataFrame.')
+        raise TypeError('`time_series` must be a pandas Series or DataFrame.')
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
@@ -3002,9 +3004,9 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
     plot_timeseries :
         Plot a single set of time series.
     '''
-
     if not isinstance(multiple_time_series, (pd.Series, pd.DataFrame)):
-        raise TypeError('multiple_time_series must be a pd.Series or pd.DataFrame.')
+        raise TypeError('`multiple_time_series` must be a pandas Series or '
+                        'DataFrame.')
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
@@ -3108,9 +3110,9 @@ def fill_timeseries(time_series, upper_bound, lower_bound, date_fmt=None,
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
     '''
-
     if not isinstance(time_series, pd.Series):
-        raise TypeError('time_series must be a pd.Series with index being dates.')
+        raise TypeError('`time_series` must be a pandas Series with index '
+                        'being dates.')
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
@@ -3149,7 +3151,6 @@ def _calc_month_interval(date_array):
     Calculate how many months are there between the first month and the last
     month of the given date_array.
     '''
-
     date9 = list(date_array)[-1]
     date0 = list(date_array)[0]
     delta_days = (date9 - date0).days
@@ -3164,7 +3165,6 @@ def _calc_bar_width(width):
     '''
     Calculate width (in points) of bar plot from figure width (in inches).
     '''
-
     if width <= 7:
         bar_width = width * 3.35  # these numbers are manually fine-tuned
     elif width <= 9:
@@ -3183,7 +3183,6 @@ def _get_ax_size(fig, ax, unit='inches'):
 
     https://stackoverflow.com/questions/19306510/determine-matplotlib-axis-size-in-pixels
     '''
-
     bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
     width, height = bbox.width, bbox.height
     if unit == 'pixels':
@@ -3205,7 +3204,6 @@ def _format_xlabel(ax, month_width):
     For very narrow cases (e.g., many years), months will not be displayed, and
     sometimes not every year will be displayed.
     '''
-
     rot = None  # degree of rotation
     y_int = None  # year interval
     d_int = None  # day interval
@@ -3343,7 +3341,6 @@ def _as_date(raw_date, date_fmt=None):
     ---------
     https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
     '''
-
     if LooseVersion(pd.__version__) <= LooseVersion('0.17.1'):
         timestamp_type = pd.tslib.Timestamp
     else:
@@ -3375,7 +3372,8 @@ def _as_date(raw_date, date_fmt=None):
                     elif isinstance(j_th,(int,np.integer,np.float)):
                         date_ = str(int(j_th))  # robustness not guarenteed!
                     else:
-                        raise TypeError('Date type of the element(s) in raw_date not recognized.')
+                        raise TypeError('Date type of the element(s) in '
+                                        '`raw_date` not recognized.')
                     date_list[j] = pd.to_datetime(date_, format=date_fmt)
         elif type(raw_date) == dt.date:  # if a datetime.date object
             date_list = raw_date  # no need for conversion
@@ -3386,7 +3384,7 @@ def _as_date(raw_date, date_fmt=None):
             date_ = raw_date  # no conversion needed
             date_list = pd.to_datetime(date_, format=date_fmt)
         else:
-            raise TypeError('Input data type of raw_date not recognized.')
+            raise TypeError('Input data type of `raw_date` not recognized.')
             print('\ntype(raw_date) is: %s' % type(raw_date))
             try:
                 print('Length of raw_date is: %s' % len(raw_date))
@@ -3410,7 +3408,6 @@ def _str2date(date_):
 
     Note: This subroutine is no longer being used.
     '''
-
     day = None
     if ('-' in date_) and (len(date_) == 8):  # for date style 'Aug-2014'
         month, year = date_.split('-')  # split string by character
@@ -3517,12 +3514,11 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
     '''
-
     if not isinstance(x, _array_like) or not isinstance(y, _array_like):
-        raise TypeError('x and y must be arrays.')
+        raise TypeError('`x` and `y` must be arrays.')
 
     if len(x) != len(y):
-        raise LengthError('x and y must have the same length.')
+        raise LengthError('`x` and `y` must have the same length.')
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
@@ -3589,11 +3585,10 @@ def correlation_matrix(X, color_map='RdBu_r', fig=None, ax=None, figsize=None,
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
     '''
-
     from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     if not isinstance(X, (np.ndarray, pd.DataFrame)):
-        raise TypeError('X must be a numpy array or a pandas DataFrame.')
+        raise TypeError('`X` must be a numpy array or a pandas DataFrame.')
 
     if isinstance(X, np.ndarray):
         X = pd.DataFrame(X, copy=True)
@@ -3669,16 +3664,15 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
     fig, ax :
         Figure and axes objects
     '''
-
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 
     if not isinstance(X, pd.DataFrame):
-        raise TypeError('X must be a pandas DataFrame.')
+        raise TypeError('`X` must be a pandas DataFrame.')
 
     if not isinstance(two_columns, list):
-        raise TypeError('"two_columns" must be a list of length 2.')
+        raise TypeError('`two_columns` must be a list of length 2.')
     if len(two_columns) != 2:
-        raise LengthError('Length of "two_columns" must be 2.')
+        raise LengthError('Length of `two_columns` must be 2.')
 
     if isinstance(two_columns[0], str):
         x = X[two_columns[0]]
@@ -3687,7 +3681,7 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
         x = X.iloc[:, two_columns[0]]
         xlabel = X.columns[two_columns[0]]
     else:
-        raise TypeError('"two_columns" must be a list of str or int.')
+        raise TypeError('`two_columns` must be a list of str or int.')
 
     if isinstance(two_columns[1], str):
         y = X[two_columns[1]]
@@ -3696,7 +3690,7 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
         y = X.iloc[:,two_columns[1]]
         ylabel = X.columns[two_columns[1]]
     else:
-        raise TypeError('"two_columns" must be a list of str or int.')
+        raise TypeError('`two_columns` must be a list of str or int.')
 
     x = np.array(x)  # convert to numpy array so that x[ind] runs correctly
     y = np.array(y)
@@ -3787,7 +3781,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         edges. If ``bins`` means bin edges, the edges are inclusive on the
         lower bound, e.g., a value 2 shall fall into the bin [2, 3), but not
         the bin [1, 2). Note that the binning is done according to the X values.
-    distribution : {'normal', 'log-normal', 'lognormal', 'logn'}
+    distribution : {'normal', 'lognormal'}
         Specifies which distribution the Y values within a bin follow. Use
         'lognormal' if you want to assert all positive Y values. Only supports
         normal and log-normal distributions at this time.
@@ -3841,8 +3835,10 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     -------
     fig : matplotlib.figure.Figure
         The figure object being created or being passed into this function.
+        ``None``, if ``show_fig`` is set to ``False``.
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
+        ``None``, if ``show_fig`` is set to ``False``.
     x_mean : numpy.ndarray
         Mean X values of each data bin (in terms of X values).
     y_mean : numpy.ndarray
@@ -3850,12 +3846,12 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     y_std : numpy.ndarray
         Standard deviation of Y values or each data bin (in terms of X values).
     '''
-
     if not isinstance(xdata, _array_like) or not isinstance(ydata, _array_like):
-        raise TypeError('xdata and ydata must be lists, numpy arrays, or pandas Series.')
+        raise TypeError('`xdata` and `ydata` must be lists, numpy arrays, '
+                        'or pandas Series.')
 
     if len(xdata) != len(ydata):
-        raise LengthError('xdata and ydata must have the same length.')
+        raise LengthError('`xdata` and `ydata` must have the same length.')
 
     if isinstance(xdata, list): xdata = np.array(xdata)  # otherwise boolean
     if isinstance(ydata, list): ydata = np.array(ydata)  # indexing won't work
@@ -3863,7 +3859,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     #------------Pre-process "bins"--------------------------------------------
     if isinstance(bins,(int,np.integer)):  # if user specifies number of bins
         if bins <= 0:
-            raise ValueError('"bins" must be a positive integer.')
+            raise ValueError('`bins` must be a positive integer.')
         else:
             nr = bins + 1  # create bins with percentiles in xdata
             x_uni = np.unique(xdata)
@@ -3875,7 +3871,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     elif isinstance(bins,(list,np.ndarray)):  # if user specifies array
         nr = len(bins)
     else:
-        raise TypeError('"bins" must be either an integer or an array.')
+        raise TypeError('`bins` must be either an integer or an array.')
 
     #-----------Pre-process xlabel and ylabel----------------------------------
     if not xlabel and isinstance(xdata, pd.Series):  # xdata has 'name' attr
@@ -3904,7 +3900,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
             if distribution == 'normal':
                 y_mean[j] = np.nanmean(y_in_bin)
                 y_std[j] = np.nanstd(y_in_bin)
-            elif distribution in ['log-normal','lognormal','logn']:
+            elif distribution == 'lognormal':
                 s, loc, scale = stats.lognorm.fit(y_in_bin, floc=0)
                 estimated_mu = np.log(scale)
                 estimated_sigma = s
@@ -3912,13 +3908,14 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                 y_std[j]  = np.sqrt(np.exp(2.*estimated_mu + estimated_sigma**2.) \
                              * (np.exp(estimated_sigma**2.) - 1) )
             else:
-                raise ValueError('Invalid "distribution" value.')
+                raise ValueError("Valid values of `distribution` are "
+                                 "{'normal', 'lognormal'}. Not '%s'." % distribution)
 
         #------------Pick subsets of data, for faster plotting-----------------
         #------------Note that this does not affect mean and std---------------
         if subsamp_thres is not None and show_fig:
             if not isinstance(subsamp_thres, (int, np.integer)) or subsamp_thres <= 0:
-                raise TypeError('subsamp_thres must be a positive integer or None.')
+                raise TypeError('`subsamp_thres` must be a positive integer or None.')
             if len(x_in_bin) > subsamp_thres:
                 x_subs.extend(np.random.choice(x_in_bin,subsamp_thres,replace=False))
                 y_subs.extend(np.random.choice(y_in_bin,subsamp_thres,replace=False))
@@ -3943,7 +3940,8 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                             lw=2,elinewidth=1,capsize=2,label=mean_data_label,
                             zorder=3)
             else:
-                raise ValueError('Valid "err_bound_type" name: ["bound", "bar"]')
+                raise ValueError('Valid "err_bound_type" name are {"bound", '
+                                 '"bar"}, not "%s".' % err_bound_type)
         else:
             ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
 
@@ -4057,7 +4055,6 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
     '''
-
     _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning)
 
     data, data_names, n_datasets = _preprocess_violin_plot_data(X,
@@ -4082,15 +4079,16 @@ def _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning):
     Check that the input, `X`, for violin_plot() or hist_multi() is valid.
     '''
     if not isinstance(X, (pd.DataFrame, pd.Series, np.ndarray, dict, list)):
-        raise TypeError('X must be pd.DataFrame, pd.Series, np.ndarray, dict, or list.')
+        raise TypeError('`X` must be pandas.DataFrame, pandas.Series, '
+                        'np.ndarray, dict, or list.')
     if not isinstance(data_names, (list, type(None))):
-        raise TypeError('data_names must be a list of names, empty list, or None.')
+        raise TypeError('`data_names` must be a list of names, empty list, or None.')
     if nan_warning and isinstance(X, (pd.DataFrame, pd.Series)) and X.isnull().any().any():
         print('WARNING in violin_plot(): X contains NaN values.')
     if nan_warning and isinstance(X, np.ndarray) and np.isnan(X).any():
         print('WARNING in violin_plot(): X contains NaN values.')
     if isinstance(X, list) and not all([isinstance(_, list) for _ in X]):
-        raise TypeError('If X is a list, it must be a list of lists.')
+        raise TypeError('If `X` is a list, it must be a list of lists.')
 
 #%%============================================================================
 def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
@@ -4098,7 +4096,6 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
     Helper function. Preprocess raw data (``X``) for violin plot or
     multi-histogram plot.
     '''
-
     if isinstance(X, pd.Series):
         n_datasets = 1
         data = X.dropna().values
@@ -4118,7 +4115,7 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
                 x = X[:,j]
                 data.append(x[np.isfinite(x)])  # remove NaN values
         else:
-            raise DimensionError('X should be a 1D or 2D numpy array.')
+            raise DimensionError('`X` should be a 1D or 2D numpy array.')
     elif isinstance(X, list):  # list of lists
         data = X.copy()
         n_datasets = len(data)
@@ -4137,7 +4134,7 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
                 x_ = np.array(x)
             else:
                 raise TypeError('Unknown data type in X[%d]. Should be either '
-                                'pd.Series, 1D numpy array, or a list.' % key)
+                                'pandas.Series, 1D numpy array, or a list.' % key)
             if nan_warning and np.isnan(x_).any():
                 print('WARNING in violin_plot() or hist_multi(): '
                       'X[%d] contains NaN values.' % key)
@@ -4148,7 +4145,7 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
 
     assert(len(data) == n_datasets)
     if len(data_names) != 0 and len(data_names) != n_datasets:
-        raise LengthError('Length of data_names must equal the number of datasets.')
+        raise LengthError('Length of `data_names` must equal the number of datasets.')
 
     if not data_names:  # [] or None
         if isinstance(X, pd.Series):
@@ -4204,7 +4201,8 @@ def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
         sorted_list = sorted(data_with_names, key=lambda x: np.median(x[1]),
                              reverse=reverse)
     else:
-        raise NameError("`sort_by` must be one of {None, 'name', mean', median'}.")
+        raise NameError("`sort_by` must be one of {None, 'name', mean', "
+                        "'median'}, not '%s'." % sort_by)
 
     data_with_names_dict = OrderedDict()
     for j in range(n):
@@ -4227,7 +4225,6 @@ def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
         A dictionary whose keys are the names of the categories and values are
         the actual data.
     '''
-
     data = []
     data_names = []
     for key, val in data_with_names.items():
@@ -4337,7 +4334,6 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
     ax : matplotlib.axes._subplots.AxesSubplot
         The axes object being created or being passed into this function.
     '''
-
     _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning)
 
     data, data_names, n_datasets = _preprocess_violin_plot_data(X,
