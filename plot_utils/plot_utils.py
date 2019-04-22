@@ -19,8 +19,8 @@ Top-level functions:
 
     3. Multiple columns of data:
         histogram3d
-        violin_plot
         hist_multi
+        violin_plot
         plot_correlation
         missing_value_counts
 
@@ -43,6 +43,7 @@ Top-level functions:
 Public helper functions:
     _convert_FIPS_to_state_name
     _translate_state_abbrev
+    _find_axes_lim
 
 Private helper functions
      _adjust_colorbar_tick_labels
@@ -103,11 +104,32 @@ class DimensionError(Exception):
 #%%============================================================================
 def _process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
     '''
-    Process figure and axes objects. If fig and ax are None, create new figure
-    and new axes according to figsize, dpi, and ax_proj (axes projection). If
-    fig and ax are not None, use the passed-in fig and/or ax.
+    Processes figure and axes objects. If ``fig`` and ``ax`` are None, creates
+    new figure and new axes according to ``figsize``, ``dpi``, and ``ax_proj``.
+    Otherwise, uses the passed-in ``fig`` and/or ``ax``.
 
-    Returns fig and ax back to its caller.
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    ax_proj : {None, 'aitoff', 'hammer', 'lambert', 'mollweide', 'polar', 'rectilinear', str}
+        The projection type of the axes. The default None results in a
+        'rectilinear' projection.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
 
     if fig is None:  # if a figure handle is not provided, create new figure
@@ -131,28 +153,23 @@ def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
 
     Parameters
     ----------
-    files : <str> or <list, tuple>
+    files : str or list<str> or tuple<str>
         A file name (as Python str) or several file names (as Python list or
         tuple) to be trimmed.
-    pad_width : <float>
-        The amount of white margins to be padded (unit: pixels). Float pad_width
-        values are internally converted as int.
-    pad_color : <str> or <tuple> or <list>
-        The color of the padded margin. Valid pad_color values are color names
-        recognizable by matplotlib: https://matplotlib.org/tutorials/colors/colors.html
-    inplace : <bool>
+    pad_width : float
+        The amount of white margins to be padded (unit: pixels).
+    pad_color : str or tuple<float> or list<float>
+        The color of the padded margin. Valid ``pad_color`` values are color
+        names recognizable by matplotlib: https://matplotlib.org/tutorials/colors/colors.html
+    inplace : bool
         Whether or not to replace the existing figure file with the trimmed
         content.
-    verbose : <bool>
+    verbose : bool
         Whether or not to print the progress onto the console.
-    show_old_img : <bool>
+    show_old_img : bool
         Whether or not to show the old figure in the console.
-    show_new_img : <bool>
-        Whether or not to show the trimmed figure in the  console
-
-    Returns
-    -------
-    None
+    show_new_img : bool
+        Whether or not to show the trimmed figure in the console.
     '''
 
     try:
@@ -222,43 +239,19 @@ class Color():
     '''
     A class that defines a color.
 
-    Public attriutes
-    ----------------
-    None.
-
-
-    Initialization
-    --------------
-    Color(color, is_rgb_normalized=True)
-
-    Public methods
-    --------------
-    Color.as_rgb(normalize=True):
-        Export the color object as RGB values (a tuple).
-
-    Color.as_rgba(alpha=1.0):
-        Export the color object as RGBA values (a tuple).
-
-    Color.as_hex():
-        Export the color object as HEX values (a string).
-
-    Color.show():
-        Show color as a square patch.
+    Parameters
+    ----------
+    color : str or <tuple> or <list>
+        The color information to initialize the Color object. Can be a list
+        or tuple of 3 elements (i.e., the RGB information), or a HEX string
+        such as "#00FF00", or XKCD color names (https://xkcd.com/color/rgb/)
+        or X11 color names  (http://cng.seas.rochester.edu/CNG/docs/x11color.html).
+    is_rgb_normalized : bool
+        Whether or not the input information (if RGB) contains the normalized
+        values (such as [0, 0.5, 0.5]). This parameter has no effect if
+        the input is not RGB.
     '''
     def __init__(self, color, is_rgb_normalized=True):
-        '''
-        Parameters
-        ----------
-        color : <str> or <tuple> or <list>
-            The color information to initialize the Color object. Can be a list
-            or tuple of 3 elements (i.e., the RGB information), or a HEX string
-            such as "#00FF00", or XKCD color names (https://xkcd.com/color/rgb/)
-            or X11 color names  (http://cng.seas.rochester.edu/CNG/docs/x11color.html).
-        is_rgb_normalized : <bool>
-            Whether or not the input information (if RGB) contains the normalized
-            values (such as [0, 0.5, 0.5]). This parameter has no effect if
-            the input is not RGB.
-        '''
 
         import matplotlib._color_data as mcd
 
@@ -294,6 +287,18 @@ class Color():
     def __rgb_to_hex(self, rgb, is_normalized=True):
         '''
         Private method. Converts RGB values into HEX.
+
+        Parameters
+        ----------
+        rgb : list<float> or tuple<float>
+            RGB values
+        is_normalized : bool
+            Whether the RGB values are normalized (i.e., from 0 to 1)
+
+        Returns
+        -------
+        hex_val : str
+            HEX value
         '''
 
         if np.any(np.array(rgb) > 255):
@@ -314,9 +319,21 @@ class Color():
 
     def __hex_to_rgb(self, hex_, normalize=True):
         '''
-        Private method. Convert HEX values into RGB.
+        Private method. Converts HEX values into RGB.
 
         Reference: https://stackoverflow.com/a/29643643/8892243
+
+        Parameters
+        ----------
+        hex_ : str
+            HEX representation of a color
+        normalize : bool
+            Whether or not to return the normalized (between 0 and 1) RGB
+
+        Returns
+        -------
+        rgb : tuple<float>
+            RGB values in three numbers.
         '''
 
         h = hex_[1:]  # strip the '#' in the front
@@ -329,15 +346,34 @@ class Color():
 
     def as_rgb(self, normalize=True):
         '''
-        Public method. Export the color object as RGB values (a tuple).
+        Export thes color as RGB values.
+
+        Parameter
+        ---------
+        normalize : bool
+            Whether or not to return the normalized (between 0 and 1) RGB.
+
+        Returns
+        -------
+        rgb_val : tuple<float>
+            RGB values in three numbers.
         '''
         return self.__hex_to_rgb(self.__color, normalize=normalize)
 
     def as_rgba(self, alpha=1.0):
         '''
-        Public method. Export the color object as RGBA values (a tuple).
+        Exports the color object as RGBA values. The R, G, and B values are
+        always normalized (between 0 and 1).
 
-        The R, G, and B values are always normalized (between 0 and 1).
+        Parameter
+        ---------
+        alpha : float
+            The transparency (0 being completely transparent and 1 opaque).
+
+        Returns
+        -------
+        rgba_val : tuple<float>
+            RGBA values in four numbers.
         '''
         if alpha < 0 or alpha > 1:
             raise ValueError('alpha must be between 0 and 1 (inclusive).')
@@ -349,13 +385,18 @@ class Color():
 
     def as_hex(self):
         '''
-        Public method. Export the color object as HEX values (a string).
+        Exports the color object as HEX values.
+
+        Returns
+        -------
+        hex_val : str
+            HEX value.
         '''
         return self.__color
 
     def show(self):
         '''
-        Public method. Show color as a square patch.
+        Shows color as a square patch.
         '''
         import matplotlib.patches as mpatch
 
@@ -370,47 +411,22 @@ class Multiple_Colors():
     '''
     A class that defines multiple colors.
 
-    Public attriutes
-    ----------------
-    None.
-
-    Initialization
-    --------------
-    Multiple_Colors(colors, is_rgb_normalized=True)
-
-    Public methods
-    --------------
-    Multiple_Colors.as_rgb(normalize=True):
-        Export the colors as a list of RGB values.
-
-    Multiple_Colors.as_rgba(alpha=1.0):
-        Export the colors as a list of RGBA values.
-
-    Multiple_Colors.as_hex():
-        Export the colors as a list of HEX values.
-
-    Multiple_Colors.show(vertical=False):
-        Show colors as square patches.
+    Parameters
+    ----------
+    colors : list
+        A list of color information to initialize the Multiple_Colors object.
+        The list elements can be:
+            - a list or tuple of 3 elements (i.e., the RGB information)
+            - a HEX string such as "#00FF00"
+            - an XKCD color name (https://xkcd.com/color/rgb/)
+            - an X11 color name (http://cng.seas.rochester.edu/CNG/docs/x11color.html)
+        Different elements of colors do not need to be of the same type.
+    is_rgb_normalized : bool
+        Whether or not the input information (if RGB) contains the normalized
+        values (such as [0, 0.5, 0.5]). This parameter has no effect if
+        the input is not RGB.
     '''
-
     def __init__(self, colors, is_rgb_normalized=True):
-        '''
-        Parameters
-        ----------
-        colors : <list>
-            A list of color information to initialize the Multiple_Colors object.
-            The list elements can be:
-                - a list or tuple of 3 elements (i.e., the RGB information)
-                - a HEX string such as "#00FF00"
-                - an XKCD color name (https://xkcd.com/color/rgb/)
-                - an X11 color name (http://cng.seas.rochester.edu/CNG/docs/x11color.html)
-            Different elements of colors do not need to be of the same type.
-        is_rgb_normalized : <bool>
-            Whether or not the input information (if RGB) contains the normalized
-            values (such as [0, 0.5, 0.5]). This parameter has no effect if
-            the input is not RGB.
-        '''
-
         if not isinstance(colors, list):
             raise TypeError('"colors" must be a list.')
         if len(colors) == 0:
@@ -426,7 +442,18 @@ class Multiple_Colors():
 
     def as_rgb(self, normalize=True):
         '''
-        Public method. Export the colors as a list of RGB values.
+        Exports the colors as a list of RGB values
+
+        Parameter
+        ---------
+        normalize : bool
+            Whether or not to return the normalized (between 0 and 1) RGB.
+
+        Returns
+        -------
+        rgb_list : list<list<float>>
+            A list of list: each sub-list represents a RGB color in three
+            numbers.
         '''
         result = [None] * self.__length
         for j in range(self.__length):
@@ -436,7 +463,18 @@ class Multiple_Colors():
 
     def as_rgba(self, alpha=1.0):
         '''
-        Public method. Export the colors as a list of RGBA values.
+        Exports the colors as a list of RGBA values
+
+        Parameter
+        ---------
+        alpha : float
+            The transparency (0 being completely transparent and 1 opaque).
+
+        Returns
+        -------
+        rgba_list : list<list<float>>
+            A list of list: each sub-list represents a RGBA color in four
+            numbers.
         '''
         result = [None] * self.__length
         for j in range(self.__length):
@@ -446,7 +484,12 @@ class Multiple_Colors():
 
     def as_hex(self):
         '''
-        Public method. Export the colors as a list of HEX values.
+        Exports the colors as a list of HEX values
+
+        Returns
+        -------
+        hex_list : list<str>
+            A list of HEX colors
         '''
         result = [None] * self.__length
         for j in range(self.__length):
@@ -456,13 +499,13 @@ class Multiple_Colors():
 
     def show(self, vertical=False, text=None):
         '''
-        Public method. Show the colors as square patches.
+        Shows the colors as square patches
 
-        Parameter
-        ---------
-        vertical : <bool>
+        Parameters
+        ----------
+        vertical : bool
             Whether or not to show the patches vertically
-        text : <str>
+        text : str
             The text to show next to the colors
         '''
         import matplotlib.patches as mpatch
@@ -494,7 +537,17 @@ class Multiple_Colors():
 #%%============================================================================
 def _upcast_dtype(x):
     '''
-    Cast dtype of x (a pandas Series) as string or float
+    Cast dtype of x (a pandas Series) as string or float in-place.
+
+    Parameter
+    ---------
+    x : pandas.Series
+        An array whose elements are to be upcast.
+
+    Returns
+    -------
+    x : pandas.Series
+        The array whose elements are now upcast.
     '''
 
     assert(type(x) == pd.Series)
@@ -513,56 +566,60 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
                    rot=0, dropna=False, show_stats=True, sort_by='name',
                    vert=True, **violinplot_kwargs):
     '''
-    Summarize the mean values of entries of y corresponding to each distinct
-    category in x, and show a violin plot to visualize it. The violin plot will
-    show the distribution of y values corresponding to each category in x.
+    Summarize the mean values of entries of ``continuous_array`` corresponding
+    to each distinct category in ``categorical_array``, and show a violin plot
+    to visualize it. The violin plot will show the distribution of values in
+    ``continuous_array`` corresponding to each category in
+    ``categorical_array``.
 
-    Also, a one-way ANOVA test (H0: different categories in x yield same
-    average y values) is performed, and F statistics and p-value are returned.
+    Also, a one-way ANOVA test (H0: different categories in ``categorical_array``
+    yield the same average values in ``continuous_array``) is performed, and
+    F statistics and p-value are returned.
 
     Parameters
     ----------
-    categorical_array : <array_like>
+    categorical_array : list, numpy.ndarray, or pandas.Series
         An vector of categorical values.
-    continuous_array : <array_like>
+    continuous_array : list, numpy.ndarray, or pandas.Series
         The target variable whose values correspond to the values in x. Must
         have the same length as x. It is natural that y contains continuous
         values, but if y contains categorical values (expressed as integers,
         not strings), this function should also work.
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    title : <str>
-        The title of the violin plot, usually the name of vector x.
-    xlabel : <str>
-        The label for the x axis (i.e., categories) of the violin plot. If None
-        and x is a pandas Series, use x's 'name' attribute as xlabel.
-    ylabel : <str>
-        The label for the y axis (i.e., average y values) of the violin plot.
-        If None and y is a pandas Series, use y's 'name' attribute as ylabel.
-    rot : <float>
-        The rotation (in degrees) of the x axis labels
-    dropna : <bool>
-        Whether or not to exclude N/A records in the data
-    show_stats : <bool>
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    title : str
+        The title of the violin plot, usually the name of ``categorical_array`
+    xlabel : str
+        The label for the x axis (i.e., categories) of the violin plot. If
+        ``None`` and ``categorical_array`` is a pandas Series, use the 'name'
+        attribute of ``categorical_array`` as xlabel.
+    ylabel : str
+        The label for the y axis (i.e., average ``continuous_array`` values)
+        of the violin plot. If ``None`` and ``continuous_array`` is a pandas
+        Series, use the 'name' attribute of ``continuous_array`` as ylabel.
+    rot : float
+        The rotation (in degrees) of the x axis labels.
+    dropna : bool
+        Whether or not to exclude N/A records in the data.
+    show_stats : bool
         Whether or not to show the statistical test results (F statistics
         and p-value) on the figure.
-    sort_by : <str>
+    sort_by : {'name', 'mean', 'median', None}
         Option to arrange the different categories in `categorical_array` in
-        the violin plot. Valid options are: {'name', 'mean', 'median', None}.
-        None means no sorting, i.e., using the hashed order of the category
-        names; 'mean' and 'median' mean sorting the violins according to the
-        mean/median values of each category; 'name' means sorting the violins
-        according to the category names.
-    vert : <bool>
-        Whether to show the violins as vertical
+        the violin plot. ``None`` means no sorting, i.e., using the hashed
+        order of the category names; 'mean' and 'median' mean sorting the
+        violins according to the mean/median values of each category; 'name'
+        means sorting the violins according to the category names.
+    vert : bool
+        Whether to show the violins as vertical.
     **violinplot_kwargs :
         Keyword arguments to be passed to plt.violinplot().
         (https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.violinplot.html)
@@ -571,12 +628,14 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
 
     Return
     ------
-    fig, ax :
-        Figure and axes objects
-    mean_values : <dict>
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
+    mean_values : dict
         A dictionary whose keys are the categories in x, and their corresponding
         values are the mean values in y.
-    F_test_result : <tuple>
+    F_test_result : tuple<float>
         A tuple in the order of (F_stat, p_value), where F_stat is the computed
         F-value of the one-way ANOVA test, and p_value is the associated
         p-value from the F-distribution.
@@ -649,56 +708,62 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
                   figsize=None, dpi=100, barh=True, top_n=None, dropna=False,
                   xlabel=None, ylabel=None, show_stats=True):
     '''
-    Calculate the proportions of the different categories in vector x that fall
-    into class "1" (or "True") in vector y, and optionally show a figure.
+    Calculate the proportions of the different categories in
+    ``categorical_array`` that fall into class "1" (or ``True``) in
+    ``two_classes_array``, and optionally show a figure.
 
     Also, a Pearson's chi-squared test is performed to test the independence
-    between x and y. The chi-squared statistics, p-value, and degree-of-freedom
-    are returned.
+    between ``categorical_array`` and ``two_classes_array``. The chi-squared
+    statistics, p-value, and degree-of-freedom are returned.
 
     Parameters
     ----------
-    categorical_array : <array_like>
-        An array of categorical values
-    two_class_array : <array_like>
-        The target variable containing two classes. Each value in y correspond
-        to a value in x (at the same index). Must have the same length as x.
-        The second unique value in y will be considered as the positive class
-        (for example, "True" in [True, False, True], or "3" in [1,1,3,3,1]).
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars, or None
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter). If None, the figure size will be
-        automatically determined from the number of distinct categories in x.
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    barh : <bool>
+    categorical_array : list, numpy.ndarray, or pandas.Series
+        An array of categorical values.
+    two_class_array : list, numpy.ndarray, or pandas.Series
+        The target variable containing two classes. Each value in this
+        parameter correspond to a value in ``categorical_array`` (at the same
+        index). It must have the same length as ``categorical_array``. The
+        second unique value in this parameter will be considered as the
+        positive class (for example, "True" in [True, False, True], or "3" in
+        [1, 1, 3, 3, 1]).
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter
+    barh : bool
         Whether or not to show the bars as horizontal (otherwise, vertical).
-    top_n : <int>
-        Only shows top_n categories (ranked by their positive rate) in the
-        figure. Useful when there are too many categories. If None, show all
-        categories.
-    dropna : <bool>
-        If True, ignore entries (in both arrays) where there are missing values
-        in at least one array. If False, the missing values are treated as a
-        new category, "N/A".
-    xlabel, ylabel : <str>
-        Axes labels.
-    show_stats : <bool>
+    top_n : int
+        Only shows ``top_n`` categories (ranked by their positive rate) in the
+        figure. Useful when there are too many categories. If ``None``, show
+        all categories.
+    dropna : bool
+        If ``True``, ignore entries (in both arrays) where there are missing
+        values in at least one array. If ``False``, the missing values are
+        treated as a new category: "N/A".
+    xlabel : str
+        X axes label.
+    ylabel : str
+        Y axes label.
+    show_stats : bool
         Whether or not to show the statistical test results (chi2 statistics
         and p-value) on the figure.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
-    pos_rate : <pd.Series>
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
+    pos_rate : pandas.Series
         The positive rate of each categories in x
-    chi2_results : <tuple>
+    chi2_results : tuple<float>
         A tuple in the order of (chi2, p_value, degree_of_freedom)
     '''
     import collections
@@ -772,6 +837,18 @@ def _crosstab_to_arrays(cross_tab):
     '''
     Helper function. Convert a contingency table to two arrays, which is the
     reversed operation of pandas.crosstab().
+
+    Parameter
+    ---------
+    cross_tab : numpy.ndarray or pandas.DataFrame
+        A contingency table to be converted to two arrays
+
+    Returns
+    -------
+    x : list<float>
+        The first output array
+    y : list<float>
+        The second output array
     '''
 
     if isinstance(cross_tab, (list, pd.Series)):
@@ -802,66 +879,69 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
 
     '''
     Calculate and visualize the contingency table from two categorical arrays.
-    Also perform a Pearson's chi-squared test to evaluate whether the two arrays
-    are independent.
+    Also perform a Pearson's chi-squared test to evaluate whether the two
+    arrays are independent.
 
     Parameters
     ----------
-    array_horizontal : <array_like>
+    array_horizontal : list, numpy.ndarray, or pandas.Series
         Array to show as the horizontal margin in the contigency table (i.e.,
-        its categories are the column headers)
-    array_vertical : <array_like>
+        its categories are the column headers).
+    array_vertical : list, numpy.ndarray, or pandas.Series
         Array to show as the vertical margin in the contigency table (i.e.,
-        its categories are the row names)
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars, or 'auto'
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter). If 'auto', the figure size will be
-        automatically determined from the number of distinct categories in x.
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    color_map : <str> or <matplotlib.colors.Colormap>
+        its categories are the row names).
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    color_map : str or matplotlib.colors.Colormap
         The color scheme specifications. Valid names are listed in
         https://matplotlib.org/users/colormaps.html.
         If relative_color is True, use diverging color maps (e.g., PiYG, PRGn,
         BrBG, PuOr, RdGy, RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr,
         seismic). Otherwise, use sequential color maps (e.g., viridis, jet).
-    xlabel : <str>
-        The label for the horizontal axis. If None and x is a pandas Series,
-        use x's 'name' attribute as xlabel.
-    ylabel : <str>
-        The label for the vertical axis. If None and y is a pandas Series, use
-        y's 'name' attribute as ylabel.
-    dropna : <bool>
-        If True, ignore entries (in both arrays) where there are missing values
-        in at least one array. If False, the missing values are treated as a
-        new category, "N/A".
-    rot : <float> or 'vertical' or 'horizontal'
-        The rotation of the x axis labels.
-    normalize : <bool>
-        If True, plot the contingency table as the relative difference between
-        the observed and the expected (i.e., (obs. - exp.)/exp. ). If False,
-        plot the original "observed frequency".
-    symm_cbar : <bool>
-        If True, the limits of the color bar are symmetric. Otherwise, the
+    xlabel : str
+        The label for the horizontal axis. If ``None`` and ``array_horizontal``
+        is a pandas Series, use the 'name' attribute of ``array_horizontal``
+        as xlabel.
+    ylabel : str
+        The label for the vertical axis. If ``None`` and ``array_vertical``
+        is a pandas Series, use the 'name' attribute of ``array_vertical`` as
+        ylabel.
+    dropna : bool
+        If ``True``, ignore entries (in both arrays) where there are missing
+        values in at least one array. If ``False``, the missing values are
+        treated as a new category: "N/A".
+    rot : float or 'vertical' or 'horizontal'
+        The rotation of the x axis labels (in degrees).
+    normalize : bool
+        If ``True``, plot the contingency table as the relative difference
+        between the observed and the expected (i.e., (obs. - exp.)/exp. ).
+        If ``False``, plot the original "observed frequency".
+    symm_cbar : bool
+        If ``True``, the limits of the color bar are symmetric. Otherwise, the
         limits are the natural minimum/maximum of the table to be plotted.
-        It has no effect if "normalize" is set to False.
-    show_stats : <bool>
+        It has no effect if "normalize" is set to ``False``.
+    show_stats : bool
         Whether or not to show the statistical test results (chi2 statistics
         and p-value) on the figure.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
-    chi2_results : <tuple>
-        A tuple in the order of (chi2, p_value, degree_of_freedom)
-    correlation_metrics : <tuple>
-        A tuple in the order of (phi coef., coeff. of contingency, Cramer's V)
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
+    chi2_results : tuple<float>
+        A tuple in the order of (chi2, p_value, degree_of_freedom).
+    correlation_metrics : tuple<float>
+        A tuple in the order of (phi coef., coeff. of contingency, Cramer's V).
     '''
 
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -980,59 +1060,60 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
                  barh=True, top_n=None, score_ax_label=None, name_ax_label=None,
                  invert_name_ax=False, grid_on=True):
     '''
-    Plots rankings as a bar plot (in descending order), such as:
+    Plot rankings as a bar plot (in descending order), such as::
 
-            ^
-            |
-    dolphin |||||||||||||||||||||||||||||||
-            |
-    cat     |||||||||||||||||||||||||
-            |
-    rabbit  ||||||||||||||||
-            |
-    dog     |||||||||||||
-            |
-           -|------------------------------------>  Age of pet
-            0  1  2  3  4  5  6  7  8  9  10  11
+                ^
+                |
+        dolphin |||||||||||||||||||||||||||||||
+                |
+        cat     |||||||||||||||||||||||||
+                |
+        rabbit  ||||||||||||||||
+                |
+        dog     |||||||||||||
+                |
+               -|------------------------------------>  Age of pet
+                0  1  2  3  4  5  6  7  8  9  10  11
 
     Parameters
     ----------
-    ranking : <dict> or <pd.Series>
+    ranking : dict or pandas.Series
         The ranking information, for example:
             {'rabbit': 5, 'cat': 8, 'dog': 4, 'dolphin': 10}
         It does not need to be sorted externally.
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars, or 'auto'
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter). If 'auto', the figure size will be
-        automatically determined from the number of distinct categories in x.
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    barh : <bool>
-        Whether or not to show the bars as horizontal (otherwise, vertical).
-    top_n : <int>
-        If None, show all categories. top_n > 0 means showing the
-        highest top_n categories. top_n < 0 means showing the lowest |top_n|
-        categories.
-    score_ax_label : <str>
-        Label of the score axis (e.g., "Age of pet")
-    name_ax_label : <str>
-        Label of the "category name" axis (e.g., "Pet name")
-    invert_name_ax : <bool>
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    barh : bool
+        Whether or not to show the bars as horizontal (otherwise, vertical)
+    top_n : int
+        If ``None``, show all categories. ``top_n`` > 0 means showing the
+        highest ``top_n`` categories. ``top_n`` < 0 means showing the lowest
+        |``top_n``| categories.
+    score_ax_label : str
+        Label of the score axis (e.g., "Age of pet").
+    name_ax_label : str
+        Label of the "category name" axis (e.g., "Pet name").
+    invert_name_ax : bool
         Whether to invert the "category name" axis. For example, if
-        invert_name_ax is False, then higher values are shown on the top
-        for barh=True.
-    grid_on : <bool>
-        Whether or not to show grids on the plot
+        ``invert_name_ax`` is ``False``, then higher values are shown on the
+        top if ``barh`` is ``True``.
+    grid_on : bool
+        Whether or not to show grids on the plot.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
 
     if not isinstance(ranking, (dict, pd.Series)):
@@ -1086,35 +1167,35 @@ def plot_ranking(ranking, fig=None, ax=None, figsize='auto', dpi=100,
 #%%============================================================================
 def missing_value_counts(X, fig=None, ax=None, figsize=None, dpi=100, rot=45):
     '''
-    Visualize the number of missing values in each column of X.
+    Visualize the number of missing values in each column of ``X``.
 
     Parameters
     ----------
-    X : <pd.DataFrame> or <pd.Series>
+    X : pandas.DataFrame or pandas.Series
         Input data set whose every row is an observation and every column is
         a variable.
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of scalars
-        Size (width, height) of figure in inches. If None, it will be determined
-        as follows: width = (0.5 inches) x (number of columns in X), and height
-        is 3 inches.
-        (fig object passed via "fig" will over override this parameter.)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    rot : <float>
-        Rotation (in degrees) of the x axis labels
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    rot : float
+        Rotation (in degrees) of the x axis labels.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
-    null_counts : <pd.Series>
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
+    null_counts : pandas.Series
         A pandas Series whose every element is the number of missing values
-        corresponding to each column of X.
+        corresponding to each column of ``X``.
     '''
 
     if not isinstance(X, (pd.DataFrame, pd.Series)):
@@ -1159,7 +1240,7 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
 
     Parameters
     ----------
-    target_array : <array_like>
+    target_array : array_like
         An array containing categorical values (could have more than two
         categories). Target value can be numeric or texts.
     class_names : sequence of str
@@ -1169,42 +1250,42 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
         class_names should be ['neg','pos'] (i.e., alphabetical).
         If None, values of the categories will be used as names. If [], then
         no class names are displayed.
-    dropna : <bool>
-        Whether to drop nan values or not. If False, they show up as 'N/A'.
-    top_n : <int>
-        An integer between 1 and the number of unique categories in target_array.
-        Useful for preventing plotting too many unique categories (very slow).
-        If None, plot all categories.
+    dropna : bool
+        Whether to drop NaN values or not. If ``False``, they show up as 'N/A'.
+    top_n : int
+        An integer between 1 and the number of unique categories in
+        ``target_array``. Useful for preventing plotting too many unique
+        categories (very slow). If None, plot all categories.
     sort_by : {'counts', 'name'}
         An option to control whether the pie slices are arranged by the counts
         of each unique categories, or by the names of those categories.
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    colors : <list> or None
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    colors : list or ``None``
         A list of colors (can be RGB values, hex strings, or color names) to be
         used for each class. The length can be longer or shorter than the number
         of classes. If longer, only the first few colors are used; if shorter,
-        colors are wrapped around.
-        If None, automatically use the Pastel2 color map (8 colors total).
-    display : ['percent', 'count', 'both', None]
+        colors are wrapped around. If ``None``, automatically use the Pastel2
+        color map (8 colors total).
+    display : {'percent', 'count', 'both', ``None``}
         An option of what to show on top of each pie slices: percentage of each
         class, or count of each class, or both percentage and count, or nothing.
-    title : <str> or None
-        The text to be shown on the top of the pie chart
+    title : str or ``None``
+        The text to be shown on the top of the pie chart.
     fontsize : scalar or tuple/list of two scalars
         Font size. If scalar, both the class names and the percentages are set
         to the specified size. If tuple of two scalars, the first value sets
         the font size of class names, and the last value sets the font size
         of the percentages.
-    verbose : <bool>
+    verbose : bool
         Whether or to show a "Plotting more than 100 slices; please be patient"
         message when the number of categories exceeds 100.
     **piechart_kwargs :
@@ -1215,8 +1296,10 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
@@ -1331,8 +1414,8 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
 
     Parameters
     ----------
-    X :
-        Input data. X can be:
+    X : numpy.ndarray, list<list<float>>, pandas.Series, pandas.DataFrame
+        Input data. ``X`` can be:
            (1) a 2D numpy array, where each row is one data set;
            (2) a 1D numpy array, containing only one set of data;
            (3) a list of lists, e.g., [[1,2,3],[2,3,4,5],[2,4]], where each
@@ -1342,58 +1425,71 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
                       2D numpy arrays.]
            (5) a pandas Series, which is treated as a 1D numpy array;
            (5) a pandas DataFrame, where each column is one data set.
-    bins : <int> or <array_like>
+    bins : int, list, numpy.ndarray, or pandas.Series
         Bin specifications. Can be:
            (1) An integer, which indicates number of bins;
            (2) An array or list, which specifies bin edges.
                [Note: If an integer is used, the widths of bars across data
                       sets may be different. Thus array/list is recommended.]
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    elev, azim : scalars
-        Elevation and azimuth (3D projection view points)
-    alpha : scalar
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    elev : float
+        Elevation of the 3D view point.
+    azim : float
+        Azimuth angle of the 3D view point (unit: degree).
+    alpha : float
         Opacity of bars
-    data_labels : list of <str>
+    data_labels : list of str
         Names of different datasets, e.g., ['Simulation', 'Measurement'].
         If not provided, generic names ['Dataset #1', 'Dataset #2', ...]
         are used. The data_labels are only shown when either plot_legend or
-        plot_xlabel is True.
+        plot_xlabel is ``True``.
         If not provided, and X is a pandas DataFrame/Series, data_labels will
-        be overridden by the column names (or name) of X.
-    plot_legend : <bool>
-        Whether to show legends or not
-    plot_xlabel : <str>
+        be overridden by the column names (or name) of ``X``.
+    plot_legend : bool
+        Whether to show legends or not.
+    plot_xlabel : str
         Whether to show data_labels of each data set on their respective x
-        axis position or not
-    color : list of lists, or tuple of tuples
+        axis position or not.
+    color : list<list>, or tuple<tuples>
         Colors of each distributions. Needs to be at least the same length as
-        the number of data series in X. Can be RGB colors, HEX colors, or valid
-        color names in Python. If None, get_colors(N, 'tab10') will be queried.
-    dx_factor, dy_factor : scalars
-        Width factor 3D bars in x and y directions. For example, if dy_factor
+        the number of data series in ``X``. Can be RGB colors, HEX colors,
+        or valid color names in Python. If ``None``,
+        get_colors(N=N, color_scheme='tab10') will be queried.
+    dx_factor : float
+        Width factor of 3D bars in x direction.
+    dy_factor : float
+        Width factor of 3D bars in y direction. For example, if ``dy_factor``
         is 0.9, there will be a small gap between bars in y direction.
-    ylabel, zlabel : <str>
-        Labels of y and z axes
+    ylabel : str
+        Label of Y axes.
+    zlabel : str
+        Labels of Z axes.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
 
-    Notes on x and y directions
-    ---------------------------
-        x direction: across data sets (i.e., if we have three datasets, the
-                     bars will occupy three different x values)
-        y direction: within dataset
+    Notes
+    -----
+    x direction :
+        Across data sets (i.e., if we have three datasets, the bars will
+        occupy three different x values).
+    y direction :
+        Within dataset.
+
+    Illustration::
 
                     ^ z
                     |
@@ -1517,11 +1613,11 @@ def histogram3d(X, bins=10, fig=None, ax=None, figsize=(8,4), dpi=100,
 #%%============================================================================
 def _check_color_types(color, n=None):
     '''
-    Helper function that checks whether a Python object "color" is indeed a
-    valid list (or tuple) of length n that defines n colors.
+    Helper function that checks whether a Python object ``color`` is indeed a
+    valid list (or tuple) of length n that defines ``n`` colors.
 
-    Returns True (valid) or False (otherwise), and an error message (empty
-    message if True).
+    Returns ``True`` (valid) or ``False`` (otherwise), and an error message
+    (empty message if ``True``).
     '''
     if not isinstance(color,(list,tuple)):
         is_valid = False
@@ -1543,7 +1639,7 @@ def _check_color_types(color, n=None):
 #%%============================================================================
 def get_colors(N=None, color_scheme='tab10'):
     '''
-    Returns a list of N distinguisable colors. When N is larger than the color
+    Return a list of N distinguisable colors. When N is larger than the color
     scheme capacity, the color cycle is wrapped around.
 
     What does each color_scheme look like?
@@ -1554,10 +1650,10 @@ def get_colors(N=None, color_scheme='tab10'):
 
     Parameters
     ----------
-    N : <int> or None
+    N : int or ``None``
         Number of qualitative colors desired. If None, returns all the colors
         in the specified color scheme.
-    color_scheme : <str> or {8.3, 8.4}
+    color_scheme : str or {8.3, 8.4}
         Color scheme specifier. Valid specifiers are:
         (1) Matplotlib qualitative color map names:
             'Pastel1'
@@ -1584,7 +1680,8 @@ def get_colors(N=None, color_scheme='tab10'):
 
     Returns
     -------
-    A list of colors (as RGB, or color name, or hex)
+    colors : list<list<float>>, list<str>
+        A list of colors (as RGB, or color name, or hex)
     '''
 
     nr_c = {'Pastel1': 9,  # number of qualitative colors in each color map
@@ -1665,18 +1762,19 @@ def get_colors(N=None, color_scheme='tab10'):
 def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
                   priority='color'):
     '''
-    Returns a list of distinguishable line specifications (color, line style,
+    Return a list of distinguishable line specifications (color, line style,
     and line width combinations).
 
     Parameters
     ----------
-    color_scheme : <str> or {8.3, 8.4}
-        Color scheme specifier. See docs of get_colors() for valid specifiers.
+    color_scheme : str or {8.3, 8.4}
+        Color scheme specifier. See documentation of ``get_colors()`` for
+        valid specifiers.
     n_linestyle : {1, 2, 3, 4}
-        Number of different line styles to use. There are only 4 available line
-        stylies in Matplotlib to choose from: (1) - (2) -- (3) -. and (4) ..
+        Number of different line styles to use. There are only four available
+        line stylies in Matplotlib: (1) - (2) -- (3) -. and (4) ..
         For example, if you use 2, you choose only - and --
-    range_linewidth : array_like
+    range_linewidth : list, numpy.ndarray, or pandas.Series
         The range of different line width values to use.
     priority : {'color', 'linestyle', 'linewidth'}
         Which one of the three line specification aspects (i.e., color, line
@@ -1685,9 +1783,11 @@ def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
 
     Returns
     -------
-    A list whose every element is a dictionary that looks like this:
-    {'color': '#1f77b4', 'ls': '-', 'lw': 1}. Each element can then be passed
-    as keyword arguments to matplotlib.pyplot.plot() or other similar functions.
+    style_cycle_list : list<dict>
+        A list whose every element is a dictionary that looks like this:
+            {'color': '#1f77b4', 'ls': '-', 'lw': 1}.
+        Each element can then be passed as keyword arguments to
+        ``matplotlib.pyplot.plot()`` or other similar functions.
 
     Example
     -------
@@ -1720,20 +1820,23 @@ def get_linespecs(color_scheme='tab10', n_linestyle=4, range_linewidth=[1,2,3],
 #%%============================================================================
 def linespecs_demo(line_specs, horizontal_plot=False):
     '''
-    Demonstrate all generated line specifications given by get_linespecs()
+    Demonstrate line specifications generated by ``get_linespecs()``.
 
     Parameter
     ---------
-    line_spec :
-        A list of dictionaries that is the returned value of get_linespecs().
-    horizontal_plot : <bool>
+    line_spec : list<dict>
+        A list of line specifications. It can be the returned value of
+        ``get_linespecs()``.
+    horizontal_plot : bool
         Whether or not to demonstrate the line specifications in a horizontal
         plot.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects.
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
     x = np.arange(0,10,0.05)  # define x and y points to plot
     y = np.sin(x)
@@ -1768,29 +1871,29 @@ def _find_axes_lim(data_limit, tick_base_unit, direction='upper'):
 
     Parameters
     ----------
-    data_limit: The upper and/or lower limit(s) of data.
-                (1) If a tuple (or list) of two elements is provided, then
-                    the upper and lower axis limits are automatically
-                    determined. (The order of the two elements does not
-                    matter.)
-                (2) If a scalar (float or int)is provided, then the axis
-                    limit is determined based on the DIRECTION provided.
-    tick_base_unit: For example, if you want your axis limit(s) to be a
-                    multiple of 20 (such as 80, 120, 2020, etc.), then use
-                    20.
-    direction: 'upper' or 'lower'; used only when data_limit is a scalar.
-               If data_limit is a tuple/list, then this variable is
-               disregarded.
+    data_limit : float, int, list<float>, list<int>, tuple<float>, tuple<int>
+        The upper and/or lower limit(s) of data.
+            (1) If a tuple (or list) of two elements is provided, then the
+                upper and lower axis limits are automatically determined.
+                (The order of the two elements does not matter.)
+            (2) If a float or an int is provided, then the axis limit is
+                determined based on the ``direction`` provided.
+    tick_base_unit : float
+        For example, if you want your axis limit(s) to be a multiple of 20
+        (such as 80, 120, 2020, etc.), then use 20.
+    direction : {'upper', 'lower'}
+        The direction of the limit to be found. For example, if the maximum
+        of the data is 127, and ``tick_base_unit`` is 50, then a ``direction``
+        of lower yields a result of 100. This parameter is effective only when
+        ``data_limit`` is a scalar.
 
     Returns
     -------
-    If data_limit is a list/tuple of length 2, return [min_limit,max_limit]
-    (Note: it is always ordered no matter what the order of data_limit is.)
-
-    If data_limit is a scalar, return axis_limit according to the DIRECTION.
-
-    NOTE:
-        This subroutine is no longer being used for now.
+    axes_lim : list<float> or float
+        If ``data_limit`` is a list/tuple of length 2, return a list:
+        [min_limit, max_limit] (always ordered no matter what the order of
+        ``data_limit`` is). If ``data_limit`` is a scalar, return the axis
+        limit according to ``direction``.
     '''
 
     if isinstance(data_limit, _scalar_like):
@@ -1829,7 +1932,7 @@ def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
                        alpha=None, rot=0, logy=False, title=None, xlabel=None,
                        ylabel='Number of occurrences', show_xticklabel=True):
     '''
-    Plot a discrete histogram based on "x", such as below:
+    Plot a discrete histogram based on the given data ``x``, such as below::
 
 
       N ^
@@ -1846,54 +1949,64 @@ def discrete_histogram(x, fig=None, ax=None, figsize=(5,3), dpi=100, color=None,
               x1     x2     x3     x4    ...
 
     In the figure, N is the number of occurences for x1, x2, x3, x4, etc.
-    And x1, x2, x3, x4, etc. are the discrete values within x.
+    And x1, x2, x3, x4, etc. are the discrete values within ``x``.
 
     Parameters
     ----------
-    x : <array_like> or <dict>
-        Data to be visualized.
-        If x is an array (list, numpy arrary), the content of x is analyzed and
-        counts of x's values are plotted.
-        If x is a Python dict, then x's keys are treated as discrete values and
-        x's values are treated as counts. (plot_ranking() does similar tasks.)
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the histograms are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars, or None
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter). If None, the figure size will be
-        automatically determined from the number of distinct categories in x.
-    dpi : <float> or <int>
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    color : <str> or <list>
-        Color of bar. If not specified, the default color (muted blue)
-        is used.
-    alpha : <float>
-        Opacity of bar. If not specified, the default value (1.0) is used.
-    rot : <float> or <int>
-        Rotation angle (degrees) of x axis label. Default = 0 (upright label)
-    logy : <bool>
-        Whether or not to use log scale for y
-    title, xlabel, ylabel : <str>
-        The title, x label, and y label
-    show_xticklabel : <bool>
-        Whether or not to show the x tick labels (the names of the classes)
+    x : list, numpy.ndarray, pandas.Series, or dict
+        Data to be visualized. If ``x`` is a list, numpy arrary, or pandas
+        Series, the content of ``x`` is analyzed and counts of ``x``'s values
+        are plotted. If ``x`` is a dict, then ``x``'s keys are treated as
+        discrete values and ``x``'s values are treated as counts.
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    color : str, list<float>, or ``None``
+        Color of bar. If ``None``, the default color (muted blue) is used.
+    alpha : float or ``None``
+        Opacity of bar. If ``None``, the default value (1.0) is used.
+    rot : float or int
+        Rotation angle (degrees) of X axis label. Default = 0 (upright label).
+    logy : bool
+        Whether or not to use log scale for the Y axis.
+    title : str
+        The title of the plot.
+    xlabel : str
+        The X axis label.
+    ylabel : str
+        The Y axis label.
+    show_xticklabel : bool
+        Whether or not to show the X tick labels (the names of the classes).
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
-    value_count : <pd.Series>
-        The counts of each discrete values within x (if x is an array) with
-        each values sorted in ascending order, or the pandas Series generated
-        from a dict (if x is a dict).
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
+    value_count : pandas.Series
+        The counts of each discrete values within ``x`` (if ``x`` is an array)
+        with each values sorted in ascending order, or the pandas Series
+        generated from ``x`` (if ``x`` is a dict).
 
-    Reference
-    ---------
+    Notes
+    -----
+    References:
+
     http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.plot.html
     http://pandas.pydata.org/pandas-docs/version/0.18.1/visualization.html#bar-plots
+
+    See Also
+    --------
+    plot_ranking :
+        Plot bars showing the ranking of the data
     '''
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
@@ -1954,17 +2067,17 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
                          unit='', cmap='OrRd', fontsize=14, cmap_midpoint=None,
                          shapefile_dir=None):
     '''
-    Generate a choropleth map of USA (including Alaska and Hawaii), on a state
-    level.
+    Generate a choropleth map of the US (including Alaska and Hawaii), on a
+    state level.
 
-    According to wikipedia, a choropleth map is a thematic map in which areas
+    According to Wikipedia, a choropleth map is a thematic map in which areas
     are shaded or patterned in proportion to the measurement of the statistical
     variable being displayed on the map, such as population density or
     per-capita income.
 
     Parameters
     ----------
-    data_per_state : <dict> or <pd.Series> or <pd.DataFrame>
+    data_per_state : dict or pandas.Series or pandas.DataFrame
         Numerical data of each state, to be plotted onto the map.
         Acceptable data types include:
             - pandas Series: Index should be valid state identifiers (i.e.,
@@ -1976,50 +2089,60 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
                                 identifiers).
             - dictionary: with keys being valid state identifiers, and values
                           being the numerical values to be visualized
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    vmin : scalar
-        Minimum value to be shown on the map. If vmin is larger than the
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    vmin : float
+        Minimum value to be shown on the map. If ``vmin`` is larger than the
         actual minimum value in the data, some of the data values will be
         "clipped". This is useful if there are extreme values in the data
         and you do not want those values to complete skew the color
         distribution.
-    vmax : scalar
-        Maximum value to be shown on the map. Similar to vmin.
-    map_title : <str>
+    vmax : float
+        Maximum value to be shown on the map. Similar to ``vmin``.
+    map_title : str
         Title of the map, to be shown on the top of the map.
-    unit : <str>
+    unit : str
         Unit of the numerical (for example, "population per km^2"), to be
         shown on the right side of the color bar.
-    cmap : <str> or <matplotlib.colors.Colormap>
+    cmap : str or matplotlib.colors.Colormap
         Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
         for plotting deviation maps.
-    fontsize : scalar
+    fontsize : float
         Font size of all the texts on the map.
-    cmap_midpoint : scalar
+    cmap_midpoint : float
         A numerical value that specifies the "deviation point". For example,
         if your data ranges from -200 to 1000, and you want negative values
         to appear blue-ish, and positive values to appear red-ish, then you
-        can set cmap_midpoint to 0.0.
-    shapefile_dir : <str>
+        can set ``cmap_midpoint`` to 0.0. If ``None``, then the "deviation
+        point" will be the median value of the data values.
+    shapefile_dir : str
         Directory where shape files are stored. Shape files (state level and
         county level) should be organized as follows:
-            <shapefile_dir>/usa_states/st99_d00.(...)
-            <shapefile_dir>/usa_counties/cb_2016_us_county_500k.(...)
+            ``shapefile_dir``/usa_states/st99_d00.(...)
+            ``shapefile_dir``/usa_counties/cb_2016_us_county_500k.(...)
+        If ``None``, the shapefile directory within this library will be used.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
 
     References
     ----------
-        I based my modifications partly on some code snippets in this
-        stackoverflow thread: https://stackoverflow.com/questions/39742305
+    This function is based partly on an example in the Basemap repository
+    (https://github.com/matplotlib/basemap/blob/master/examples/fillstates.py)
+    as well as a modification on Stack Overflow
+    (https://stackoverflow.com/questions/39742305).
     '''
 
     try:
@@ -2200,21 +2323,21 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
                           map_title='USA county map', fontsize=14,
                           cmap_midpoint=None, shapefile_dir=None):
     '''
-    Generate a choropleth map of USA (including Alaska and Hawaii), on a county
-    level.
+    Generate a choropleth map of the US (including Alaska and Hawaii), on a
+    county level.
 
-    According to wikipedia, a choropleth map is a thematic map in which areas
+    According to Wikipedia, a choropleth map is a thematic map in which areas
     are shaded or patterned in proportion to the measurement of the statistical
     variable being displayed on the map, such as population density or
     per-capita income.
 
     Parameters
     ----------
-    data_per_county : <dict> or <pd.Series> or <pd.DataFrame>
+    data_per_county : dict or pandas.Series or pandas.DataFrame
         Numerical data of each county, to be plotted onto the map.
         Acceptable data types include:
             - pandas Series: Index should be valid county identifiers (i.e.,
-                             5 digit county FIPS codes)
+                             5-digit county FIPS codes)
             - pandas DataFrame: The dataframe can have only one column (with
                                 the index being valid county identifiers), two
                                 columns (with one of the column named 'state',
@@ -2222,50 +2345,60 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
                                 identifiers).
             - dictionary: with keys being valid county identifiers, and values
                           being the numerical values to be visualized
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    vmin : scalar
-        Minimum value to be shown on the map. If vmin is larger than the
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    vmin : float
+        Minimum value to be shown on the map. If ``vmin`` is larger than the
         actual minimum value in the data, some of the data values will be
         "clipped". This is useful if there are extreme values in the data
         and you do not want those values to complete skew the color
         distribution.
-    vmax : scalar
-        Maximum value to be shown on the map. Similar to vmin.
-    map_title : <str>
+    vmax : float
+        Maximum value to be shown on the map. Similar to ``vmin``.
+    map_title : str
         Title of the map, to be shown on the top of the map.
-    unit : <str>
+    unit : str
         Unit of the numerical (for example, "population per km^2"), to be
         shown on the right side of the color bar.
-    cmap : <str> or <matplotlib.colors.Colormap>
+    cmap : str or <matplotlib.colors.Colormap>
         Color map name. Suggested names: 'hot_r', 'summer_r', and 'RdYlBu'
         for plotting deviation maps.
     fontsize : scalar
         Font size of all the texts on the map.
-    cmap_midpoint : scalar
+    cmap_midpoint : float
         A numerical value that specifies the "deviation point". For example,
         if your data ranges from -200 to 1000, and you want negative values
         to appear blue-ish, and positive values to appear red-ish, then you
-        can set cmap_midpoint to 0.0.
-    shapefile_dir : <str>
+        can set ``cmap_midpoint`` to 0.0. If ``None``, then the "deviation
+        point" will be the median value of the data values.
+    shapefile_dir : str
         Directory where shape files are stored. Shape files (state level and
         county level) should be organized as follows:
-            <shapefile_dir>/usa_states/st99_d00.(...)
-            <shapefile_dir>/usa_counties/cb_2016_us_county_500k.(...)
+            ``shapefile_dir``/usa_states/st99_d00.(...)
+            ``shapefile_dir``/usa_counties/cb_2016_us_county_500k.(...)
+        If ``None``, the shapefile directory within this library will be used.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
 
     References
     ----------
-        I based my modifications partly on some code snippets in this
-        stackoverflow thread: https://stackoverflow.com/questions/39742305
+    This function is based partly on an example in the Basemap repository
+    (https://github.com/matplotlib/basemap/blob/master/examples/fillstates.py)
+    as well as a modification on Stack Overflow
+    (https://stackoverflow.com/questions/39742305).
     '''
 
     try:
@@ -2499,6 +2632,17 @@ class _MidpointNormalize(Normalize):
 def _convert_FIPS_to_state_name(dict1):
     '''
     Convert state FIPS codes such as '01' and '45' into full state names.
+
+    Parameter
+    ---------
+    dict1 : dict
+        A dictionary whose keys are 2-digit FIPS codes of state names.
+
+    Returns
+    -------
+    dict3 : dict
+        A dictionary whose keys are state abbreviations. Its values of each
+        state come from ``dict``.
     '''
     fips2state = {"01": "AL", "02": "AK", "04": "AZ", "05": "AR", "06": "CA", \
               "08": "CO", "09": "CT", "10": "DE", "11": "DC", "12": "FL", \
@@ -2532,15 +2676,15 @@ def _translate_state_abbrev(dict1, abbrev_to_full=True):
 
     Parameters
     ----------
-    dict1 : <dict>
+    dict1 : dict
         A mapping between state name and some data, e.g., {'AK': 1, 'AL': 2, ...}
-    abbrev_to_full : <bool>
-        If True, translate {'AK': 1, 'AL': 2, ...} into
-        {'Alaska': 1, 'Alabama': 2, ...}. If False, the opposite way.
+    abbrev_to_full : bool
+        If ``True``, translate {'AK': 1, 'AL': 2, ...} into
+        {'Alaska': 1, 'Alabama': 2, ...}. If ``False``, the opposite way.
 
     Returns
     -------
-    dict2 : <dict>
+    dict2 : dict
         The converted dictionary
     '''
     if abbrev_to_full is True:
@@ -2712,47 +2856,47 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
                     ygrid_on=True, title=None, zorder=None,
                     month_grid_width=None):
     '''
-    Plot time_series, where its index indicates dates (e.g., year, month, date).
+    Plot time series (i.e., values a function of dates).
 
     You can plot multiple time series by supplying a multi-column pandas
-    Dataframe as time_series, but you cannot use custom line specifications
-    (colors, width, and styles) for each time series. It is recommended to use
-    plot_multiple_timeseries() in stead.
+    Dataframe, but you cannot use custom line specifications (colors, width,
+    and styles) for each time series. It is recommended to use
+    ``plot_multiple_timeseries()`` in stead.
 
     Parameters
     ----------
-    time_series : <pd.Series> or <pd.DataFrame>
+    time_series : pandas.Series or pandas.DataFrame
         A pandas Series, with index being date; or a pandas DataFrame, with
         index being date, and each column being a different time series.
-    date_fmt : <str>
+    date_fmt : str
         Date format specifier, e.g., '%Y-%m' or '%d/%m/%y'.
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        figure size (width, height) in inches (fig object passed via
-        "fig" will over override this parameter)
-    dpi : scalar
-        Screen resolution (fig object passed via "fig" will over override
-        this parameter)
-    xlabel : <str>
-        Label of X axis. Usually "Time" or "Date"
-    ylabel : <str>
-        Label of Y axis. Usually the meaning of the data
-    label : <str>
-        Label of data, for plotting legends
-    color : <list> or <str>
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    xlabel : str
+        Label of X axis. Usually "Time" or "Date".
+    ylabel : str
+        Label of Y axis. Usually the meaning of the data, e.g., "Gas price [$]".
+    label : str
+        Label of data, for plotting legends.
+    color : list<float> or str
         Color of line. If None, let Python decide for itself.
-    xgrid_on : <bool>
-        Whether or not to show vertical grid lines (default: True)
-    ygrid_on : <bool>
-        Whether or not to show horizontal grid lines (default: True)
-    title : <str>
-        Figure title (optional)
-    zorder : scalar
+    xgrid_on : bool
+        Whether or not to show vertical grid lines (default: ``True``).
+    ygrid_on : bool
+        Whether or not to show horizontal grid lines (default: ``True``).
+    title : str
+        Figure title (optional).
+    zorder : float
         Set the zorder for lines. Higher zorder are drawn on top.
-    month_grid_width : <scalar>
+    month_grid_width : float
         the on-figure "horizontal width" that each time interval occupies.
         This value determines how X axis labels are displayed (e.g., smaller
         width leads to date labels being displayed with 90 deg rotation).
@@ -2760,8 +2904,16 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
+
+    See also
+    --------
+    plot_multiple_timeseries :
+        Plot multiple time series, with the ability to specify different
+        line specifications for each line.
     '''
 
     if not isinstance(time_series, (pd.Series, pd.DataFrame)):
@@ -2807,41 +2959,48 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
                              fig=None, ax=None, figsize=(10,3), dpi=100,
                              ncol_legend=5, **kwargs):
     '''
-    Plot multiple_time_series, where its index indicates dates (e.g., year,
-    month, date).
+    Plot multiple time series.
 
-    Note that setting keyword arguments such as color or ls ("linestyle") will
-    force all time series to have the same color or ls. So it is recommended
-    to let this function generate distinguishable line specifications (color/
+    Note that setting keyword arguments such as ``color`` or ``linestyle``will
+    force all time series to have the same color or line style. So we recommend
+    letting this function generate distinguishable line specifications (color/
     linestyle/linewidth combinations) by itself. (Although the more time series,
     the less the distinguishability. 240 time series or less is recommended.)
 
     Parameters
     ----------
-    multiple_time_series : <pandas.DataFrame> or <pandas.Series>
-        A pandas dataframe, with index being date, and each column being a
-        different time series.
-        If it is a pd.Series, internally convert it into a 1-column DataFrame.
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        Figure size (width, height) in inches (fig object passed via
-        "fig" will over override this parameter)
-    dpi : <scalar>
-        Screen resolution (fig object passed via "fig" will over override
-        this parameter)
-    ncol_legend : <int>
-        Number of columns of the legend
+    multiple_time_series : pandas.DataFrame or pandas.Series
+        If it is a pandas DataFrame, its index is the date, and each column
+        is a different time series.
+        If it is a pandas Series, it will be internally converted into a
+        1-column pandas DataFrame.
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    ncol_legend : int
+        Number of columns of the legend.
     **kwargs :
-        Other keyword arguments to be passed to plot_timeseries(), such as
-        color, marker, fontsize, etc. (Check docstring of plot_timeseries()).
+        Other keyword arguments to be passed to ``plot_timeseries()``, such as
+        color, marker, fontsize, etc.
 
     Returns
     -------
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
+
+    See also
+    --------
+    plot_timeseries :
+        Plot a single set of time series.
     '''
 
     if not isinstance(multiple_time_series, (pd.Series, pd.DataFrame)):
@@ -2896,56 +3055,58 @@ def fill_timeseries(time_series, upper_bound, lower_bound, date_fmt=None,
                     color=None, lw=3, ls='-', fontsize=12, title=None,
                     xgrid_on=True, ygrid_on=True):
     '''
-    Plot time_series as a line, where its index indicates a date (e.g., year,
-    month, date).
-
-    And then plot the upper bound and lower bound as shaded areas beneath the
-    line.
+    Plot time series as a line and then plot the upper and lower bounds as
+    shaded areas.
 
     Parameters
     ----------
-    time_series : <pd.Series>
-        A pandas Series, with index being date
-    upper_bound, lower_bound : <pd.Series>
-        upper/lower bounds of the time series, must have the same length as
-        time_series
-    date_fmt : <str>
+    time_series : pandas.Series
+        A pandas Series, with index being date.
+    upper_bound : pandas.Series
+        Upper bounds of the time series, must have the same length as
+        ``time_series``.
+    lower_bound : pandas.Series
+        Lower bounds of the time series, must have the same length as
+        ``time_series``.
+    date_fmt : str
         Date format specifier, e.g., '%Y-%m' or '%d/%m/%y'.
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        figure size (width, height) in inches (fig object passed via "fig"
-        will over override this parameter)
-    dpi : scalar
-        Screen resolution (fig object passed via "fig" will over override
-        this parameter)
-    xlabel : <str>
-        Label of X axis. Usually "Time" or "Date"
-    ylabel : <str>
-        Label of Y axis. Usually the meaning of the data
-    label : <str>
-        Label of data, for plotting legends
-    color : <str> or list or tuple
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    xlabel : str
+        Label of X axis. Usually "Time" or "Date".
+    ylabel : str
+        Label of Y axis. Usually the meaning of the data (e.g., "Gas price [$]").
+    label : str
+        Label of data, for plotting legends.
+    color : str or list or tuple
         Color of line. If None, let Python decide for itself.
     lw : scalar
-        line width of the line that represents time_series
-    ls : <str>
-        line style of the line that represents time_series
+        Line width of the line that represents time_series.
+    ls : str
+        Line style of the line that represents time_series.
     fontsize : scalar
-        font size of the texts in the figure
-    title : <str>
-        Figure title (optional)
-    xgrid_on : <bool>
-        Whether or not to show vertical grid lines (default: True)
-    ygrid_on : <bool>
-        Whether or not to show horizontal grid lines (default: True)
+        Font size of the texts in the figure.
+    title : str
+        Figure title.
+    xgrid_on : bool
+        Whether or not to show vertical grid lines (default: ``True``).
+    ygrid_on : bool
+        Whether or not to show horizontal grid lines (default: ``True``).
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
 
     if not isinstance(time_series, pd.Series):
@@ -3001,7 +3162,7 @@ def _calc_month_interval(date_array):
 #%%============================================================================
 def _calc_bar_width(width):
     '''
-    Calculate width (in points) of bar plot from figure width (in inches)
+    Calculate width (in points) of bar plot from figure width (in inches).
     '''
 
     if width <= 7:
@@ -3146,7 +3307,7 @@ def _format_xlabel(ax, month_width):
 #%%============================================================================
 def _as_date(raw_date, date_fmt=None):
     '''
-    Converts raw_date to datetime array.
+    Convert raw_date to datetime array.
 
     It can handle:
     (A) A list of str, int, or float, such as:
@@ -3167,7 +3328,7 @@ def _as_date(raw_date, date_fmt=None):
     ----------
     raw_date : (see above for acceptable formats)
         The raw date information to be processed
-    date_fmt : <str>
+    date_fmt : str
         The format of each individual date entry, e.g., '%Y-%m-%d' or '%m/%d/%y'.
         To be passed directly to pd.to_datetime()
         (https://pandas.pydata.org/pandas-docs/stable/generated/pandas.to_datetime.html)
@@ -3178,7 +3339,8 @@ def _as_date(raw_date, date_fmt=None):
         A variable with the same structure (list or scaler-like) as raw_date,
         whose contents have the data type "pandas._libs.tslib.Timestamp".
 
-    Reference:
+    Reference
+    ---------
     https://docs.python.org/2/library/datetime.html#strftime-strptime-behavior
     '''
 
@@ -3292,8 +3454,7 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
                            logx=False, logy=False, grid_on=True):
     '''
     Plot a graph with one line and its upper and lower bounds, with areas between
-    bounds shaded. The effect is similar to this illustration below.
-
+    bounds shaded. The effect is similar to this illustration below::
 
       y ^            ...                         _____________________
         |         ...   ..........              |                     |
@@ -3302,7 +3463,7 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
         |   ...  ___/        \    ...           |_____________________|
         |  .    /    ...      \    ........
         | .  __/   ...  ....   \________  .
-        |  /    ....       ...          \
+        |  /    ....       ...          \  .
         | /  ....            .....       \_
         | ...                    ..........
        -|--------------------------------------->  x
@@ -3310,38 +3471,51 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
 
     Parameters
     ----------
-    x, y: <array_like>
-        data points to be plotted as a line (should have the same length)
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    upper_bound, lower_bound : <array_like>
-        Upper and lower bounds to be plotted as shaded areas. Should have the
-        same length as x and y.
-    line_color : <str> or list or tuple
-        color of the line of y
-    shade_color : <str> or list or tuple
-        color of the underlying shades
-    shade_alpha : scalar
-        transparency of the shades
-    linewidth : scalar
-        width of the line of y
-    legend_loc : <int> or <str>
-        location of the legend, to be passed directly to plt.legend()
-    line_label : <str>
-        label of the line of y, to be used in the legend
-    shade_label : <str>
-        label of the shades, to be used in the legend
-    logx, logy : <bool>
-        Whether or not to show x or y axis scales as log
-    grid_on : <bool>
-        whether or not to show grids on the plot
+    x : list, numpy.ndarray, or pandas.Series
+        X data points to be plotted as a line.
+    y : list, numpy.ndarray, or pandas.Series
+        Y data points to be plotted as a line.
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    upper_bound : list, numpy.ndarray, or pandas.Series
+        Upper bound of the Y values.
+    lower_bound : list, numpy.ndarray, or pandas.Series
+        Lower bound of the Y values.
+    line_color : str, list, or tuple
+        Color of the line.
+    shade_color : str, list, or tuple
+        Color of the underlying shades.
+    shade_alpha : float
+        Opacity of the shades.
+    linewidth : float
+        Width of the line.
+    legend_loc : int, str
+        Location of the legend, to be passed directly to ``plt.legend()``.
+    line_label : str
+        Label of the line, to be used in the legend.
+    shade_label : str
+        Label of the shades, to be used in the legend.
+    logx : bool
+        Whether or not to show the X axis in log scale.
+    logy : bool
+        Whether or not to show the Y axis in log scale.
+    grid_on : bool
+        Whether or not to show grids on the plot.
 
     Returns
     -------
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
 
     if not isinstance(x, _array_like) or not isinstance(y, _array_like):
@@ -3372,46 +3546,48 @@ def plot_with_error_bounds(x, y, upper_bound, lower_bound,
 def correlation_matrix(X, color_map='RdBu_r', fig=None, ax=None, figsize=None,
                       dpi=100, variable_names=None, rot=45, scatter_plots=False):
     '''
-    Plot correlation matrix of a dataset X, whose columns are different
+    Plot correlation matrix of a dataset ``X``, whose columns are different
     variables (or a sample of a certain random variable).
 
     Parameters
     ----------
-    X : <np.ndarray> or <pd.DataFrame>
+    X : numpy.ndarray or pandas.DataFrame
         The data set.
-    color_map : <str> or <matplotlib.colors.Colormap>
+    color_map : str or matplotlib.colors.Colormap
         The color scheme to show high, low, negative high correlations. Valid
         names are listed in https://matplotlib.org/users/colormaps.html. Using
         diverging color maps is recommended: PiYG, PRGn, BrBG, PuOr, RdGy,
-        RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr, seismic
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. If None, it will be determined
-        automatically: every column of X takes up 0.7 inches.
-        (fig object passed via "fig" will over override this parameter.)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    variable_names : list of <str>
-        Names of the variables in X. If X is a pandas dataframe, then this
-        argument is not need: column names of X is used as variable names. If
-        X is a numpy array, and this argument is not provided, then column
-        indices are used. The length of variable_names should match the number
-        of columns in X; if not, a warning will be thrown (but not error).
-    rot : <float>
+        RdBu, RdYlBu, RdYlGn, Spectral, coolwarm, bwr, seismic.
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    variable_names : list<str>
+        Names of the variables in ``X``. If ``X`` is a pandas DataFrame, this
+        argument is not needed: column names of ``X`` is automatically used as
+        variable names. If ``X`` is a numpy array, and this argument is not
+        provided, then ``X``'s column indices are used. The length of
+        ``variable_names`` should match the number of columns in ``X``; if
+        not, a warning will be thrown (not error).
+    rot : float
         The rotation of the x axis labels, in degrees.
     scatter_plots : bool
         Whether or not to show the scatter plots of pairs of variables.
 
     Returns
     -------
-    correlations : <pd.DataFrame>
-        The correlation matrix
-    fig, ax :
-        Figure and axes objects
+    correlations : pandas.DataFrame
+        The correlation matrix.
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
 
     from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -3460,33 +3636,33 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
                           figsize=(3,3), dpi=100, alpha=0.5, color=None,
                           grid_on=True, logx=False, logy=False):
     '''
-    Produce scatter plots of two of the columns in X (the data matrix).
+    Produce scatter plots of two of the columns in ``X`` (the data matrix).
     The correlation between the two columns are shown on top of the plot.
 
-    Input
-    -----
-    X : <pd.DataFrame>
+    Parameters
+    ----------
+    X : pandas.DataFrame
         The dataset. Currently only supports pandas dataframe.
-    two_columns : list of two <str> or two <int>
-        The names or indices of the two columns within X. Must be a list of
+    two_columns : [str, str] or [int, int]
+        The names or indices of the two columns within ``X``. Must be a list of
         length 2. The elements must either be both integers, or both strings.
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graphs are plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : list of two scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    alpha : scalar
-        Opacity of the scatter points
-    color : <str> or list of tuple
-        Color of the scatter points. If None, default matplotlib color palette
-        will be used.
-    grid_on : <bool>
-        Whether or not to show grids on the plot
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    alpha : float
+        Opacity of the scatter points.
+    color : str, list<float>, tuple<float>, or ``None``
+        Color of the scatter points. If ``None``, default matplotlib color
+        palette will be used.
+    grid_on : bool
+        Whether or not to show grids on the plot.
 
     Returns
     -------
@@ -3559,15 +3735,16 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                  error_bounds=True, err_bound_type='shade', legend_on=True,
                  subsamp_thres=None):
     '''
-    Calculates bin-and-mean results and shows the bin-and-mean plot (optional).
+    Calculate the "bin-and-mean" results and optionally show the "bin-and-mean"
+    plot.
 
-    A "bin-and-mean" plot is a more salient way to show the dependency of ydata
-    on xdata. The data points (xdata, ydata) are divided into different groups
-    according to the value of x (via the "bins" argument), and within each
-    group, the mean values of x and y are calculated, and considered as the
-    representative x and y values.
+    A "bin-and-mean" plot is a more salient way to show the dependency of
+    ``ydata`` on ``xdata``. The data points (``xdata``, ``ydata``) are divided
+    into different bins according to the values in ``xdata`` (via ``bins``),
+    and within each bin, the mean values of x and y are calculated, and treated
+    as the representative x and y values.
 
-    "bin-and-mean" works better when data points are highly skewed (e.g.,
+    "Bin-and-mean" is preferred when data points are highly skewed (e.g.,
     a lot of data points for when x is small, but very few for large x). The
     data points when x is large are usually not noises, and could be even more
     valuable (think of the case where x is earthquake magnitude and y is the
@@ -3589,9 +3766,11 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
           and the variance is:
                  Var(Y) = [exp(sigma^2) - 1] * exp(2*mu + sigma^2)
           where mu and sigma are the two parameters of the distribution.
-      (2) Knowing E(Y) and Var(Y), mu and sigma can be back-calculated:
+      (2) Knowing E(Y) and Var(Y), mu and sigma can be back-calculated::
+
                               ___________________
              mu = ln[ E(Y) / V 1 + Var(Y)/E^2(Y)  ]
+
                       _________________________
              sigma = V ln[ 1 + Var(Y)/E^2(Y) ]
 
@@ -3599,67 +3778,77 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
 
     Parameters
     ----------
-    xdata, ydata : <array_like>
-        Raw x and y data points (with the same length). Can be lists, pandas
-        Series or numpy arrays.
-    bins : <int> or <array_like>
+    xdata : list, numpy.ndarray, or pandas.Series
+        X data.
+    ydata : list, numpy.ndarray, or pandas.Series
+        Y data.
+    bins : int, list, numpy.ndarray, or pandas.Series
         Number of bins (an integer), or an array representing the actual bin
-        edges. If bin edges, edges are inclusive on the lower bound, e.g.,
-        a value 2 shall fall into the bin [2,3), but not the bin [1,2).
-        Note that the binning is done according x values.
-    distribution : <str>
-        Specifies which distribution the y values within a bin follow. Use
-        'lognormal' if you want to assert all positive y values. Only supports
+        edges. If ``bins`` means bin edges, the edges are inclusive on the
+        lower bound, e.g., a value 2 shall fall into the bin [2, 3), but not
+        the bin [1, 2). Note that the binning is done according to the X values.
+    distribution : {'normal', 'log-normal', 'lognormal', 'logn'}
+        Specifies which distribution the Y values within a bin follow. Use
+        'lognormal' if you want to assert all positive Y values. Only supports
         normal and log-normal distributions at this time.
-    show_fig : <bool>
-        Whether or not to show a bin-and-mean plot
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. (fig object passed via "fig"
-        will over override this parameter)
-    dpi : scalar
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    show_bins : <bool>
-        Whether or not to show the bin edges as vertical lines on the plots
-    raw_data_label, mean_data_label : <str>
-        Two strings that specify the names of the raw data and the averaged
-        data, respectively, such as "raw data" and "averaged data". Useless
-        if show_legend is False.
-    xlabel, ylabel : <str>
-        Label for the x axis of the plot. If None and xdata is a panda Series,
-        use xdata's 'name' attribute as xlabel.
-    ylabel : <str>
-        Similar to xlabel.
-    logx, logy : <bool>
-        Whether or not to adjust the scales of x and/or y axes to logarithmic
-    grid_on : <bool>
-        Whether or not to show grids on the plot
-    error_bounds : <bool>
-        Whether or not to show error bounds of each bin
-    err_bound_type : ['shade', 'bar']
+    show_fig : bool
+        Whether or not to show a bin-and-mean plot.
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    show_bins : bool
+        Whether or not to show the bin edges as vertical lines on the plots.
+    raw_data_label : str
+        The label name of the raw data to be shown in the legend (such as
+        "raw data"). It has no effects if ``show_legend`` is ``False``.
+    mean_data_label : str
+        The label name of the mean data to be shown in the legend (such as
+        "averaged data"). It has no effects if ``show_legend`` is ``False``.
+    xlabel : str or ``None``
+        X axis label. If ``None`` and ``xdata`` is a pandas Series, use
+        ``xdata``'s "name" attribute as ``xlabel``.
+    ylabel : str of ``None``
+        Y axis label. If ``None`` and ``ydata`` is a pandas Series, use
+        ``ydata``'s "name" attribute as ``ylabel``.
+    logx : bool
+        Whether or not to show the X axis in log scale.
+    logy : bool
+        Whether or not to show the Y axis in log scale.
+    grid_on : bool
+        Whether or not to show grids on the plot.
+    error_bounds : bool
+        Whether or not to show error bounds of each bin.
+    err_bound_type : {'shade', 'bar'}
         Type of error bound: shaded area or error bars. It has no effects if
-        error_bounds is set to False.
-    legend_on : <bool>
-        Whether or not to show the legend
-    subsamp_thres : <int>
+        error_bounds is set to ``False``.
+    legend_on : bool
+        Whether or not to show a legend.
+    subsamp_thres : int
         A positive integer that defines the number of data points in each bin
         to show in the scatter plot. The smaller this number, the faster the
         plotting process. If larger than the number of data points in a bin,
-        then all data points from that bin are plotted. If None, then all data
-        points from all bins are plotted.
+        then all data points from that bin are plotted. If ``None``, then all
+        data points from all bins are plotted.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
-    x_mean, y_mean : <np.ndarray>
-        Mean values of x and y for each data group (i.e., "bin")
-    y_std : <np.ndarray>
-        Standard deviation of y for each data group (i.e., "bin")
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
+    x_mean : numpy.ndarray
+        Mean X values of each data bin (in terms of X values).
+    y_mean : numpy.ndarray
+        Mean Y values of each data bin (in terms of X values).
+    y_std : numpy.ndarray
+        Standard deviation of Y values or each data bin (in terms of X values).
     '''
 
     if not isinstance(xdata, _array_like) or not isinstance(ydata, _array_like):
@@ -3787,72 +3976,86 @@ def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
                 data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
                 sort_by=None, title=None, **violinplot_kwargs):
     '''
-    Generates violin plots for each data set within X. (X contains one more
-    set of data points.)
+    Generate violin plots for each data set within ``X``.
 
     Parameters
     ----------
-    X : <pd.DataFrame>, <pd.Series>, <np.ndarray>, or <dict>
-        The data to be visualized.
+    X : pandas.DataFrame, pandas.Series, numpy.ndarray, or dict
+        The data to be visualized. It can be of the following types:
 
-        - pd.DataFrame: each column contains a set of data
-        - pd.Series: contains only one set of data
-        - np.ndarray:
+        - pandas.DataFrame:
+            + Each column contains a set of data
+        - pandas.Series:
+            + Contains only one set of data
+        - numpy.ndarray:
             + 1D numpy array: only one set of data
             + 2D numpy array: each column contains a set of data
-            + higher dimensional numpy array: not allowed
-        - dict: each key-value pair is one set of data
-        - list of lists: each sub-list is a data set
+            + Higher dimensional numpy array: not allowed
+        - dict:
+            + Each key-value pair is one set of data
+        - list of lists:
+            + Each sub-list is a data set
 
         Note that the NaN values in the data are implicitly excluded.
 
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. If None, it will be determined
-        by how many sets of data are there in X (each set takes up 0.5 inches.)
-        (fig object passed via "fig" will over override this parameter)
-    dpi : <float>
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    nan_warning : <bool>
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    nan_warning : bool
         Whether to show a warning if there are NaN values in the data.
-    showmeans, showextrema, showmedians : <bool>
-        Whether or not to show the mean value, extrema, or median value on top
-        of the violins.
-    vert : <bool>
-        Whether to show the violins as vertical
-    data_names : <list<str>>
+    showmeans : bool
+        Whether to show the mean values of each data group.
+    showextrema : bool
+        Whether to show the extrema of each data group.
+    showmedians : bool
+        Whether to show the median values of each data group.
+    vert : bool
+        Whether to show the violins as vertical.
+    data_names : list<str>, ``[]``, or ``None``
         The names of each data set, to be shown as the axis tick label of each
-        data set. If [] or None, it will be determined automatically: if X is a
-            - np.ndarray: data_names = ['data_0', 'data_1', 'data_2', ...]
-            - pd.Series: data_names = X.name
-            - pd.DataFrame: data_names = list(X.columns)
-            - dict: data_names = list(X.keys())
-    rot : <float>
+        data set. If ``[]`` or ``None``, it will be determined automatically.
+        If ``X`` is a:
+            - numpy.ndarray:
+                + data_names = ['data_0', 'data_1', 'data_2', ...]
+            - pandas.Series:
+                + data_names = X.name
+            - pd.DataFrame:
+                + data_names = list(X.columns)
+            - dict:
+                + data_names = list(X.keys())
+    rot : float
         The rotation (in degrees) of the data_names when shown as the tick
         labels. If vert is False, rot has no effect.
-    name_ax_label, data_ax_label : <str>
-        The labels of the name axis and the data axis.
-        If vert is True, then the name axis is the x axis, otherwise, y axis.
-    sort_by : <str>
-        Option to sort the different data groups in X in the violin plot. Valid
-        options are: {'name', 'mean', 'median', None}. None means no sorting,
-        keeping the violin plot order as provided; 'mean' and 'median' mean
-        sorting the violins according to the mean/median values of each data
-        group; 'name' means sorting the violins according to the names of the
-        groups.
+    name_ax_label : str
+        The label of the "name axis". ("Name axis" is the axis along which
+        different violins are presented.)
+    data_ax_label : str
+        The labels of the "data axis". ("Data axis" is the axis along which
+        the data values are presented.)
+    sort_by : {'name', 'mean', 'median', ``None``}
+        Option to sort the different data groups in ``X`` in the violin plot.
+        ``None`` means no sorting, keeping the violin plot order as provided;
+        'mean' and 'median' mean sorting the violins according to the
+        mean/median values of each data group; 'name' means sorting the violins
+        according to the names of the groups.
     title : str
-        The title of the plot
-    violinplot_kwargs : dict
-        Other keyword arguments to be passed to matplotlib.pyplot.violinplot()
+        The title of the plot.
+    **violinplot_kwargs : dict
+        Other keyword arguments to be passed to ``matplotlib.pyplot.violinplot()``.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
 
     _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning)
@@ -3892,7 +4095,8 @@ def _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning):
 #%%============================================================================
 def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
     '''
-    Helper function.
+    Helper function. Preprocess raw data (``X``) for violin plot or
+    multi-histogram plot.
     '''
 
     if isinstance(X, pd.Series):
@@ -3961,14 +4165,21 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
 #%%============================================================================
 def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
     '''
-    Package `data` and `data_names` into a dictionary with the specified sorting
-    option.
+    Package ``data`` and ``data_names`` into a dictionary with the specified
+    sorting option.
+
+    Parameters
+    ----------
+    data : list<list>
+        All the data. Each element of ``data`` is an array of data points.
+    data_names : list<str>
+        The names of the data. It should have the same length as ``data``.
 
     Returns
     -------
     data_with_names_dict : OrderedDict<str, list>
         A mapping from data names to data, ordered by the specification in
-        `sort_by`.
+        ``sort_by``.
     '''
     from collections import OrderedDict
 
@@ -4043,76 +4254,88 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
                data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
                sort_by=None, title=None, **hist_kwargs):
     '''
-    Generates multiple histograms, one for each data set within X. (X
-    contains one more set of data points.)
+    Generate multiple histograms, one for each data set within ``X``.
 
     Parameters
     ----------
-    X : <pd.DataFrame>, <pd.Series>, <np.ndarray>, or <dict>
-        The data to be visualized.
+    X : pandas.DataFrame, pandas.Series, numpy.ndarray, or dict
+        The data to be visualized. It can be of the following types:
 
-        - pd.DataFrame: each column contains a set of data
-        - pd.Series: contains only one set of data
-        - np.ndarray:
+        - pandas.DataFrame:
+            + Each column contains a set of data
+        - pandas.Series:
+            + Contains only one set of data
+        - numpy.ndarray:
             + 1D numpy array: only one set of data
             + 2D numpy array: each column contains a set of data
-            + higher dimensional numpy array: not allowed
-        - dict: each key-value pair is one set of data
-        - list of lists: each sub-list is a data set
+            + Higher dimensional numpy array: not allowed
+        - dict:
+            + Each key-value pair is one set of data
+        - list of lists:
+            + Each sub-list is a data set
 
         Note that the NaN values in the data are implicitly excluded.
 
     bins : int or sequence or str
         If an integer is given, the whole range of data (i.e., all the numbers
-        within X) is divided into `bins` segments. If sequence or str, they
-        will be passed to the `bins` argument of matplotlib.pyplot.hist().
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. If None, it will be determined
-        by how many sets of data are there in X (each set takes up 0.5 inches.)
-        (fig object passed via "fig" will over override this parameter)
-    dpi : <float>
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    nan_warning : <bool>
+        within ``X``) is divided into ``bins`` segments. If sequence or str,
+        they will be passed to the ``bins`` argument of ``matplotlib.pyplot.hist()``.
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    nan_warning : bool
         Whether to show a warning if there are NaN values in the data.
-    showmeans, showmedians : <bool>
-        Whether or not to show the mean values, median values on top
-        of the histograms.
-    vert : <bool>
-        Whether to show the "base" of the histograms as vertical
-    data_names : <list<str>>
+    showmeans : bool
+        Whether to show the mean values of each data group.
+    showmedians : bool
+        Whether to show the median values of each data group.
+    vert : bool
+        Whether to show the "base" of the histograms as vertical.
+    data_names : list<str>, ``[]``, or ``None``
         The names of each data set, to be shown as the axis tick label of each
-        data set. If [] or None, it will be determined automatically: if X is a
-            - np.ndarray: data_names = ['data_0', 'data_1', 'data_2', ...]
-            - pd.Series: data_names = X.name
-            - pd.DataFrame: data_names = list(X.columns)
-            - dict: data_names = list(X.keys())
-    rot : <float>
+        data set. If ``[]`` or ``None``, it will be determined automatically.
+        If ``X`` is a:
+            - numpy.ndarray:
+                + data_names = ['data_0', 'data_1', 'data_2', ...]
+            - pandas.Series:
+                + data_names = X.name
+            - pd.DataFrame:
+                + data_names = list(X.columns)
+            - dict:
+                + data_names = list(X.keys())
+    rot : float
         The rotation (in degrees) of the data_names when shown as the tick
         labels. If vert is False, rot has no effect.
-    name_ax_label, data_ax_label : <str>
-        The labels of the name axis and the data axis.
-        If vert is True, then the name axis is the x axis, otherwise, y axis.
-    sort_by : <str>
-        Option to sort the different data groups in X in the violin plot. Valid
-        options are: {'name', 'mean', 'median', None}. None means no sorting,
-        keeping the violin plot order as provided; 'mean' and 'median' mean
-        sorting the violins according to the mean/median values of each data
-        group; 'name' means sorting the violins according to the names of the
-        groups.
+    name_ax_label : str
+        The label of the "name axis". ("Name axis" is the axis along which
+        different violins are presented.)
+    data_ax_label : str
+        The labels of the "data axis". ("Data axis" is the axis along which
+        the data values are presented.)
+    sort_by : {'name', 'mean', 'median', ``None``}
+        Option to sort the different data groups in ``X`` in the violin plot.
+        ``None`` means no sorting, keeping the violin plot order as provided;
+        'mean' and 'median' mean sorting the violins according to the
+        mean/median values of each data group; 'name' means sorting the violins
+        according to the names of the groups.
     title : str
-        Title of the plot
-    hist_kwargs : dict
-        Other keyword arguments to be passed to matplotlib.pyplot.hist()
+        The title of the plot.
+    **hist_kwargs : dict
+        Other keyword arguments to be passed to ``matplotlib.pyplot.hist()``.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
 
     _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning)
@@ -4157,55 +4380,64 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
         the actual data.
     bins : int or sequence or str
         If an integer is given, the whole range of data (i.e., all the numbers
-        within X) is divided into `bins` segments. If sequence or str, they
-        will be passed to the `bins` argument of matplotlib.pyplot.hist().
-    fig, ax : <mpl.figure.Figure>, <mpl.axes._subplots.AxesSubplot>
-        Figure and axes objects.
-        If provided, the graph is plotted on the provided figure and
-        axes. If not, a new figure and new axes are created.
-    figsize : tuple of two scalars
-        Size (width, height) of figure in inches. If None, it will be determined
-        by how many sets of data are there in X (each set takes up 0.5 inches.)
-        (fig object passed via "fig" will over override this parameter)
-    dpi : <float>
-        Screen resolution. (fig object passed via "fig" will over override
-        this parameter)
-    nan_warning : <bool>
+        within ``X``) is divided into ``bins`` segments. If sequence or str,
+        they will be passed to the ``bins`` argument of ``matplotlib.pyplot.hist()``.
+    fig : matplotlib.figure.Figure or ``None``
+        Figure object. If None, a new figure will be created.
+    ax : matplotlib.axes._subplots.AxesSubplot or ``None``
+        Axes object. If None, a new axes will be created.
+    figsize: (float, float)
+        Figure size in inches, as a tuple of two numbers. The figure
+        size of ``fig`` (if not ``None``) will override this parameter.
+    dpi : float
+        Figure resolution. The dpi of ``fig`` (if not ``None``) will override
+        this parameter.
+    nan_warning : bool
         Whether to show a warning if there are NaN values in the data.
-    showmeans, showmedians : <bool>
-        Whether or not to show the mean values, median values on top
-        of the histograms.
-    vert : <bool>
-        Whether to show the "base" of the histograms as vertical
-    data_names : <list<str>>
+    showmeans : bool
+        Whether to show the mean values of each data group.
+    showmedians : bool
+        Whether to show the median values of each data group.
+    vert : bool
+        Whether to show the "base" of the histograms as vertical.
+    data_names : list<str>, ``[]``, or ``None``
         The names of each data set, to be shown as the axis tick label of each
-        data set. If [] or None, it will be determined automatically: if X is a
-            - np.ndarray: data_names = ['data_0', 'data_1', 'data_2', ...]
-            - pd.Series: data_names = X.name
-            - pd.DataFrame: data_names = list(X.columns)
-            - dict: data_names = list(X.keys())
-    rot : <float>
+        data set. If ``[]`` or ``None``, it will be determined automatically.
+        If ``X`` is a:
+            - numpy.ndarray:
+                + data_names = ['data_0', 'data_1', 'data_2', ...]
+            - pandas.Series:
+                + data_names = X.name
+            - pd.DataFrame:
+                + data_names = list(X.columns)
+            - dict:
+                + data_names = list(X.keys())
+    rot : float
         The rotation (in degrees) of the data_names when shown as the tick
         labels. If vert is False, rot has no effect.
-    name_ax_label, data_ax_label : <str>
-        The labels of the name axis and the data axis.
-        If vert is True, then the name axis is the x axis, otherwise, y axis.
-    sort_by : <str>
-        Option to sort the different data groups in X in the violin plot. Valid
-        options are: {'name', 'mean', 'median', None}. None means no sorting,
-        keeping the violin plot order as provided; 'mean' and 'median' mean
-        sorting the violins according to the mean/median values of each data
-        group; 'name' means sorting the violins according to the names of the
-        groups.
+    name_ax_label : str
+        The label of the "name axis". ("Name axis" is the axis along which
+        different violins are presented.)
+    data_ax_label : str
+        The labels of the "data axis". ("Data axis" is the axis along which
+        the data values are presented.)
+    sort_by : {'name', 'mean', 'median', ``None``}
+        Option to sort the different data groups in ``X`` in the violin plot.
+        ``None`` means no sorting, keeping the violin plot order as provided;
+        'mean' and 'median' mean sorting the violins according to the
+        mean/median values of each data group; 'name' means sorting the violins
+        according to the names of the groups.
     title : str
-        Title of the plot
-    hist_kwargs : dict
-        Other keyword arguments to be passed to matplotlib.pyplot.hist()
+        The title of the plot.
+    **hist_kwargs : dict
+        Other keyword arguments to be passed to ``matplotlib.pyplot.hist()``.
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
     data = []
     data_names = []
@@ -4257,31 +4489,39 @@ def __axes_styling_helper(ax, vert, rot, data_names, n_datasets, data_ax_label,
     Parameters
     ----------
     ax : matplotlib.axes._subplots.AxesSubplot
-        Matplotlib axes object
+        Matplotlib axes object.
     vert : bool
-        Whether to show the violins or the "base" of the histograms as vertical
-    rot : <float>
+        Whether to show the violins or the "base" of the histograms as vertical.
+    rot : float
         The rotation (in degrees) of the data_names when shown as the tick
-        labels. If vert is False, rot has no effect.
-    data_names : <list<str>>
+        labels. If ``vert`` is ``False``, ``rot`` has no effect.
+   data_names : list<str>, ``[]``, or ``None``
         The names of each data set, to be shown as the axis tick label of each
-        data set. If [] or None, it will be determined automatically: if X is a
-            - np.ndarray: data_names = ['data_0', 'data_1', 'data_2', ...]
-            - pd.Series: data_names = X.name
-            - pd.DataFrame: data_names = list(X.columns)
-            - dict: data_names = list(X.keys())
+        data set. If ``[]`` or ``None``, it will be determined automatically.
+        If ``X`` is a:
+            - numpy.ndarray:
+                + data_names = ['data_0', 'data_1', 'data_2', ...]
+            - pandas.Series:
+                + data_names = X.name
+            - pd.DataFrame:
+                + data_names = list(X.columns)
+            - dict:
+                + data_names = list(X.keys())
     n_datasets : int
-        Number of sets of data
-    data_ax_label, name_ax_label : <str>
-        The labels of the name axis and the data axis.
-        If vert is True, then the name axis is the x axis, otherwise, y axis.
+        Number of sets of data.
+    data_ax_label : str
+        The labels of the "data axis". ("Data axis" is the axis along which
+        the data values are presented.)
+    name_ax_label : str
+        The label of the "name axis". ("Name axis" is the axis along which
+        different violins are presented.)
     title : str
-        Title of the plot
+        The title of the plot.
 
     Returns
     -------
     ax : matplotlib.axes._subplots.AxesSubplot
-        Matplotlib axes object
+        Matplotlib axes object.
     '''
     ax.grid(ls=':')
     ax.set_axisbelow(True)
