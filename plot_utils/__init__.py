@@ -1,4 +1,4 @@
-__version__ = '0.4.5'
+__version__ = '0.5.0'
 
 from .plot_utils import *
 from .plot_utils import _find_axes_lim

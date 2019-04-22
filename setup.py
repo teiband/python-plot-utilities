@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='plot_utils',
-    version='0.4.5',
+    version='0.5.0',
     description='A Python library for elegant data visualization',
     author='Jian Shi',
     license='GPL v3.0',

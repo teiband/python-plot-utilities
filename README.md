@@ -5,6 +5,7 @@ This is a Python module that contains some useful data visualization tools.
 ## Table of contents
 
    * [Installation](#installation)
+   * [API documentations](#api-documentations)
    * [Current functionalities](#current-functionalities)
    * [Gallery](#gallery)
        - [One column of data](#1-one-column-of-data)
@@ -45,6 +46,10 @@ If you run into the following issue on Mac OS X (or macOS) when importing `plot_
 please follow this solution to fix the issue: https://stackoverflow.com/a/21789908/8892243
 
 
+## API documentations
+
+All API documentations are on: https://python-plot-utilities.readthedocs.io/en/stable/index.html.
+
 
 ## Current functionalities
 
@@ -52,43 +57,45 @@ Current functionalities include (for full list, use `print(plot_utils.__doc__)`)
 
 #### 1. Visualizing one column of data
 
-- **Pie chart**: proportions of distinct values in an array, more convenient than matplotlib's `pie()` function [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)]
-- **Discrete histogram**: counts of distinct values in an array [[doc](./docs/discrete_histogram.md)], [[example](./examples/Discrete_histogram_example.ipynb)]
+- **Pie chart**: proportions of distinct values in an array, more convenient than matplotlib's `pie()` function [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/pie_chart.html)], [[example](./examples/Pie_chart_example.ipynb)]
+- **Discrete histogram**: counts of distinct values in an array [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/discrete_histogram.html)], [[example](./examples/Discrete_histogram_example.ipynb)]
 
-#### 2. Visualizing two columns of data ([[doc](./docs/two_columns.md)], [[example](./examples/Two_columns_of_data_example.ipynb)])
+#### 2. Visualizing two columns of data ([[example](./examples/Two_columns_of_data_example.ipynb)])
 
-- **"Bin-and-mean" plot**: for two continuous variables
-- **Category mean**: for a categorical variable and a continuous variable
-- **Positive rate**: for a categorical variable and a binary categorical variable
-- **Contingency table**: for two categorical variables
+- **"Bin-and-mean" plot**: for two continuous variables [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/bin_and_mean.html)]
+- **Category mean**: for a categorical variable and a continuous variable [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/category_means.html)]
+- **Positive rate**: for a categorical variable and a binary categorical variable [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/positive_rate.html)]
+- **Contingency table**: for two categorical variables [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/contingency_table.html)]
 
 #### 3. Visualizing multiple columns of data
 
-+ **3D histograms**: distributions of multiple variables [[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
-+ **Violin plot**: distribution of multiple variables
-+ **Correlation matrix**: correlation between each columns of a dataset [[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
-    - and the one-to-one **scatter plots** for the variables within the dataset [[doc](./docs/scatter_plots_two_cols.md)]
-+ **Count missing values**: how many missing values are there in each column of the dataset [[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
++ **3D histograms**: distributions of multiple variables [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/3d_histograms.html)], [[example](./examples/3D_histograms_example.ipynb)]
++ **Multiple histograms**: distribution of multiple variables [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/hist_multi.html)], [[example](./examples/Violin_plot_and_hist_multi_example.ipynb)]
++ **Violin plot**: distribution of multiple variables [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/violin_plot.html)], [[example](./examples/Violin_plot_and_hist_multi_example.ipynb)]
++ **Correlation matrix**: correlation between each columns of a dataset [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/correlation_matrix.html)], [[example](./examples/Correlation_matrix_examples.ipynb)]
+    - and the one-to-one **scatter plots** for the variables within the dataset [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/scatter_plot_two_cols.html)]
++ **Count missing values**: how many missing values are there in each column of the dataset [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/missing_values.html)], [[example](./examples/Missing_value_count_example.ipynb)]
 
 
 #### 4. Map plotting
 
-+ **Choropleth map** (a.k.a., "heat map") of the United States, on both the state and county level [[doc](./docs/choropleth_map.md)], [[example](./examples/Choropleth_map_example.ipynb)]
++ **Choropleth map** (a.k.a., "heat map") of the United States, on both the state and county level [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/choropleth_map.html)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 
 #### 5. Time series plotting
 
-- **Plot single time series**: [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
-- **Plot multiple time series**: [[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
+- **Plot single time series**: [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_time_series.html)], [[example](./examples/Plot_time_series_example.ipynb)]
+- **Plot multiple time series**: [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_multiple_timeseries.html)], [[example](./examples/Plot_time_series_example.ipynb)]
+- **Fill time series with error bounds**: [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/fill_timeseries.html)], [[example](./examples/Plot_time_series_example.ipynb)]
 
 #### 6. Miscellaneous
 
-+ A **get_colors()** function that conveniently queries different color palettes [[doc](./docs/get_colors.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
-+ A **get_linespecs()** function that generates distinct color/linestyle/linewidth combinations for plotting many lines together [[doc](./docs/get_linespecs.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
-+ Two helper classes: **Color** and **Multiple_Colors**, which make querying and displaying colors more easily  [[doc](./docs/color_classes.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
-+ **Plotting with upper/lower error bounds**, which displays error bounds as shaded areas [[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
-+ **trim_img()**, which trims the white margins of the specified image file(s) [[doc](./docs/trim_img.md)]
-+ **plot_ranking()**, which ranks a series of values and shows them as a bar chart [[doc](./docs/plot_ranking.md)], [[example](./examples/Plot_ranking_example.ipynb)]
++ A **get_colors()** function that conveniently queries different color palettes [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/get_colors.html)], [[example](./examples/Color_and_linespec_examples.ipynb)]
++ A **get_linespecs()** function that generates distinct color/linestyle/linewidth combinations for plotting many lines together [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/get_linespecs.html)], [[example](./examples/Color_and_linespec_examples.ipynb)]
++ Two helper classes: **Color** and **Multiple_Colors**, which make querying and displaying colors more easily  [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/color_classes.html)], [[example](./examples/Color_and_linespec_examples.ipynb)]
++ **Plotting with error bounds**, which displays error bounds as shaded areas [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_with_bounds.html)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
++ **trim_img()**, which trims the white margins of the specified image file(s) [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/trim_image.html)]
++ **plot_ranking()**, which ranks a series of values and shows them as a bar chart [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_ranking.html)], [[example](./examples/Plot_ranking_example.ipynb)]
 
 
 

@@ -731,7 +731,7 @@ def positive_rate(categorical_array, two_classes_array, fig=None, ax=None,
         size of ``fig`` (if not ``None``) will override this parameter.
     dpi : float
         Figure resolution. The dpi of ``fig`` (if not ``None``) will override
-        this parameter
+        this parameter.
     barh : bool
         Whether or not to show the bars as horizontal (otherwise, vertical).
     top_n : int
@@ -2963,7 +2963,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
     '''
     Plot multiple time series.
 
-    Note that setting keyword arguments such as ``color`` or ``linestyle``will
+    Note that setting keyword arguments such as ``color`` or ``linestyle`` will
     force all time series to have the same color or line style. So we recommend
     letting this function generate distinguishable line specifications (color/
     linestyle/linewidth combinations) by itself. (Although the more time series,
@@ -3661,8 +3661,10 @@ def scatter_plot_two_cols(X, two_columns, fig=None, ax=None,
 
     Returns
     -------
-    fig, ax :
-        Figure and axes objects
+    fig : matplotlib.figure.Figure
+        The figure object being created or being passed into this function.
+    ax : matplotlib.axes._subplots.AxesSubplot
+        The axes object being created or being passed into this function.
     '''
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
 

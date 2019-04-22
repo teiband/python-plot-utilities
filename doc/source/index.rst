@@ -78,7 +78,8 @@ API Documentation
     .. toctree::
        :maxdepth: 1
 
-       api_docs/time_series
+       api_docs/plot_time_series
+       api_docs/plot_multiple_timeseries
        api_docs/fill_timeseries
 
 6. Miscellaneous
