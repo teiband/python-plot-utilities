@@ -147,8 +147,8 @@ def _process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):
 def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
              show_old_img=False, show_new_img=False, forcibly_overwrite=False):
     '''
-    Trim the margins of image file(s) on the hard drive, and (optionally) add
-    padded margins of a specified color and width.
+    Trim the white margins of image file(s) on the hard drive, and (optionally)
+    add padded margins of a specified width and color.
 
     Parameters
     ----------
@@ -169,6 +169,9 @@ def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
         Whether or not to show the old figure in the console.
     show_new_img : bool
         Whether or not to show the trimmed figure in the console.
+    forcibly_overwrite : bool
+        Whether or not to overwrite an image on the hard drive with the same
+        name. Only applicable when ``inplace`` is ``False``.
     '''
     try:
         import PIL
@@ -199,11 +202,8 @@ def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
         im2 = im1.crop(im1.getbbox())  # create new image
         im2 = PIL.ImageOps.invert(im2) # invert the color back
 
-        new_img_size = (im2.size[0]+2*pad_width,im2.size[1]+2*pad_width) # add padded borders
         pad_color_rgb = Color(pad_color).as_rgb(normalize=False)
-
-        im3 = PIL.Image.new('RGB',new_img_size,color=pad_color_rgb) # creates new image (background color = white)
-        im3.paste(im2,box=(pad_width,pad_width))  # box defines the upper-left corner
+        im3 = PIL.ImageOps.expand(im2, border=pad_width, fill=pad_color_rgb)
 
         if show_new_img:
             plt.imshow(im3)
@@ -225,11 +225,12 @@ def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
                         print('  Overwriting existing file: %s' % new_filename_)
                 else:
                     print('  New file is not saved, because a file with the '
-                          'same name already exists.')
+                          'same name already exists at "%s".' % new_filename_)
         else:
             im3.save(filename)
             if verbose:
-                print('  Original file overwritten.')
+                print('  Original image file overwritten.')
+
 
 #%%============================================================================
 class Color():
