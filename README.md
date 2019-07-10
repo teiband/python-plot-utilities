@@ -95,6 +95,7 @@ Current functionalities include (for full list, use `print(plot_utils.__doc__)`)
 + Two helper classes: **Color** and **Multiple_Colors**, which make querying and displaying colors more easily  [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/color_classes.html)], [[example](./examples/Color_and_linespec_examples.ipynb)]
 + **Plotting with error bounds**, which displays error bounds as shaded areas [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_with_bounds.html)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 + **trim_img()**, which trims the white margins of the specified image file(s) [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/trim_image.html)]
++ **pad_img()**, which pads image(s) with margins so that they meet a specified aspect ratio [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/pad_image.html)]
 + **plot_ranking()**, which ranks a series of values and shows them as a bar chart [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_ranking.html)], [[example](./examples/Plot_ranking_example.ipynb)]
 
 
@@ -301,7 +302,7 @@ pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 + pandas: 0.20.0+
 + cycler: 0.10.0+
 + matplotlib/basemap: 1.0.7 (only if you want to plot the two choropleth maps)
-+ PIL (only if you want to use `trim_img`)
++ PIL (only if you want to use `trim_img()` or `pad_img()`)
 
 
 ## Testing

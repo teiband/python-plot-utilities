@@ -43,7 +43,7 @@ API Documentation
 
        api_docs/pie_chart
        api_docs/discrete_histogram
-   
+
 2. Visualizing two columns of data
 
     .. toctree::
@@ -54,7 +54,7 @@ API Documentation
        api_docs/positive_rate
        api_docs/contingency_table
        api_docs/scatter_plot_two_cols
-       
+
 3. Visualizing multiple columns of data
 
     .. toctree::
@@ -67,12 +67,12 @@ API Documentation
        api_docs/missing_values
 
 4. Map plotting
- 
+
     .. toctree::
        :maxdepth: 1
 
        api_docs/choropleth_map
-       
+
 5. Time series plotting
 
     .. toctree::
@@ -83,7 +83,7 @@ API Documentation
        api_docs/fill_timeseries
 
 6. Miscellaneous
-       
+
     .. toctree::
        :maxdepth: 1
 
@@ -93,8 +93,9 @@ API Documentation
        api_docs/color_classes
        api_docs/plot_with_bounds
        api_docs/trim_image
+       api_docs/pad_image
        api_docs/plot_ranking
-       
+
 7. Other helper functions
 
     .. toctree::
@@ -103,14 +104,14 @@ API Documentation
        api_docs/_convert_FIPS_to_state_name
        api_docs/_translate_state_abbrev
        api_docs/_find_axes_lim
-       
-       
+
+
 Gallery
 -------
 
 See `here <https://github.com/jsh9/python-plot-utilities#gallery>`_.
 
-       
+
 Examples
 --------
 
@@ -132,7 +133,7 @@ https://github.com/jsh9/python-plot-utilities
 
 Bug reports and/or suggestions are welcome!
 
-       
+
 Indices and tables
 ------------------
 
