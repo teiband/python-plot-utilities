@@ -39,6 +39,7 @@ Top-level functions:
         plot_ranking
         plot_with_error_bounds
         trim_img
+        pad_img
 
 Public helper functions:
     _convert_FIPS_to_state_name
