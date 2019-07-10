@@ -20,22 +20,12 @@ This is a Python module that contains some useful data visualization tools.
    * [References](#references)
    * [Copyright and license](#copyright-and-license)
 
-   
+
 ## Installation
 
-##### 1. Install with `pip` (recommended):
+In a command-line terminal, execute the following command:
 
-`>>> pip install git+https://github.com/jsh9/python-plot-utilities`	
-
-Alternatively, install a specific release:
-
-`>>> pip install git+https://github.com/jsh9/python-plot-utilities@{version_name}`
-
-Replace `{version_name}` with the desired release version name.
-
-##### 2. The portable way:
-
-Just download this repository, and you can put `plot_utils.py` anywhere within your Python search path.
+`pip install git+https://github.com/jsh9/python-plot-utilities@v0.5.1`
 
 ##### Note:
 
@@ -104,6 +94,8 @@ Current functionalities include (for full list, use `print(plot_utils.__doc__)`)
 
 ### 1. One column of data
 
+Using the "Titanic dataset" as example:
+
 ```python
 import pandas as pd
 import plot_utils as pu
@@ -112,15 +104,17 @@ pu.piechart(titanic['survived'], title='Suvived')
 pu.discrete_histogram(titanic['pclass'], xlabel='Passenger ticket class')
 ```
 
-Piechart: [[doc](./docs/piechart.md)], [[example](./examples/Pie_chart_example.ipynb)]
+Piechart: [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/pie_chart.html)], [[example](./examples/Pie_chart_example.ipynb)]
 
-Discrete histogram: [[doc](./docs/discrete_histogram.md)], [[example](./examples/Discrete_histogram_example.ipynb)]
+Discrete histogram: [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/discrete_histogram.html)], [[example](./examples/Discrete_histogram_example.ipynb)]
 
 ![](./examples/gallery/piechart_and_discrete_hist.png)
 
 
 
 ### 2. Two columns of data
+
+Using the "Titanic dataset" as example:
 
 ```python
 titanic = pd.read_csv('./examples/datasets/titanic3.csv')
@@ -135,7 +129,11 @@ pu.positive_rate(titanic['ticket_class'], titanic['survived'], figsize=(5,2))
 pu.contingency_table(titanic['ticket_class'], titanic['embarked'], dropna=True, rot=0)
 ```
 
-[[doc](./docs/two_columns.md)], [[example](./examples/Two_columns_of_data_example.ipynb)]
+[["bin-and-mean" doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/bin_and_mean.html)]
+[["category means" doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/category_means.html)]
+[["positive rate" doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/positive_rate.html)]
+[["contingency table" doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/contingency_table.html)]
+[[All examples](./examples/Two_columns_of_data_example.ipynb)]
 
 ![](./examples/gallery/two_variables.png)
 
@@ -145,34 +143,45 @@ pu.contingency_table(titanic['ticket_class'], titanic['embarked'], dropna=True, 
 
 #### 3.1. 3D histograms
 
-Useful for comparing multiple distributions.
+Useful for comparing multiple distributions:
 
 ```python
 iris = pd.read_csv('./examples/datasets/iris.csv')
 pu.histogram3d(iris[['petal_width', 'petal_length', 'sepal_width', 'sepal_length']])
 ```
 
-[[doc](./docs/histogram3d.md)], [[example](./examples/3D_histograms_example.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/3d_histograms.html)], [[example](./examples/3D_histograms_example.ipynb)]
 
 ![histogram_3d](./examples/gallery/histogram_3d.png)
 
 
+#### 3.2. Multi-histogram plots
 
-#### 3.2. Violin plots
+Another useful tool to compare multiple distributions:
 
-Another useful tool to compare multiple distributions.
+```python
+pu.hist_multi(iris[['sepal_length', 'sepal_width', 'petal_length', 'petal_width']]);
+```
+
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/hist_multi.html)], [[example](./examples/Violin_plot_example.ipynb)]
+
+![](./examples/gallery/multi_histogram.png)
+
+#### 3.3. Violin plots
+
+To compare multiple distributions:
 
 ```python
 pu.violin_plot(iris[['petal_width', 'petal_length', 'sepal_width', 'sepal_length']])
 ```
 
-[[doc](./docs/violin_plot.md)], [[example](./examples/Violin_plot_example.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/violin_plot.html)], [[example](./examples/Violin_plot_example.ipynb)]
 
 ![](./examples/gallery/violin_plots.png)
 
 
 
-#### 3.2. Correlation matrix
+#### 3.4. Correlation matrix
 
 ```python
 iris = pd.read_csv('./examples/datasets/iris.csv')
@@ -181,7 +190,7 @@ pu.plot_correlation(iris, scatter_plots=True)
 
 The first figure shows the correlation (or "sample covariance")  between each column. The second figure shows the scatter plots between each pair of columns.
 
-[[doc](./docs/plot_correlation.md)], [[example](./examples/Correlation_matrix_examples.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/correlation_matrix.html)], [[example](./examples/Correlation_matrix_examples.ipynb)]
 
 ![](./examples/gallery/correlation_matrix.png)
 
@@ -189,14 +198,16 @@ The first figure shows the correlation (or "sample covariance")  between each co
 
 
 
-#### 3.3. Count missing values
+#### 3.5. Count missing values
+
+To see how much data is missing in each column of a data set:
 
 ```python
 titanic = pd.read_csv('./examples/datasets/titanic3.csv')
 pu.missing_value_counts(titanic)
 ```
 
-[[doc](./docs/missing_value_counts.md)], [[example](./examples/Missing_value_count_example.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/missing_values.html)], [[example](./examples/Missing_value_count_example.ipynb)]
 
 Each bar corresponds to a column in `titanic`, and the numbers atop are the missing data counts for the corresponding column.
 
@@ -212,7 +223,7 @@ Each bar corresponds to a column in `titanic`, and the numbers atop are the miss
 pu.choropleth_map_state(state_level_data)  # see [example] for details of "state_level_data"
 ```
 
-[[doc](./docs/choropleth_map.md)], [[example](./examples/Choropleth_map_example.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/choropleth_map.html)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 ![choropleth_map_state](./examples/gallery/choropleth_map_state.png)
 
@@ -222,9 +233,11 @@ pu.choropleth_map_state(state_level_data)  # see [example] for details of "state
 pu.choropleth_map_county(county_level_data)  # see [example] for details of "county_level_data"
 ```
 
-[[doc](./docs/choropleth_map.md#plot_utilschoropleth_map_county)], [[example](./examples/Choropleth_map_example.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/choropleth_map.html)], [[example](./examples/Choropleth_map_example.ipynb)]
 
 ![choropleth_map_county](./examples/gallery/choropleth_map_county.png)
+
+
 
 ### 5. Time series plotting
 
@@ -235,7 +248,7 @@ df = pd.read_csv('./examples/datasets/Unemployment_rate_1976-2017.csv', index_co
 pu.plot_timeseries(df['CA'], ylabel='Unit: %', title='Unemployment rate, California')
 ```
 
-[[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_time_series.html)], [[example](./examples/Plot_time_series_example.ipynb)]
 
 ![](./examples/gallery/time_series_single.png)
 
@@ -245,7 +258,7 @@ pu.plot_timeseries(df['CA'], ylabel='Unit: %', title='Unemployment rate, Califor
 pu.plot_multiple_timeseries(df, ylabel='Unemployment rate [%]', ncol_legend=10)
 ```
 
-[[doc](./docs/plot_timeseries.md)], [[example](./examples/Plot_time_series_example.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_multiple_timeseries.html)], [[example](./examples/Plot_time_series_example.ipynb)]
 
 ![](./examples/gallery/time_series.png)
 
@@ -262,7 +275,7 @@ colors = pu.get_colors(color_scheme='tab10', N=10)  # a Python list containing 1
 pu.Multiple_Colors(colors).show()  # show colors as a palette
 ```
 
-[[doc](./docs/get_colors.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/get_colors.html)], [[example](./examples/Color_and_linespec_examples.ipynb)]
 
 ![](./examples/gallery/get_colors.png)
 
@@ -275,7 +288,9 @@ line_specs = pu.get_linespecs(color_scheme='bw',range_linewidth=[3,8],priority='
 pu.linespecs_demo(line_specs)
 ```
 
-[[doc](./docs/get_linespecs.md)], [[example](./examples/Color_and_linespec_examples.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/get_linespecs.html)], [[example](./examples/Color_and_linespec_examples.ipynb)]
+
+[[`get_linespecs()` doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/linespecs_demo.html)]
 
 ![](./examples/gallery/get_linespecs.png)
 
@@ -287,7 +302,7 @@ Plots data and error bounds on the same graph.
 pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 ```
 
-[[doc](./docs/plot_with_error_bounds.md)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_with_bounds.html)], [[example](./examples/Plot_with_error_bounds_example.ipynb)]
 
 ![](./examples/gallery/error_bounds.png)
 
