@@ -220,7 +220,7 @@ Each bar corresponds to a column in `titanic`, and the numbers atop are the miss
 #### 4.1. State-level choropleth maps for the US
 
 ```python
-pu.choropleth_map_state(state_level_data)  # see [example] for details of "state_level_data"
+pu.choropleth_map_state(state_level_data)  # `state_level_data`: dict, pandas.DataFrame, or pandas.Series
 ```
 
 [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/choropleth_map.html)], [[example](./examples/Choropleth_map_example.ipynb)]
@@ -230,7 +230,7 @@ pu.choropleth_map_state(state_level_data)  # see [example] for details of "state
 #### 4.2. County-level choropleth maps for the US
 
 ```python
-pu.choropleth_map_county(county_level_data)  # see [example] for details of "county_level_data"
+pu.choropleth_map_county(county_level_data)  # `county_level_data`: dict, pandas.DataFrame, or pandas.Series
 ```
 
 [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/choropleth_map.html)], [[example](./examples/Choropleth_map_example.ipynb)]
@@ -271,7 +271,7 @@ pu.plot_multiple_timeseries(df, ylabel='Unemployment rate [%]', ncol_legend=10)
 Easy querying of distinguishable color palettes.
 
 ```python
-colors = pu.get_colors(color_scheme='tab10', N=10)  # a Python list containing 10 colors
+colors = pu.get_colors(color_scheme='tab10', N=10)  # `colors`: a list containing 10 colors
 pu.Multiple_Colors(colors).show()  # show colors as a palette
 ```
 
