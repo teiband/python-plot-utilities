@@ -675,7 +675,7 @@ def _upcast_dtype(x):
 def category_means(categorical_array, continuous_array, fig=None, ax=None,
                    figsize=None, dpi=100, title=None, xlabel=None, ylabel=None,
                    rot=0, dropna=False, show_stats=True, sort_by='name',
-                   vert=True, **violinplot_kwargs):
+                   vert=True, plot_violins=True, **extra_kwargs):
     '''
     Summarize the mean values of entries of ``continuous_array`` corresponding
     to each distinct category in ``categorical_array``, and show a violin plot
@@ -731,8 +731,11 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
         means sorting the violins according to the category names.
     vert : bool
         Whether to show the violins as vertical.
-    **violinplot_kwargs :
-        Keyword arguments to be passed to plt.violinplot().
+    plot_violins : bool
+        If ``True``, use violin plots to illustrate the distribution of groups.
+        Otherwise, use multi-histogram (hist_multi()).
+    **extra_kwargs :
+        Keyword arguments to be passed to plt.violinplot() or hist_multi().
         (https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.violinplot.html)
         Note that this subroutine overrides the default behavior of violinplot:
         showmeans is overriden to True and showextrema to False.
@@ -768,8 +771,20 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
     if isinstance(y, np.ndarray) and y.ndim > 1:
         raise DimensionError('`continuous_array` must be a 1D numpy array..')
 
-    if not xlabel and isinstance(x, pd.Series): xlabel = x.name
-    if not ylabel and isinstance(y, pd.Series): ylabel = y.name
+    if not xlabel and isinstance(x, pd.Series): #xlabel = x.name
+        if vert:
+            xlabel = x.name
+        else:
+            xlabel = y.name
+        # END IF-ELSE
+    # END IF
+    if not ylabel and isinstance(y, pd.Series): #ylabel = y.name
+        if vert:
+            ylabel = y.name
+        else:
+            ylabel = x.name
+        # END IF-ELSE
+    # END IF
 
     if isinstance(x, (list, np.ndarray)): x = pd.Series(x)
     if isinstance(y, (list, np.ndarray)): y = pd.Series(y)
@@ -794,16 +809,23 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
 
     F_stat, p_value = stats.f_oneway(*y_values)  # pass every group into f_oneway()
 
-    if 'showextrema' not in violinplot_kwargs:
-        violinplot_kwargs['showextrema'] = False  # override default behavior of violinplot
-    if 'showmeans' not in violinplot_kwargs:
-        violinplot_kwargs['showmeans'] = True
+    if plot_violins:
+        if 'showextrema' not in extra_kwargs:
+            extra_kwargs['showextrema'] = False  # override default behavior of violinplot
+        if 'showmeans' not in extra_kwargs:
+            extra_kwargs['showmeans'] = True
 
     data_names = [str(_) for _ in x_classes_copy]
 
-    fig, ax = violin_plot(y_values, fig=fig, ax=ax, figsize=figsize,
-                          dpi=dpi, data_names=data_names,
-                          sort_by=sort_by, vert=vert, **violinplot_kwargs)
+    if plot_violins:
+        fig, ax = violin_plot(y_values, fig=fig, ax=ax, figsize=figsize,
+                              dpi=dpi, data_names=data_names,
+                              sort_by=sort_by, vert=vert, **extra_kwargs)
+    else:
+        fig, ax = hist_multi(y_values, bins='auto',
+                             fig=fig, ax=ax, figsize=figsize, dpi=dpi,
+                             data_names=data_names, sort_by=sort_by, vert=vert,
+                             show_legend=False, **extra_kwargs)
 
     if show_stats:
         ha = 'left' if vert else 'right'
@@ -812,6 +834,8 @@ def category_means(categorical_array, continuous_array, fig=None, ax=None,
                     xy=xy, xycoords='axes fraction')
 
     if title: ax.set_title(title)
+    if xlabel: ax.set_xlabel(xlabel)
+    if ylabel: ax.set_ylabel(ylabel)
 
     return fig, ax, mean_values, (F_stat, p_value)
 
@@ -4320,7 +4344,7 @@ def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
         sorted_list = sorted(data_with_names, key=lambda x: np.median(x[1]),
                              reverse=reverse)
     else:
-        raise NameError("`sort_by` must be one of {None, 'name', mean', "
+        raise NameError("`sort_by` must be one of {`None`, 'name', 'mean', "
                         "'median'}, not '%s'." % sort_by)
 
     data_with_names_dict = OrderedDict()
@@ -4368,7 +4392,7 @@ def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
 def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
                nan_warning=False, showmeans=True, showmedians=False, vert=True,
                data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
-               sort_by=None, title=None, **hist_kwargs):
+               sort_by=None, title=None, **extra_kwargs):
     '''
     Generate multiple histograms, one for each data set within ``X``.
 
@@ -4443,8 +4467,8 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
         according to the names of the groups.
     title : str
         The title of the plot.
-    **hist_kwargs : dict
-        Other keyword arguments to be passed to ``matplotlib.pyplot.hist()``.
+    **extra_kwargs : dict
+        Other keyword arguments to be passed to ``matplotlib.pyplot.bar()``.
 
     Returns
     -------
@@ -4475,7 +4499,7 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
                                  showmedians=showmedians, vert=vert, rot=rot,
                                  data_ax_label=data_ax_label,
                                  name_ax_label=name_ax_label,
-                                 title=title, **hist_kwargs)
+                                 title=title, **extra_kwargs)
 
     return fig, ax
 
@@ -4484,7 +4508,7 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
                        figsize=None, dpi=100, showmeans=True, showmedians=False,
                        vert=False, rot=45, data_ax_label=None,
                        name_ax_label=None, show_legend=True, title=None,
-                       **hist_kwargs):
+                       **extra_kwargs):
     '''
     Helper function to multi_hist().
 
@@ -4544,8 +4568,8 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
         according to the names of the groups.
     title : str
         The title of the plot.
-    **hist_kwargs : dict
-        Other keyword arguments to be passed to ``matplotlib.pyplot.hist()``.
+    **extra_kwargs : dict
+        Other keyword arguments to be passed to ``matplotlib.pyplot.bar()``.
 
     Returns
     -------
@@ -4569,25 +4593,39 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
 
     fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
     for i, data_i in enumerate(data):
-        ax.hist(data_i, bins=bins, density=True, bottom=i + 1,
-                orientation='vertical' if not vert else 'horizontal',
-                alpha=0.75, lw=0.5, ec='w', **hist_kwargs)
+        freq_bar_heights, bin_edges = np.histogram(data_i, bins=bins)
+        max_bar_height = max(freq_bar_heights)
+        bar_full_width = bin_edges[1] - bin_edges[0]
+        bar_half_width = bar_full_width / 2.0
+
+        bin_centers = bin_edges[:-1] + bar_half_width
+        bar_heights = freq_bar_heights / max_bar_height / 1.1  # leave some space between groups
+        extra_kwarg = {'bottom': i + 1} if not vert else {'left': i + 1}
+
+        plot_bar_func = ax.bar if not vert else ax.barh  # flipped compared to violin plot!
+        plot_bar_func(bin_centers, bar_heights,
+                      bar_full_width * 0.9,  # leave some space between bars
+                      align='center', alpha=0.75, lw=0.5, ec='w', **extra_kwarg)
+
+        mbl = 0.8  # mean/median bar length
         if showmeans:
             mean_val = np.mean(data_i)
             label_1 = 'mean' if i == 0 else None
             if vert:
-                ax.plot([i+1, i+1.5], [mean_val] * 2, c='k', label=label_1)
+                ax.plot([i+1, i+1+mbl], [mean_val] * 2, c='k', label=label_1,
+                        alpha=0.6)
             else:
-                ax.plot([mean_val] * 2, [i+1, i+1.5], c='k', label=label_1)
+                ax.plot([mean_val] * 2, [i+1, i+1+mbl], c='k', label=label_1,
+                        alpha=0.6)
         if showmedians:
             median_val = np.median(data_i)
             label_2 = 'median' if i == 0 else None
             if vert:
-                ax.plot([i+1, i+1.5], [median_val] * 2, c='k', ls='--',
-                        label=label_2)
+                ax.plot([i+1, i+1+mbl], [median_val] * 2, c='k', ls='--',
+                        alpha=0.6, label=label_2)
             else:
-                ax.plot([median_val] * 2, [i+1, i+1.5], c='k', ls='--',
-                        label=label_2)
+                ax.plot([median_val] * 2, [i+1, i+1+mbl], c='k', ls='--',
+                        alpha=0.6, label=label_2)
 
     if show_legend:
         ax.legend(loc='best')
