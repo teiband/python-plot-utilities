@@ -15,7 +15,7 @@ Recommended method (in the terminal or command window, execute the following com
 
 .. code-block:: bash
 
-    pip install git+https://github.com/jsh9/python-plot-utilities
+    pip install git+https://github.com/jsh9/python-plot-utilities@0.5.2
 
 For other installation alternatives, see the `installation guide <installation_guide.html>`_.
 
