@@ -45,6 +45,7 @@ Public helper functions:
     _convert_FIPS_to_state_name
     _translate_state_abbrev
     _find_axes_lim
+    _calc_r2_score
 
 Private helper functions
      _adjust_colorbar_tick_labels
@@ -3870,7 +3871,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                  raw_data_label='raw data', mean_data_label='average',
                  xlabel=None, ylabel=None, logx=False, logy=False, grid_on=True,
                  error_bounds=True, err_bound_type='shade', legend_on=True,
-                 subsamp_thres=None):
+                 subsamp_thres=None, show_stats=True):
     '''
     Calculate the "bin-and-mean" results and optionally show the "bin-and-mean"
     plot.
@@ -3973,6 +3974,9 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         plotting process. If larger than the number of data points in a bin,
         then all data points from that bin are plotted. If ``None``, then all
         data points from all bins are plotted.
+    show_stats : bool
+        Whether or not to show R^2 scores, correlation coefficients of the raw
+        data and the binned averages on the plot.
 
     Returns
     -------
@@ -3988,6 +3992,11 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         Mean Y values of each data bin (in terms of X values).
     y_std : numpy.ndarray
         Standard deviation of Y values or each data bin (in terms of X values).
+    stats : tuple<float>
+        A tuple in the order of (r2_score_raw, corr_coeff_raw, r2_score_binned,
+        corr_coeff_binned), which are the R^2 score and correlation coefficient
+        of the raw data (``xdata`` and ``ydata``) and the binned averages
+        (``x_mean`` and ``y_mean``).
     '''
     if not isinstance(xdata, _array_like) or not isinstance(ydata, _array_like):
         raise TypeError('`xdata` and `ydata` must be lists, numpy arrays, '
@@ -4066,6 +4075,17 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                 x_subs.extend(x_in_bin)
                 y_subs.extend(y_in_bin)
 
+    #-------------Calculate R^2 and corr. coeff.-------------------------------
+    non_nan_indices = ~np.isnan(xdata) & ~np.isnan(ydata)
+    xdata_without_nan = xdata[non_nan_indices]
+    ydata_without_nan = ydata[non_nan_indices]
+
+    r2_score_raw = _calc_r2_score(ydata_without_nan, xdata_without_nan)  # treat "xdata" as "y_pred"
+    corr_coeff_raw = np.corrcoef(xdata_without_nan, ydata_without_nan)[0, 1]
+    r2_score_binned = _calc_r2_score(y_mean, x_mean)
+    corr_coeff_binned = np.corrcoef(x_mean, y_mean)[0, 1]
+    stats = (r2_score_raw, corr_coeff_raw, r2_score_binned, corr_coeff_binned)
+
     #-------------Plot data on figure------------------------------------------
     if show_fig:
         fig, ax = _process_fig_ax_objects(fig, ax, figsize, dpi)
@@ -4106,10 +4126,57 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                 ax.plot([edge]*2,ylims,'--',c=ec,lw=1.0,zorder=2,label=lab_)
         if legend_on:
             ax.legend(loc='best')
+        if show_stats:
+            stats_text = "$R^2_{\mathrm{raw}}$=%.2f, $r_{\mathrm{raw}}$=%.2f, " \
+                         "$R^2_{\mathrm{avg}}$=%.2f, " \
+                         "$r_{\mathrm{avg}}$=%.2f" % stats
+            ax.set_title(stats_text)
 
-        return fig, ax, x_mean, y_mean, y_std
+        return fig, ax, x_mean, y_mean, y_std, stats
     else:
-        return None, None, x_mean, y_mean, y_std
+        return None, None, x_mean, y_mean, y_std, stats
+
+#%%============================================================================
+def _calc_r2_score(y_true, y_pred):
+    '''
+    Calculate the coefficient of determination between two arrays. The best
+    possible value is 1.0. The result can be negative, because the model
+    predicted value (``y_pred``) can be arbitrarily bad. A naive prediction,
+    i.e., ``y_pred`` equals the mean value of ``y_true`` produces a negative
+    infinity R2 score.
+
+    Parameters
+    ----------
+    y_true : list, numpy.ndarray, or pandas.Series
+        The "true values", or the dependent variable, or "y axis".
+    y_pred : list, numpy.ndarray, or pandas.Series
+        The "predicted values", or the independent variable, or "x axis".
+
+    Returns
+    -------
+    r2_score : float
+        The coefficient of determination.
+
+    References
+    ----------
+    .. [1] `Wikipedia entry on the Coefficient of determination
+            <https://en.wikipedia.org/wiki/Coefficient_of_determination>`_
+    '''
+    if not isinstance(y_true, _array_like):
+        raise TypeError('`y_true` needs to be a list, numpy array, or pandas Series.')
+    if not isinstance(y_pred, _array_like):
+        raise TypeError('`y_pred` needs to be a list, numpy array, or pandas Series.')
+    if len(y_true) != len(y_pred):
+        raise LengthError('`y_true` and `y_pred` should have the same length.')
+
+    f = np.array(y_pred)  # follow the notation in the wikipedia page
+    y = np.array(y_true)
+
+    y_bar = np.mean(y)
+    SS_tot = np.sum((y - y_bar)**2.0)
+    SS_res = np.sum((y - f)**2.0)
+    r2_score = 1 - SS_res / SS_tot
+    return r2_score
 
 #%%============================================================================
 def violin_plot(X, fig=None, ax=None, figsize=None, dpi=100, nan_warning=False,
