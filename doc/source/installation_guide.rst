@@ -13,9 +13,7 @@ Installation guide
 
 .. code-block:: bash
 
-    pip install git+https://github.com/jsh9/python-plot-utilities@<version_name>
-    
-(Replace ``<version_name>`` with the desired release version name.)
+    pip install git+https://github.com/jsh9/python-plot-utilities@v0.5.4
 
 3. The portable way
 ^^^^^^^^^^^^^^^^^^^
@@ -29,8 +27,8 @@ If you run into the following issue on Mac OS X (or macOS) when importing ``plot
 
 .. code-block:: bash
 
-    RuntimeError: Python is not installed as a framework. 
-    The Mac OS X backend will not be able to function correctly if Python 
+    RuntimeError: Python is not installed as a framework.
+    The Mac OS X backend will not be able to function correctly if Python
     is not installed as a framework.
 
 Then please follow this solution to fix the issue: https://stackoverflow.com/a/21789908/8892243.

@@ -3871,7 +3871,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                  raw_data_label='raw data', mean_data_label='average',
                  xlabel=None, ylabel=None, logx=False, logy=False, grid_on=True,
                  error_bounds=True, err_bound_type='shade', legend_on=True,
-                 subsamp_thres=None, show_stats=True):
+                 subsamp_thres=None, show_stats=True, show_SE=False):
     '''
     Calculate the "bin-and-mean" results and optionally show the "bin-and-mean"
     plot.
@@ -3977,6 +3977,10 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     show_stats : bool
         Whether or not to show R^2 scores, correlation coefficients of the raw
         data and the binned averages on the plot.
+    show_SE : bool
+        If ``True``, show the standard error of y_mean (orange dots) of each
+        bin as the shaded area beneath the mean value lines. If ``False``, show
+        the standard deviation of raw Y values (gray dots) within each bin.
 
     Returns
     -------
@@ -3992,7 +3996,13 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         Mean Y values of each data bin (in terms of X values).
     y_std : numpy.ndarray
         Standard deviation of Y values or each data bin (in terms of X values).
-    stats : tuple<float>
+    y_SE : numpy.ndarray
+        Standard error of ``y_mean``. It describes how far ``y_mean`` is from
+        the population mean (or the "true mean value") within each bin, which
+        is a different concept from ``y_std``.
+        See https://en.wikipedia.org/wiki/Standard_error#Standard_error_of_mean_versus_standard_deviation
+        for further information.
+    stats_ : tuple<float>
         A tuple in the order of (r2_score_raw, corr_coeff_raw, r2_score_binned,
         corr_coeff_binned), which are the R^2 score and correlation coefficient
         of the raw data (``xdata`` and ``ydata``) and the binned averages
@@ -4036,6 +4046,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     x_mean = np.zeros(nr-1)
     y_mean = np.zeros(nr-1)
     y_std  = np.zeros(nr-1)
+    y_SE   = np.zeros(nr-1)
     x_subs = []  # subsampled x data (for faster scatter plots)
     y_subs = []
     for j in range(nr-1):  # loop over every bin
@@ -4047,11 +4058,13 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
             x_mean[j] = np.nan  # this is to prevent numpy from throwing...
             y_mean[j] = np.nan  #...confusing warning messages
             y_std[j]  = np.nan
+            y_SE[j] = np.nan
         else:
             x_mean[j] = np.nanmean(x_in_bin)
             if distribution == 'normal':
                 y_mean[j] = np.nanmean(y_in_bin)
                 y_std[j] = np.nanstd(y_in_bin)
+                y_SE[j] = stats.sem(y_in_bin)
             elif distribution == 'lognormal':
                 s, loc, scale = stats.lognorm.fit(y_in_bin, floc=0)
                 estimated_mu = np.log(scale)
@@ -4059,6 +4072,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                 y_mean[j] = np.exp(estimated_mu + estimated_sigma**2.0/2.0)
                 y_std[j]  = np.sqrt(np.exp(2.*estimated_mu + estimated_sigma**2.) \
                              * (np.exp(estimated_sigma**2.) - 1) )
+                y_SE[j] = y_std[j] / np.sqrt(len(y_in_bin))
             else:
                 raise ValueError("Valid values of `distribution` are "
                                  "{'normal', 'lognormal'}. Not '%s'." % distribution)
@@ -4084,7 +4098,7 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
     corr_coeff_raw = np.corrcoef(xdata_without_nan, ydata_without_nan)[0, 1]
     r2_score_binned = _calc_r2_score(y_mean, x_mean)
     corr_coeff_binned = np.corrcoef(x_mean, y_mean)[0, 1]
-    stats = (r2_score_raw, corr_coeff_raw, r2_score_binned, corr_coeff_binned)
+    stats_ = (r2_score_raw, corr_coeff_raw, r2_score_binned, corr_coeff_binned)
 
     #-------------Plot data on figure------------------------------------------
     if show_fig:
@@ -4095,13 +4109,25 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         if error_bounds:
             if err_bound_type == 'shade':
                 ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
-                ax.fill_between(x_mean,y_mean+y_std,y_mean-y_std,label='$\pm$ std',
-                                facecolor='orange',alpha=0.35,zorder=2.5)
+                if show_SE:
+                    ax.fill_between(x_mean,y_mean+y_SE,y_mean-y_SE,label='$\pm$ SE',
+                                    facecolor='orange',alpha=0.35,zorder=2.5)
+                else:
+                    ax.fill_between(x_mean,y_mean+y_std,y_mean-y_std,label='$\pm$ std',
+                                    facecolor='orange',alpha=0.35,zorder=2.5)
+                # END IF-ELSE
             elif err_bound_type == 'bar':
-                mean_data_label += '$\pm$ std'
-                ax.errorbar(x_mean,y_mean,yerr=y_std,ls='-',marker='o',c='orange',
-                            lw=2,elinewidth=1,capsize=2,label=mean_data_label,
-                            zorder=3)
+                if show_SE:
+                    mean_data_label += '$\pm$ SE'
+                    ax.errorbar(x_mean,y_mean,yerr=y_SE,ls='-',marker='o',c='orange',
+                                lw=2,elinewidth=1,capsize=2,label=mean_data_label,
+                                zorder=3)
+                else:
+                    mean_data_label += '$\pm$ std'
+                    ax.errorbar(x_mean,y_mean,yerr=y_std,ls='-',marker='o',c='orange',
+                                lw=2,elinewidth=1,capsize=2,label=mean_data_label,
+                                zorder=3)
+                # END IF-ELSE
             else:
                 raise ValueError('Valid "err_bound_type" name are {"bound", '
                                  '"bar"}, not "%s".' % err_bound_type)
@@ -4129,12 +4155,12 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         if show_stats:
             stats_text = "$R^2_{\mathrm{raw}}$=%.2f, $r_{\mathrm{raw}}$=%.2f, " \
                          "$R^2_{\mathrm{avg}}$=%.2f, " \
-                         "$r_{\mathrm{avg}}$=%.2f" % stats
+                         "$r_{\mathrm{avg}}$=%.2f" % stats_
             ax.set_title(stats_text)
 
-        return fig, ax, x_mean, y_mean, y_std, stats
+        return fig, ax, x_mean, y_mean, y_std, y_SE, stats_
     else:
-        return None, None, x_mean, y_mean, y_std, stats
+        return None, None, x_mean, y_mean, y_std, y_SE, stats_
 
 #%%============================================================================
 def _calc_r2_score(y_true, y_pred):
