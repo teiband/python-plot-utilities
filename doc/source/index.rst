@@ -15,7 +15,7 @@ Recommended method (in the terminal or command window, execute the following com
 
 .. code-block:: bash
 
-    pip install git+https://github.com/jsh9/python-plot-utilities@v0.6.0
+    pip install git+https://github.com/jsh9/python-plot-utilities@v0.6.1
 
 For other installation alternatives, see the `installation guide <installation_guide.html>`_.
 
@@ -95,6 +95,7 @@ API Documentation
        api_docs/trim_image
        api_docs/pad_image
        api_docs/plot_ranking
+       api_docs/visualize_cv_scores
 
 7. Other helper functions
 

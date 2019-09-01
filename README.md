@@ -25,7 +25,7 @@ This is a Python module that contains some useful data visualization tools.
 
 In a command-line terminal, execute the following command:
 
-`pip install git+https://github.com/jsh9/python-plot-utilities@v0.6.0`
+`pip install git+https://github.com/jsh9/python-plot-utilities@v0.6.1`
 
 ##### Note:
 
@@ -87,7 +87,7 @@ Current functionalities include (for full list, use `print(plot_utils.__doc__)`)
 + **trim_img()**, which trims the white margins of the specified image file(s) [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/trim_image.html)]
 + **pad_img()**, which pads image(s) with margins so that they meet a specified aspect ratio [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/pad_image.html)]
 + **plot_ranking()**, which ranks a series of values and shows them as a bar chart [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/plot_ranking.html)], [[example](./examples/Plot_ranking_example.ipynb)]
-
++ **visualize_cv_scores()**, which visualizes cross-validation training/evaluation scores [[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/visualize_cv_scores.html)], [[example](./examples/Visualize_cross_validation_results.ipynb)]
 
 
 ## Gallery
@@ -306,7 +306,14 @@ pu.plot_with_error_bounds(data, upper_bound, lower_bound)
 
 ![](./examples/gallery/error_bounds.png)
 
+#### 6.4. Visualize cross-validation scores
 
+```python
+pu.visualize_cv_scores(n_folds=4, cv_scores=[0.675, 0.702, 0.689, 0.653], holdout_score=0.6745);
+```
+[[doc](https://python-plot-utilities.readthedocs.io/en/stable/api_docs/visualize_cv_scores.html)], [[example](./examples/Visualize_cross_validation_results.ipynb)]
+
+![](./examples/gallery/visualize_cv_scores.png)
 
 ## Dependencies
 

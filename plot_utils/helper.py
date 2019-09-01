@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import collections
 import numpy as np
 import pandas as pd
 import matplotlib as mpl
@@ -17,6 +18,61 @@ class LengthError(Exception):
 
 class DimensionError(Exception):
     pass
+
+#%%============================================================================
+def assert_type(something, desired_type, name='something'):
+    '''
+    Assert ``something`` is a ``desired_type``.
+
+    Parameters
+    ----------
+    something :
+        Any Python object.
+    desired_type : type or typle<type>
+        A valid Python type, such as float, or a tuple of Python types, such
+        as (float, int).
+    name : str
+        The name of ``something`` to show in the error message (if applicable).
+    '''
+    if not isinstance(something, desired_type):
+        msg = '"%s" must be %s, rather than %s.' % (name, desired_type, type(something))
+        raise TypeError(msg)
+    # END IF
+
+#%%============================================================================
+def assert_element_type(some_iterable, desired_element_type, name='some_iterable'):
+    '''
+    Assert all elements of ``some_iterable`` is of ``desired_type``.
+
+    Parameters
+    ----------
+    some_iterable : Python iterable
+        An iterable object, such as a list, numpy array.
+    desired_element_type : type or tuple<type>
+        Desired element type.
+    name : str
+        The name of ``something`` to show in the error message (if applicable).
+    '''
+    msg = 'All elements of "%s" must be %s.' % (name, desired_element_type)
+    assert_type(some_iterable, collections.abc.Iterable, name=name)
+    if isinstance(desired_element_type, type):
+        if not all([isinstance(_, desired_element_type) for _ in some_iterable]):
+            raise TypeError(msg)
+        # END IF
+    elif isinstance(desired_element_type, tuple):
+        success = False
+        for this_type in desired_element_type:
+            if all([isinstance(_, this_type) for _ in some_iterable]):
+                success = True
+                continue
+            # END IF
+        # END FOR
+        if not success:
+            raise TypeError(msg)
+        # END IF
+    else:
+        raise TypeError('`desired_element_type` must be a type or a tuple of types.')
+    # END IF-ELSE
 
 #%%============================================================================
 def _process_fig_ax_objects(fig, ax, figsize=None, dpi=None, ax_proj=None):

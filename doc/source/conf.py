@@ -22,7 +22,7 @@ copyright = '2019, Jian Shi'
 author = 'Jian Shi'
 
 # The full version, including alpha/beta/rc tags
-release = 'v0.6.0'
+release = 'v0.6.1'
 
 
 # -- General configuration ---------------------------------------------------
