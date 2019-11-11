@@ -149,13 +149,13 @@ def piechart(target_array, class_names=None, dropna=False, top_n=None,
         autopct = '%1.1f%%'
     elif display == 'count':
         total = np.sum(counts)  # https://stackoverflow.com/a/14171272/8892243
-        autopct = lambda p: '{:.0f}'.format(p * total / 100.0)
+        autopct = lambda p: '{:,d}'.format(int(round(p * total / 100.0)))
     elif display == 'both':
         def make_autopct(values):  # https://stackoverflow.com/a/6170354/8892243
             def my_autopct(pct):
                 total = sum(values)
-                val = int(round(pct*total/100.0))
-                return '{p:.1f}%  ({v:d})'.format(p=pct, v=val)
+                val = int(round(pct * total / 100.0))
+                return '{p:.1f}%  ({v:,d})'.format(p=pct, v=val)
             return my_autopct
         autopct = make_autopct(counts)
     elif display == None:

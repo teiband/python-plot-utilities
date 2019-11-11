@@ -353,7 +353,6 @@ def contingency_table(array_horizontal, array_vertical, fig=None, ax=None,
                       figsize='auto', dpi=100, color_map='auto', xlabel=None,
                       ylabel=None, dropna=False, rot=45, normalize=True,
                       symm_cbar=True, show_stats=True):
-
     '''
     Calculate and visualize the contingency table from two categorical arrays.
     Also perform a Pearson's chi-squared test to evaluate whether the two
@@ -637,7 +636,8 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
                  raw_data_label='raw data', mean_data_label='average',
                  xlabel=None, ylabel=None, logx=False, logy=False, grid_on=True,
                  error_bounds=True, err_bound_type='shade', legend_on=True,
-                 subsamp_thres=None, show_stats=True, show_SE=False):
+                 subsamp_thres=None, show_stats=True, show_SE=False,
+                 err_bound_shade_opacity=0.5):
     '''
     Calculate the "bin-and-mean" results and optionally show the "bin-and-mean"
     plot.
@@ -747,6 +747,10 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
         If ``True``, show the standard error of y_mean (orange dots) of each
         bin as the shaded area beneath the mean value lines. If ``False``, show
         the standard deviation of raw Y values (gray dots) within each bin.
+    err_bound_shade_opacity : float
+        The opacity of the shaded area representing the error bound. 0 means
+        completely transparent, and 1 means completely opaque. It has no effect
+        if ``error_bound_type`` is ``'bar'``.
 
     Returns
     -------
@@ -876,15 +880,17 @@ def bin_and_mean(xdata, ydata, bins=10, distribution='normal', show_fig=True,
             if err_bound_type == 'shade':
                 ax.plot(x_mean,y_mean,'-o',c='orange',lw=2,label=mean_data_label,zorder=3)
                 if show_SE:
-                    ax.fill_between(x_mean,y_mean+y_SE,y_mean-y_SE,label='$\pm$ SE',
-                                    facecolor='orange',alpha=0.35,zorder=2.5)
+                    ax.fill_between(x_mean, y_mean + y_SE, y_mean - y_SE,
+                                    label='$\pm$ S.E.', facecolor='orange',
+                                    alpha=err_bound_shade_opacity, zorder=2.5)
                 else:
-                    ax.fill_between(x_mean,y_mean+y_std,y_mean-y_std,label='$\pm$ std',
-                                    facecolor='orange',alpha=0.35,zorder=2.5)
+                    ax.fill_between(x_mean, y_mean + y_std, y_mean - y_std,
+                                    label='$\pm$ std', facecolor='orange',
+                                    alpha=err_bound_shade_opacity, zorder=2.5)
                 # END IF-ELSE
             elif err_bound_type == 'bar':
                 if show_SE:
-                    mean_data_label += '$\pm$ SE'
+                    mean_data_label += '$\pm$ S.E.'
                     ax.errorbar(x_mean,y_mean,yerr=y_SE,ls='-',marker='o',c='orange',
                                 lw=2,elinewidth=1,capsize=2,label=mean_data_label,
                                 zorder=3)
