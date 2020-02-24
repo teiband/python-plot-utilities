@@ -6,10 +6,19 @@ import matplotlib.pyplot as plt
 from .colors_and_lines import Color
 
 #%%============================================================================
-def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
-             show_old_img=False, show_new_img=False, forcibly_overwrite=False):
+def trim_img(
+        files,
+        white_margin=True,
+        pad_width=20,
+        pad_color='w',
+        inplace=False,
+        verbose=True,
+        show_old_img=False,
+        show_new_img=False,
+        forcibly_overwrite=False,
+):
     '''
-    Trim the white margins of image file(s) on the hard drive, and (optionally)
+    Trim the margins of image file(s) on the hard drive, and (optionally)
     add padded margins of a specified width and color.
 
     Parameters
@@ -17,6 +26,10 @@ def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
     files : str or list<str> or tuple<str>
         A file name (as Python str) or several file names (as Python list or
         tuple) to be trimmed.
+    white_margin : bool
+        Whether to treat white color as the margin to be trimmed. If ``True``,
+        white image margins will be trimmed. If ``False``, black image margins
+        will be trimmed.
     pad_width : float
         The amount of white margins to be padded (unit: pixels).
     pad_color : str or tuple<float> or list<float>
@@ -54,15 +67,18 @@ def trim_img(files, pad_width=20, pad_color='w', inplace=False, verbose=True,
         if verbose:
             print('Trimming %s...' % filename)
         im0 = PIL.Image.open(filename)  # load image
-        im1 = PIL.ImageOps.invert(im0.convert('RGB')) # convert from RGBA to RGB, then invert color
+        im1 = im0.convert('RGB')  # convert from RGBA to RGB
+        if white_margin:
+            im1 = PIL.ImageOps.invert(im1)  # invert color to have black margin
 
         if show_old_img:
             plt.imshow(im0)
             plt.xticks([])
             plt.yticks([])
 
-        im2 = im1.crop(im1.getbbox())  # create new image
-        im2 = PIL.ImageOps.invert(im2) # invert the color back
+        im2 = im1.crop(im1.getbbox())  # crop the black-color margin
+        if white_margin:
+            im2 = PIL.ImageOps.invert(im2)  # invert the color back
 
         pad_color_rgb = Color(pad_color).as_rgb(normalize=False)
         im3 = PIL.ImageOps.expand(im2, border=pad_width, fill=pad_color_rgb)
