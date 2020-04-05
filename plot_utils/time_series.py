@@ -18,7 +18,7 @@ from . import colors_and_lines as cl
 def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3),
                     dpi=100, xlabel='Time', ylabel=None, label=None, color=None,
                     lw=2, ls=None, marker=None, fontsize=12, xgrid_on=True,
-                    ygrid_on=True, title=None, zorder=None,
+                    ygrid_on=True, title=None, zorder=None, alpha=1.0,
                     month_grid_width=None):
     '''
     Plot time series (i.e., values a function of dates).
@@ -61,6 +61,8 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
         Figure title (optional).
     zorder : float
         Set the zorder for lines. Higher zorder are drawn on top.
+    alpha : float
+        Opacity of the line.
     month_grid_width : float
         the on-figure "horizontal width" that each time interval occupies.
         This value determines how X axis labels are displayed (e.g., smaller
@@ -91,10 +93,10 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
 
     if zorder:
         ax.plot(ts.index, ts, color=color, lw=lw, ls=ls, marker=marker,
-                label=label, zorder=zorder)
+                label=label, zorder=zorder, alpha=alpha)
     else:
         ax.plot(ts.index, ts, color=color, lw=lw, ls=ls, marker=marker,
-                label=label)
+                label=label, alpha=alpha)
     ax.set_label(label)  # set label for legends using argument 'label'
     if xlabel: ax.set_xlabel(xlabel)
     if ylabel: ax.set_ylabel(ylabel)
@@ -151,7 +153,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
         Number of columns of the legend.
     **kwargs :
         Other keyword arguments to be passed to ``plot_timeseries()``, such as
-        color, marker, fontsize, etc.
+        color, marker, fontsize, alpha, etc.
 
     Returns
     -------
