@@ -188,8 +188,10 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
             linespecs = cl.get_linespecs(color_scheme='tab20',
                                          range_linewidth=[1,3,5])
         else:
-            linespecs = cl.get_linespecs(color_scheme='tab20',  # use more line widths
-                           range_linewidth=range(1,(nr_timeseries-1)//240+5,2))
+            linespecs = cl.get_linespecs(
+                color_scheme='tab20',  # use more line widths
+                range_linewidth=range(1, (nr_timeseries - 1) // 240 + 5, 2),
+            )
 
         for j in range(nr_timeseries):
             tmp_dict = linespecs[j % nr_timeseries].copy()
@@ -197,9 +199,14 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
             if 'lw' in tmp_dict:  # thinner lines above thicker lines
                 zorder = 1 + 1.0/tmp_dict['lw']  # and "+1" to put all lines above grid line
 
-            plot_timeseries(multiple_time_series.iloc[:,j],
-                            fig=fig, ax=ax, zorder=zorder,
-                            label=multiple_time_series.columns[j], **tmp_dict)
+            plot_timeseries(
+                multiple_time_series.iloc[:,j],
+                fig=fig,
+                ax=ax,
+                zorder=zorder,
+                label=multiple_time_series.columns[j],
+                **tmp_dict,
+            )
 
         if 'title' not in kwargs:
             bbox_anchor_loc = (0., 1.02, 1., .102)

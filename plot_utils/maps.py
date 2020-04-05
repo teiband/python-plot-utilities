@@ -278,9 +278,11 @@ def choropleth_map_state(data_per_state, fig=None, ax=None, figsize=(10,7),
     cb = ColorbarBase(cax, cmap=cmap, norm=norm, orientation='vertical', label=unit)
 
     if LooseVersion(mpl.__version__) >= LooseVersion('2.1.0'):
-        cb = _adjust_colorbar_tick_labels(cb,
-                                         np.nanmax(list(data_per_state.values())) > vmax,
-                                         np.nanmin(list(data_per_state.values())) < vmin)
+        cb = _adjust_colorbar_tick_labels(
+            cb,
+            np.nanmax(list(data_per_state.values())) > vmax,
+            np.nanmin(list(data_per_state.values())) < vmin,
+        )
 
     #---------   Set overall font size  --------------------------------
     for o in fig.findobj(mpl.text.Text):
@@ -536,9 +538,11 @@ def choropleth_map_county(data_per_county, fig=None, ax=None, figsize=(10,7),
     cb = ColorbarBase(cax,cmap=cmap,norm=norm,orientation='vertical',label=unit)
 
     if LooseVersion(mpl.__version__) >= LooseVersion('2.1.0'):
-        cb = _adjust_colorbar_tick_labels(cb,
-                                         np.nanmax(list(data_per_county.values())) > vmax,
-                                         np.nanmin(list(data_per_county.values())) < vmin)
+        cb = _adjust_colorbar_tick_labels(
+            cb,
+            np.nanmax(list(data_per_county.values())) > vmax,
+            np.nanmin(list(data_per_county.values())) < vmin,
+        )
 
     #------------   Set overall font size  --------------------------------
     for o in fig.findobj(mpl.text.Text):
