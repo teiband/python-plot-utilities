@@ -536,11 +536,11 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
             elif isinstance(x, list):
                 x_ = np.array(x)
             else:
-                raise TypeError('Unknown data type in X[%d]. Should be either '
+                raise TypeError('Unknown data type in X[%s]. Should be either '
                                 'pandas.Series, 1D numpy array, or a list.' % key)
             if nan_warning and np.isnan(x_).any():
                 print('WARNING in violin_plot() or hist_multi(): '
-                      'X[%d] contains NaN values.' % key)
+                      'X[%s] contains NaN values.' % key)
             data.append(x_[np.isfinite(x_)])
 
     if not data_names and isinstance(X, dict):
