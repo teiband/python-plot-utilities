@@ -26,7 +26,7 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
     You can plot multiple time series by supplying a multi-column pandas
     Dataframe, but you cannot use custom line specifications (colors, width,
     and styles) for each time series. It is recommended to use
-    ``plot_multiple_timeseries()`` in stead.
+    :func:`~plot_multiple_timeseries` in stead.
 
     Parameters
     ----------
@@ -78,7 +78,7 @@ def plot_timeseries(time_series, date_fmt=None, fig=None, ax=None, figsize=(10,3
 
     See also
     --------
-    plot_multiple_timeseries :
+    :func:`~plot_multiple_timeseries` :
         Plot multiple time series, with the ability to specify different
         line specifications for each line.
     '''
@@ -152,8 +152,8 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
     ncol_legend : int
         Number of columns of the legend.
     **kwargs :
-        Other keyword arguments to be passed to ``plot_timeseries()``, such as
-        color, marker, fontsize, alpha, etc.
+        Other keyword arguments to be passed to :func:`~plot_timeseries()`, such
+        as color, marker, fontsize, alpha, etc.
 
     Returns
     -------
@@ -164,7 +164,7 @@ def plot_multiple_timeseries(multiple_time_series, show_legend=True,
 
     See also
     --------
-    plot_timeseries :
+    :func:`~plot_timeseries` :
         Plot a single set of time series.
     '''
     if not isinstance(multiple_time_series, (pd.Series, pd.DataFrame)):
