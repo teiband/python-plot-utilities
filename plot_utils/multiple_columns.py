@@ -536,7 +536,7 @@ def _preprocess_violin_plot_data(X, data_names=None, nan_warning=False):
             elif isinstance(x, list):
                 x_ = np.array(x)
             else:
-                raise TypeError('Unknown data type in X[%s]. Should be either '
+                raise TypeError('Unknown data type in X["%s"]. Should be either '
                                 'pandas.Series, 1D numpy array, or a list.' % key)
             if nan_warning and np.isnan(x_).any():
                 print('WARNING in violin_plot() or hist_multi(): '
@@ -652,7 +652,8 @@ def _violin_plot_helper(data_with_names, fig=None, ax=None, figsize=None,
 def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
                nan_warning=False, showmeans=True, showmedians=False, vert=True,
                data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
-               sort_by=None, title=None, **extra_kwargs):
+               sort_by=None, title=None, show_vals=True, show_pct_diff=False,
+               baseline_data_index=0, **extra_kwargs):
     '''
     Generate multiple histograms, one for each data set within ``X``.
 
@@ -727,6 +728,16 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
         according to the names of the groups.
     title : str
         The title of the plot.
+    show_vals : bool
+        Whether to show mean and/or median values along the mean/median bars.
+        Only effective if ``showmeans`` and/or ``showmedians`` are turned on.
+    show_pct_diff : bool
+        Whether to show percent difference of mean and/or median values
+        between different data sets. Only effective when ``show_vals`` is
+        set to ``True``.
+    baseline_data_index : int
+        Which data set is considered the "baseline" when showing percent
+        differences.
     **extra_kwargs : dict
         Other keyword arguments to be passed to ``matplotlib.pyplot.bar()``.
 
@@ -739,12 +750,13 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
     '''
     _check_violin_plot_or_hist_multi_input(X, data_names, nan_warning)
 
-    data, data_names, n_datasets = _preprocess_violin_plot_data(X,
-                                                      data_names=data_names,
-                                                      nan_warning=nan_warning)
+    data, data_names, n_datasets = _preprocess_violin_plot_data(
+        X, data_names=data_names, nan_warning=nan_warning,
+    )
 
-    data_with_names = _prepare_violin_plot_data(data, data_names,
-                                                sort_by=sort_by, vert=vert)
+    data_with_names = _prepare_violin_plot_data(
+        data, data_names, sort_by=sort_by, vert=vert,
+    )
 
     if isinstance(bins, int):
         flattened_data = []
@@ -759,7 +771,10 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
                                  showmedians=showmedians, vert=vert, rot=rot,
                                  data_ax_label=data_ax_label,
                                  name_ax_label=name_ax_label,
-                                 title=title, **extra_kwargs)
+                                 title=title, show_vals=show_vals,
+                                 show_pct_diff=show_pct_diff,
+                                 baseline_data_index=baseline_data_index,
+                                 **extra_kwargs)
 
     return fig, ax
 
@@ -768,7 +783,8 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
                        figsize=None, dpi=100, showmeans=True, showmedians=False,
                        vert=False, rot=45, data_ax_label=None,
                        name_ax_label=None, show_legend=True, title=None,
-                       **extra_kwargs):
+                       show_vals=True, show_pct_diff=False,
+                       baseline_data_index=0, **extra_kwargs):
     '''
     Helper function to multi_hist().
 
@@ -828,6 +844,16 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
         according to the names of the groups.
     title : str
         The title of the plot.
+    show_vals : bool
+        Whether to show mean and/or median values along the mean/median bars.
+        Only effective if ``showmeans`` and/or ``showmedians`` are turned on.
+    show_pct_diff : bool
+        Whether to show percent difference of mean and/or median values
+        between different data sets. Only effective when ``show_vals`` is
+        set to ``True``.
+    baseline_data_index : int
+        Which data set is considered the "baseline" when showing percent
+        differences.
     **extra_kwargs : dict
         Other keyword arguments to be passed to ``matplotlib.pyplot.bar()``.
 
@@ -851,6 +877,8 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
         l2 = 3.5
         figsize = (l1, l2) if vert else (l2, l1)
 
+    mean_vals = []
+    median_vals = []
     fig, ax = hlp._process_fig_ax_objects(fig, ax, figsize, dpi)
     for i, data_i in enumerate(data):
         freq_bar_heights, bin_edges = np.histogram(data_i, bins=bins)
@@ -870,6 +898,7 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
         mbl = 0.8  # mean/median bar length
         if showmeans:
             mean_val = np.mean(data_i)
+            mean_vals.append(mean_val)
             label_1 = 'mean' if i == 0 else None
             if vert:
                 ax.plot([i+1, i+1+mbl], [mean_val] * 2, c='k', label=label_1,
@@ -879,6 +908,7 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
                         alpha=0.6)
         if showmedians:
             median_val = np.median(data_i)
+            median_vals.append(median_val)
             label_2 = 'median' if i == 0 else None
             if vert:
                 ax.plot([i+1, i+1+mbl], [median_val] * 2, c='k', ls='--',
@@ -886,6 +916,86 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
             else:
                 ax.plot([median_val] * 2, [i+1, i+1+mbl], c='k', ls='--',
                         alpha=0.6, label=label_2)
+
+    #~~~~~~~~~~ Print values of mean and/or median ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if show_vals and (len(mean_vals) > 0 or len(median_vals) > 0):
+        if len(mean_vals) == 0:
+            mean_vals = [None] * n_datasets
+        # END
+        if len(median_vals) == 0:
+            median_vals = [None] * n_datasets
+        # END
+
+        bdi = baseline_data_index
+        if not isinstance(bdi, int):
+            raise TypeError('`baseline_data_index` should be an int.')
+        # END
+        if bdi > n_datasets - 1:
+            raise ValueError(f'`baseline_data_index` not in [0, {n_datasets}).')
+        # END
+
+        def _annotate(value, ax, i, base_val, vert=True, below=True):
+            if i != bdi:
+                if base_val != 0:
+                    pct_diff = (value - base_val) / abs(base_val) * 100
+                else:
+                    pct_diff = None
+                # END
+            else:  # this value is the base value; no need to calculate pct_diff
+                pct_diff = None
+            # END
+
+            if not show_pct_diff or pct_diff is None:
+                fmt = '%.3g' if abs(value) < 10 else '%.2f'
+                txt = fmt % value
+            else:
+                fmt1 = '%.3g' if abs(value) < 10 else '%.2f'
+                fmt2 = '%.1f'
+                sign = '+' if pct_diff > 0 else ''
+                txt = f'{fmt1} ({sign}{fmt2}%%)' % (value, pct_diff)
+            # END
+
+            if vert:
+                y_span = ax.get_ylim()[1] - ax.get_ylim()[0]
+                gap = y_span / 50
+                x_position = i + 1.5
+                y_position = value - gap if below else value + gap
+                ha = 'center'
+                va = 'top' if below else 'bottom'
+            else:
+                x_span = ax.get_xlim()[1] - ax.get_xlim()[0]
+                gap = x_span / 50
+                x_position = value - gap if below else value + gap
+                y_position = i + 1.5
+                ha = 'right' if below else 'left'
+                va = 'center'
+            # END
+
+            ax.annotate(
+                txt, xy=(x_position, y_position), xycoords='data',
+                ha=ha, va=va,
+            )
+            return
+
+        for i in range(n_datasets):
+            mean_val = mean_vals[i]
+            median_val = median_vals[i]
+            if median_val is None:
+                _annotate(mean_val, ax, i, mean_vals[bdi], vert=vert, below=False)
+            elif mean_val is None:
+                _annotate(median_val, ax, i, median_vals[bdi], vert=vert, below=False)
+            elif mean_val > median_val:
+                _annotate(mean_val, ax, i, mean_vals[bdi], vert=vert, below=False)
+                _annotate(median_val, ax, i, median_vals[bdi], vert=vert, below=True)
+            elif mean_val < median_val:
+                _annotate(mean_val, ax, i, mean_vals[bdi], vert=vert, below=True)
+                _annotate(median_val, ax, i, median_vals[bdi], vert=vert, below=False)
+            else:  # mean val = median val
+                _annotate(mean_val, ax, i, mean_vals[bdi], vert=vert, below=True)
+            # END IF
+        # END FOR
+    # END IF
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     if show_legend:
         ax.legend(loc='best')
