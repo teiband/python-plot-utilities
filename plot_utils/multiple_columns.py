@@ -574,6 +574,12 @@ def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
         All the data. Each element of ``data`` is an array of data points.
     data_names : list<str>
         The names of the data. It should have the same length as ``data``.
+    sort_by : [None, 'name', 'mean', 'median']
+        The method by which to sort the data sets.  If ``None``, then use the
+        original order of ``data`` (i.e., left to right if ``vert`` is ``True``,
+        top to bottom if ``vert`` is ``False``).
+    vert : bool
+        Whether to show the histograms as vertical.
 
     Returns
     -------
@@ -593,7 +599,10 @@ def _prepare_violin_plot_data(data, data_names, sort_by=None, vert=False):
     reverse = not vert
 
     if not sort_by:
-        sorted_list = data_with_names.copy()
+        if not reverse:
+            sorted_list = data_with_names.copy()
+        else:  # for "not vert" histograms, we want the first data set on top
+            sorted_list = data_with_names[::-1]
     elif sort_by == 'name':
         sorted_list = sorted(data_with_names, key=lambda x: x[0],
                              reverse=reverse)
@@ -653,7 +662,7 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
                nan_warning=False, showmeans=True, showmedians=False, vert=True,
                data_names=[], rot=45, name_ax_label=None, data_ax_label=None,
                sort_by=None, title=None, show_vals=True, show_pct_diff=False,
-               baseline_data_index=0, **extra_kwargs):
+               baseline_data_index=0, legend_loc='best', **extra_kwargs):
     '''
     Generate multiple histograms, one for each data set within ``X``.
 
@@ -738,6 +747,8 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
     baseline_data_index : int
         Which data set is considered the "baseline" when showing percent
         differences.
+    legend_loc : str
+        The location specification for the legend.
     **extra_kwargs : dict
         Other keyword arguments to be passed to ``matplotlib.pyplot.bar()``.
 
@@ -774,6 +785,7 @@ def hist_multi(X, bins=10, fig=None, ax=None, figsize=None, dpi=100,
                                  title=title, show_vals=show_vals,
                                  show_pct_diff=show_pct_diff,
                                  baseline_data_index=baseline_data_index,
+                                 legend_loc=legend_loc,
                                  **extra_kwargs)
 
     return fig, ax
@@ -784,7 +796,7 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
                        vert=False, rot=45, data_ax_label=None,
                        name_ax_label=None, show_legend=True, title=None,
                        show_vals=True, show_pct_diff=False,
-                       baseline_data_index=0, **extra_kwargs):
+                       baseline_data_index=0, legend_loc='best', **extra_kwargs):
     '''
     Helper function to multi_hist().
 
@@ -854,6 +866,8 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
     baseline_data_index : int
         Which data set is considered the "baseline" when showing percent
         differences.
+    legend_loc : str
+        The location specification for the legend.
     **extra_kwargs : dict
         Other keyword arguments to be passed to ``matplotlib.pyplot.bar()``.
 
@@ -998,7 +1012,7 @@ def _hist_multi_helper(data_with_names, bins=10, fig=None, ax=None,
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     if show_legend:
-        ax.legend(loc='best')
+        ax.legend(loc=legend_loc)
     ax = hlp.__axes_styling_helper(ax, vert, rot, data_names, n_datasets,
                                    data_ax_label, name_ax_label, title)
     return fig, ax
