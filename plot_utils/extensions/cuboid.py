@@ -1,4 +1,5 @@
 from scipy.spatial.transform.rotation import Rotation
+import numpy as np
 
 
 def cuboid_data(center, size):
