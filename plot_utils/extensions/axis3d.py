@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D # for projection='3d'
 
 
 def get_ax3d(figure=None, subplot=111, figsize=(4, 3), elev=45, azim=45):
