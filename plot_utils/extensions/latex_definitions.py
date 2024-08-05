@@ -6,4 +6,6 @@ from matplotlib import rc, rcParams
 
 rcParams['font.family'] = 'serif'
 rcParams['font.serif'] = 'Times New Roman'
+rcParams['pdf.fonttype'] = 42 # allows only true type fonts
+rcParams['ps.fonttype'] = 42 # allows only true type fonts
 rc('text', usetex=True)
